@@ -3,8 +3,8 @@ import math
 from torch import nn
 from torch import Tensor
 from typing import Optional, Tuple, Union, Dict
-from cgpt_torch.utils.configs import PretrainedConfig
-from cgpt_torch.train.losses import MaskedSparseCategoricalCrossentropy
+from cgpt.utils.configs import PretrainedConfig
+from cgpt.train.losses import MaskedSparseCategoricalCrossentropy
 
 
 class GELUActivation(nn.Module):

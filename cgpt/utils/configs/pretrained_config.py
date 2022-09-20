@@ -6,11 +6,11 @@ import logging
 import warnings
 from packaging import version
 from typing import Any, Dict, List, Optional, Tuple, Union
-from cgpt_torch.utils import is_torch_available
-from cgpt_torch import __version__
+from cgpt.utils import is_torch_available
+from cgpt import __version__
 
 logger = logging.get_logger(__name__)
-CONFIG_NAME = "../configs/models/default.json"
+CONFIG_NAME = "../configs/models/default.yaml"
 
 
 class PretrainedConfig():

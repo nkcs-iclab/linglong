@@ -1,4 +1,4 @@
-from cgpt_torch.utils.configs import PretrainedConfig
+from cgpt.utils.configs import PretrainedConfig
 
 
 class CGPTConfig(PretrainedConfig):
