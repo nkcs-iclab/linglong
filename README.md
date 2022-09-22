@@ -1,7 +1,7 @@
 # Chinese GPT (PyTorch)
 
 ![version 0.1](https://img.shields.io/badge/version-0.1-3776AB)
-![Python 3.8](https://img.shields.io/badge/Python-3.8-3776AB?logo=python&logoColor=white)
+![Python 3.10](https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white)
 ![PyTorch 1.12.1](https://img.shields.io/badge/PyTorch-1.12.1-EE4C2C?logo=pytorch&logoColor=white)
 
 ## Workflow
