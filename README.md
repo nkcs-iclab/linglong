@@ -1,32 +1,54 @@
-# Chinese GPT (PyTorch)
+# MCPT (PyTorch)
 
-![version 0.1](https://img.shields.io/badge/version-0.1-blue)
+![version 0.2](https://img.shields.io/badge/version-0.2-blue)
 ![Python 3.10](https://img.shields.io/badge/Python-3.10-blue?logo=python&logoColor=white)
-![PyTorch 1.12.1](https://img.shields.io/badge/PyTorch-1.12.1-EE4C2C?logo=pytorch&logoColor=white)
+![PyTorch 2.0](https://img.shields.io/badge/PyTorch-2.0-EE4C2C?logo=pytorch&logoColor=white)
 
-## Workflow
+## Installation
 
-1. Sync with the remote branch (solve possible conflicts).
+1. Clone the repository.
 
-   ```
-   git pull origin main --rebase
-   ```
+    ```
+    git clone https://github.com/alumik/mcpt-torch.git
+    cd mcpt-torch
+    ```
 
-2. Create a new working branch.
+2. Install the package.
 
-   ```
-   git checkout -b <branch>
-   ```
+    ```
+    pip install -e .
+    ```
 
-3. Push your branch to GitHub.
+## Environment Setup
 
-   ```
-   git push origin <branch>
-   ```
+The required packages are not listed in `setup.py` yet, so you need to install them manually.
 
-4. File a pull request on GitHub.
-5. Delete the merged working branch.
+1. Create new conda environment with either `environment.yaml`.
+
+    ```
+    conda env create -f environment.yaml
+    conda activate mcpt-torch
+    ```
+
+2. Install Horovod (optional, for data parallel training).
+
+    ```
+    HOROVOD_GPU_OPERATIONS=NCCL HOROVOD_WITH_PYTORCH=1 pip install horovod[pytorch]
+    ```
+    After successfully installing Horovod, run:
+
+    ```
+    horovodrun --check-build
+    ```
+
+    Every feature that was successfully enabled will be marked with an ‘X’. 
+    If you intended to install Horovod with a feature that is not listed as enabled, you can reinstall Horovod, setting the appropriate environment variables to diagnose failures:
+
+    ```
+    pip uninstall horovod
+    HOROVOD_WITH_...=1 pip install --no-cache-dir horovod
+    ```
 
 ## Copyright
 
-© 2021-2022 College of Software, Nankai University All Rights Reserved
+© 2023 College of Software, Nankai University All Rights Reserved

@@ -1,0 +1,11 @@
+lr: 8.0e-05
+beta_1: 0.9
+beta_2: 0.95
+epsilon: 1.0e-08
+clip_norm: 1
+weight_decay_rate: 0.1
+warmup_tokens: 200000
+decay_tokens: 400000
+batch_size: 4
+epochs: 5
+backward_passes_per_step: 1
