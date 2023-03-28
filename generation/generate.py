@@ -13,7 +13,7 @@ class MCPTGenerate(cmd.Cmd):
 
     def __init__(
             self,
-            config: Dict[str, Any],
+            generation_config: Dict[str, Any],
             tokenizer: mcpt.tokenization.Tokenizer,
             pinyin_tokenizer: mcpt.tokenization.PinyinTokenizer,
             use_pinyin: bool,
@@ -27,7 +27,7 @@ class MCPTGenerate(cmd.Cmd):
             prompt_suffix: str,
     ):
         super().__init__()
-        self._config = config
+        self._generation_config = generation_config
         self._tokenizer = tokenizer
         self._pinyin_tokenizer = pinyin_tokenizer
         self._use_pinyin = use_pinyin
@@ -47,7 +47,7 @@ class MCPTGenerate(cmd.Cmd):
     def _renew_cmd_prompt(self):
         prompt = f'{self._prompt[:10]}...' if len(self._prompt) > 10 else self._prompt
         self.prompt = mcpt.text(f'({prompt})', style=mcpt.WARNING)
-        self.prompt += f' [max length: {mcpt.text(self._config["length"], style=mcpt.STRUCTURE)}'
+        self.prompt += f' [max length: {mcpt.text(self._generation_config["length"], style=mcpt.STRUCTURE)}'
         if self._prompt_prefix:
             self.prompt += f', prefix: {mcpt.text(self._prompt_prefix, style=mcpt.STRUCTURE)}'
         if self._prompt_suffix:
@@ -75,10 +75,10 @@ class MCPTGenerate(cmd.Cmd):
             print(token, end='', flush=True)
 
     def _generate(self):
-        step_by_step = self._config['batch_size'] == 1 and not self._backward
+        step_by_step = self._generation_config['batch_size'] == 1 and not self._backward
         prompt = self._prompt_prefix + (self._prompt[::-1] if self._backward else self._prompt) + self._prompt_suffix
         with mcpt.running(
-                f'Generating {self._config["batch_size"]} sample(s)',
+                f'Generating {self._generation_config["batch_size"]} sample(s)',
                 spinner=not step_by_step,
                 timer=True,
         ) as spinner:
@@ -95,7 +95,7 @@ class MCPTGenerate(cmd.Cmd):
                     print(f'{mcpt.text(prompt, style=mcpt.ERROR)}', end='')
                 samples = mcpt.sampling.sample(
                     model_config=self._model_config,
-                    config=self._config,
+                    config=self._generation_config,
                     prompt_ids=prompt_ids,
                     model=self._model,
                     end_id=self._end_id,
@@ -120,20 +120,20 @@ class MCPTGenerate(cmd.Cmd):
             v = int(v)
         elif k in ('temperature', 'top_p'):
             v = float(v)
-        elif k == 'prompt_prefix':
+        elif k == 'prefix':
             self._prompt_prefix = v
-        elif k == 'prompt_suffix':
+        elif k == 'suffix':
             self._prompt_suffix = v
         if k == 'length' and v > self._model_config['n_ctx']:
             warnings.warn(f'The max generation length is set to {v}. '
                           f'Generating text longer than {self._model_config["n_ctx"]} '
                           f'characters may lead to suboptimal performance.')
-        self._config[k] = v
+        self._generation_config[k] = v
         print(mcpt.text(f'`{k}` is set to {v}', style=mcpt.INFO))
         self._renew_cmd_prompt()
 
     def do_config(self, _):
-        mcpt.print_dict(self._config)
+        mcpt.print_dict(self._generation_config)
 
     @staticmethod
     def do_clear(_):
@@ -171,14 +171,14 @@ def main(
         prompt_suffix: str = '',
 ):
     load_model = model
-    config = {
+    generation_config = {
         'batch_size': batch_size,
         'length': length,
         'temperature': temperature,
         'top_k': top_k,
         'top_p': top_p,
-        'prompt_prefix': prompt_prefix,
-        'prompt_suffix': prompt_suffix,
+        'prefix': prompt_prefix,
+        'suffix': prompt_suffix,
     }
     special_tokens = {
         'start-token': '[MASK]',
@@ -207,9 +207,10 @@ def main(
                 use_pinyin=use_pinyin,
             )
             model.to(device)
+            model.eval()
 
         MCPTGenerate(
-            config=config,
+            generation_config=generation_config,
             model_config=model_config,
             tokenizer=tokenizer,
             pinyin_tokenizer=pinyin_tokenizer,
