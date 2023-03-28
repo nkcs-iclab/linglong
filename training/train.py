@@ -5,6 +5,7 @@ import pathlib
 from typing import *
 
 import mcpt
+import mcpt.records
 
 try:
     import horovod.torch as hvd
@@ -121,10 +122,10 @@ def main(
             with torch.cuda.amp.autocast():
                 logits, present = model(data)
                 loss = torch.nn.functional.cross_entropy(logits.permute(0, 2, 1), target, ignore_index=0)
-                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=training_config['clip_norm'])
             scaler.scale(loss).backward()
             optimizer.synchronize()
             scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=training_config['clip_norm'])
             with optimizer.skip_synchronize():
                 scaler.step(optimizer)
             scaler.update()
