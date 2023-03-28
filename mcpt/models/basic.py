@@ -68,6 +68,7 @@ class Attention(nn.Module):
             n_input=self.n_embd,
             init_std=0.02 * (1.0 / math.sqrt(2 * config['n_layer'])),
         )
+        self.attn_mask = None
         self.dropout = nn.Dropout(config['attn_dropout'])
 
     def _attn(self, q, k, v):
@@ -82,14 +83,11 @@ class Attention(nn.Module):
 
     @staticmethod
     def _attention_mask(nd, ns, *, device, dtype):
-        i = torch.arange(nd)[:, None].to(device)
-        j = torch.arange(ns).to(device)
-        m = i >= j - ns + nd
-        return m.type(dtype=dtype)
+        return torch.tril(torch.ones([nd, ns], dtype=dtype, device=device), diagonal=ns - nd)
 
     @staticmethod
     def _sparse_attention_mask(nd, ns, stride, c, *, device, dtype):
-        layout = torch.zeros([ns, ns], dtype=torch.bool).to(device)
+        layout = torch.zeros([ns, ns], dtype=dtype, device=device)
         for idx in range(c):
             layout[:, (stride - 1 - idx)::stride] = 1
         for q_idx in range(ns):
@@ -97,16 +95,19 @@ class Attention(nn.Module):
             layout[q_idx, row * stride:(row + 1) * stride] = 1
             # Any query cannot attend to keys above it.
             layout[q_idx, q_idx + 1:] = 0
-        return layout[(ns - nd):].type(dtype=dtype)
+        return layout[(ns - nd):]
 
     def _mask_attn_weights(self, w):
         # w has shape [batch, heads, dst_sequence, src_sequence], where information flows from src to dst.
         _, _, nd, ns = w.shape
-        if self.mode == 'sparse' and self.blk_idx % 2 != 0:
-            b = self._sparse_attention_mask(nd, ns, self.stride, self.c, device=w.device, dtype=w.dtype)
-        else:
-            b = self._attention_mask(nd, ns, device=w.device, dtype=w.dtype)
-        b = b.view(1, 1, nd, ns)
+        if self.attn_mask is None or self.attn_mask.size() != torch.Size([nd, ns]):
+            if self.mode == 'sparse' and self.blk_idx % 2 != 0:
+                self.attn_mask = self._sparse_attention_mask(
+                    nd, ns, self.stride, self.c, device=w.device, dtype=w.dtype
+                )
+            else:
+                self.attn_mask = self._attention_mask(nd, ns, device=w.device, dtype=w.dtype)
+        b = self.attn_mask.view(1, 1, nd, ns)
         w = w * b - 1e10 * (1 - b)
         return w
 
