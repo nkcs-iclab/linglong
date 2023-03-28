@@ -6,7 +6,6 @@ import colorama
 import warnings
 import mergedeep
 import contextlib
-import numpy as np
 
 from tqdm import tqdm as tqdm_tqdm
 from typing import *

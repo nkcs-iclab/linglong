@@ -1,8 +1,8 @@
 # MCPT (PyTorch)
 
 ![version 0.2](https://img.shields.io/badge/version-0.2-blue)
-![Python 3.10](https://img.shields.io/badge/Python-3.10-blue?logo=python&logoColor=white)
-![PyTorch 2.0](https://img.shields.io/badge/PyTorch-2.0-EE4C2C?logo=pytorch&logoColor=white)
+![Python 3.10-3.11](https://img.shields.io/badge/Python->=3.10,<=3.11-blue?logo=python&logoColor=white)
+![PyTorch 2.0.0](https://img.shields.io/badge/PyTorch-2.0.0-EE4C2C?logo=pytorch&logoColor=white)
 
 ## Installation
 
@@ -33,7 +33,11 @@ The required packages are not listed in `setup.py` yet, so you need to install t
 2. Install Horovod (optional, for data parallel training).
 
     ```
-    HOROVOD_GPU_OPERATIONS=NCCL HOROVOD_WITH_PYTORCH=1 pip install horovod[pytorch]
+    HOROVOD_NCCL_INCLUDE=$CONDA_PREFIX/include/ \
+      HOROVOD_NCCL_LIB=$CONDA_PREFIX/lib/ \
+      HOROVOD_GPU_OPERATIONS=NCCL \
+      HOROVOD_WITH_PYTORCH=1 \
+      pip install horovod[pytorch]
     ```
     After successfully installing Horovod, run:
 

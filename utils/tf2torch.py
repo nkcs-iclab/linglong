@@ -1,5 +1,8 @@
 import fire
 import torch
+import pathlib
+
+from typing import *
 
 import cgpt
 import mcpt
@@ -34,14 +37,10 @@ def tf_idx(idx: int):
     return f'_{idx}' if idx > 0 else ''
 
 
-def main(
-        model_config: str = '/home/lidongwen/chinese-gpt/common/model-configs/317M-WSZ1024L24.yaml',
-        tf_model: str = '/home/lidongwen/chinese-gpt-data/base-models/PT-01-GENERIC-WSZ1024-DP20-317M/V12.h5',
-        torch_model: str = '/home/lidongwen/chinese-gpt-data/base-models/PT-01-GENERIC-WSZ1024-DP20-317M/V12-torch.pt',
-):
-    _, tf_model = load_tf_model(model_config, tf_model)
+def main(model_config: str, tf_model: str, torch_model: Optional[str] = None):
+    _, tf_model_ = load_tf_model(model_config, tf_model)
     model_config, torch_model_ = create_torch_model(model_config)
-    tf_weights = tf_model.weights
+    tf_weights = tf_model_.weights
     torch_weights = torch_model_.state_dict()
 
     set_weight('transformer.wte.weight', 'cgpt_layer/embedding/embedding_1/embeddings:0', torch_weights, tf_weights)
@@ -104,8 +103,11 @@ def main(
     set_weight('transformer.ln_f.bias', f'cgpt_layer/layer_normalization{tf_idx(ln_idx)}/beta:0', torch_weights,
                tf_weights)
     torch_model_.load_state_dict(torch_weights)
+    if torch_model is None:
+        torch_model = pathlib.Path(tf_model).with_suffix('.pt')
     torch.save(torch_weights, torch_model)
 
 
 if __name__ == '__main__':
+    mcpt.init()
     fire.Fire(main)

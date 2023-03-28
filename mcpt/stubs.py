@@ -26,9 +26,6 @@ class Horovod:
     def broadcast_optimizer_state(self, *args, **kwargs):
         pass
 
-    def broadcast_object(self, *args, **kwargs):
-        pass
-
     # noinspection PyPep8Naming
     @staticmethod
     def DistributedOptimizer(optimizer, **_):

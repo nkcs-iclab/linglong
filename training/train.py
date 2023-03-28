@@ -79,7 +79,7 @@ def main(
         )
         model.to(device)
         training_config['lr'] = training_config['lr'] * hvd.size() * training_config['backward_passes_per_step']
-        optimizer = mcpt.train.optimizers.adamw_warmup_cosine_decay(model.parameters(), config=training_config)
+        optimizer = mcpt.train.optimizers.adamw(model.parameters(), config=training_config)
         optimizer = hvd.DistributedOptimizer(
             optimizer,
             named_parameters=model.named_parameters(),
@@ -90,7 +90,7 @@ def main(
             optimizer,
             config=training_config,
             n_ctx=model_config['n_ctx'],
-            data_parallel_size=hvd.size(),
+            dp_size=hvd.size(),
         )
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)
         hvd.broadcast_optimizer_state(optimizer, root_rank=0)
@@ -133,7 +133,8 @@ def main(
             loss = loss.item()
             if hvd.rank() == 0:
                 train_tqdm.write(
-                    f'Train Epoch: {epoch}/{training_config["epochs"]} [{batch_idx + 1}/{len(train_loader)}] Loss: {loss} Loss Scale: {scaler.get_scale()}'
+                    f'Train Epoch: {epoch}/{training_config["epochs"]} [{batch_idx + 1}/{len(train_loader)}] '
+                    f'Loss: {loss} Loss Scale: {scaler.get_scale()}'
                 )
             for callback in callbacks:
                 callback(model=model, epoch=epoch, batch=batch_idx + 1, loss=loss)

@@ -3,7 +3,7 @@ import torch
 from typing import *
 
 
-def adamw_warmup_cosine_decay(
+def adamw(
         params,
         config: Dict[str, Any],
 ) -> torch.optim.Optimizer:

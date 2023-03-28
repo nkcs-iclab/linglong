@@ -30,12 +30,12 @@ def cosine_annealing_warmup(
         optimizer,
         config: Dict[str, Any],
         n_ctx: int,
-        data_parallel_size: int = 1,
+        dp_size: int = 1,
         alpha: float = 0.1,
         last_epoch: int = -1,
 ):
-    warmup_steps = int(config['warmup_tokens'] / config['batch_size'] / data_parallel_size / n_ctx)
-    decay_steps = int(config['decay_tokens'] / config['batch_size'] / data_parallel_size / n_ctx)
+    warmup_steps = int(config['warmup_tokens'] / config['batch_size'] / dp_size / n_ctx)
+    decay_steps = int(config['decay_tokens'] / config['batch_size'] / dp_size / n_ctx)
     return CosineAnnealingWarmup(
         optimizer,
         warmup_steps=warmup_steps,
