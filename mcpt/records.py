@@ -93,16 +93,23 @@ class TFRecordDataset(IterableDataset):
             self.tfds = dataset.batch(1)
         else:
             self.tfds = dataset.padded_batch(1, padded_shapes=padded_shapes)
+        self.index = 0
+        self.tfds_iter = iter(self.tfds)
 
     def __len__(self):
         return self.samples_per_rank
 
     def __iter__(self):
-        def _iter():
-            for data, label, _ in self.tfds:
-                yield data.numpy()[0], label.numpy()[0]
+        self.index = 0
+        self.tfds_iter = iter(self.tfds)
+        return self
 
-        return _iter()
+    def __next__(self):
+        if self.index >= self.samples_per_rank:
+            raise StopIteration
+        self.index += 1
+        data, label, mask = next(self.tfds_iter)
+        return data.numpy()[0], label.numpy()[0]
 
 
 def load(
