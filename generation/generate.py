@@ -128,19 +128,27 @@ class MCPTGenerate(cmd.Cmd):
             warnings.warn(f'The max generation length is set to {v}. '
                           f'Generating text longer than {self._model_config["n_ctx"]} '
                           f'characters may lead to suboptimal performance.')
-        self._generation_config[k] = v
+        if k in self._generation_config:
+            self._generation_config[k] = v
         print(mcpt.text(f'`{k}` is set to {v}', style=mcpt.INFO))
         self._renew_cmd_prompt()
 
     def do_config(self, _):
         mcpt.print_dict(self._generation_config)
 
-    @staticmethod
-    def do_clear(_):
-        os.system('cls' if os.name == 'nt' else 'clear')
+    def do_clear(self, arg):
+        if len(arg) == 0:
+            os.system('cls' if os.name == 'nt' else 'clear')
+        else:
+            if arg == 'prefix':
+                self._prompt_prefix = ''
+            elif arg == 'suffix':
+                self._prompt_suffix = ''
+            self._renew_cmd_prompt()
 
     @staticmethod
     def do_exit(_):
+        print(mcpt.text('Goodbye', style=mcpt.INFO))
         return True
 
     def emptyline(self):
@@ -177,8 +185,6 @@ def main(
         'temperature': temperature,
         'top_k': top_k,
         'top_p': top_p,
-        'prefix': prompt_prefix,
-        'suffix': prompt_suffix,
     }
     special_tokens = {
         'start-token': '[MASK]',
@@ -224,8 +230,6 @@ def main(
             prompt_suffix=prompt_suffix,
         ).cmdloop()
     except KeyboardInterrupt:
-        pass
-    finally:
         print(mcpt.text('\nGoodbye', style=mcpt.INFO))
 
 
