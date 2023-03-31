@@ -1,7 +1,7 @@
 # MCPT (PyTorch)
 
-![version 0.2](https://img.shields.io/badge/version-0.2-blue)
-![Python 3.10-3.11](https://img.shields.io/badge/Python->=3.10,<=3.11-blue?logo=python&logoColor=white)
+![version 0.3](https://img.shields.io/badge/version-0.2-blue)
+![Python 3.11](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
 ![PyTorch 2.0.0](https://img.shields.io/badge/PyTorch-2.0.0-EE4C2C?logo=pytorch&logoColor=white)
 
 ## Installation
@@ -52,6 +52,13 @@ The required packages are not listed in `setup.py` yet, so you need to install t
     pip uninstall horovod
     HOROVOD_WITH_...=1 pip install --no-cache-dir horovod
     ```
+   
+## Changelog
+
+### 0.3
+
+- Add modules for evaluation.
+- Refactor `mcpt/sampling.py`. The `Sampler` class is now located in `mcpt/generation.py`.
 
 ## Copyright
 
