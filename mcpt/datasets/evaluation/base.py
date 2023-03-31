@@ -9,7 +9,7 @@ from typing import *
 import mcpt
 
 
-class GenerationDataset(metaclass=abc.ABCMeta):
+class BaseDataset(metaclass=abc.ABCMeta):
 
     def __init__(
             self,
@@ -20,7 +20,7 @@ class GenerationDataset(metaclass=abc.ABCMeta):
             pinyin_vocab_path: str,
             template_id: int,
             special_tokens: Dict[str, str],
-            load_from_cache: bool = False,
+            use_cache: bool = False,
             method: str = 'generation',
             extra_config: Optional[Dict[str, Any]] = None,
     ):
@@ -32,7 +32,7 @@ class GenerationDataset(metaclass=abc.ABCMeta):
             fallback=self._tokenizer,
         )
         self._template_id = template_id
-        self._load_from_cache = load_from_cache
+        self._use_cache = use_cache
         self._extra_config = extra_config
         self._input_path = next(pathlib.Path(self._input_path).glob(f'{self._split}*'))
         self._output_path = pathlib.Path(output_path) / method
@@ -108,7 +108,7 @@ class GenerationDataset(metaclass=abc.ABCMeta):
 
     def prepare(self) -> Tuple[List[Dict[str, Any]], Optional[List[str]]]:
         save_path = self._output_path / f'{self._split}-template-{self._template_id}.pkl'
-        if save_path.is_file() and self._load_from_cache:
+        if save_path.is_file() and self._use_cache:
             with open(save_path, 'rb') as f:
                 data = pickle.load(f)
         else:
@@ -119,7 +119,7 @@ class GenerationDataset(metaclass=abc.ABCMeta):
         return data, self._candidates
 
 
-class PerplexityDataset(GenerationDataset, metaclass=abc.ABCMeta):
+class PerplexityDataset(BaseDataset, metaclass=abc.ABCMeta):
 
     def __init__(self, **kwargs):
         super().__init__(method='perplexity', **kwargs)

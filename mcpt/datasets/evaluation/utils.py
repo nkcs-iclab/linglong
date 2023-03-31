@@ -37,6 +37,6 @@ def load(config: Dict[str, Any]):
         pinyin_vocab_path=config['pinyin-vocab'],
         template_id=config['template-id'],
         special_tokens=config['special-tokens'],
-        load_from_cache=config['use-cache'],
+        use_cache=config['use-cache'],
         extra_config=config.get('extra-config', None),
     )

@@ -1,9 +1,9 @@
 from typing import *
 
-from mcpt.datasets.evaluation.base import GenerationDataset
+from mcpt.datasets.evaluation.base import BaseDataset
 
 
-class SIGHANDataset(GenerationDataset):
+class SIGHANDataset(BaseDataset):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
