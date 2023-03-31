@@ -71,12 +71,10 @@ def bind_gpu(hvd=None, gpu_id: Optional[int] = None):
 
 
 def tqdm(*args, **kwargs) -> tqdm_tqdm:
-    if 'hvd' in kwargs:
-        hvd = kwargs.pop('hvd')
-        if hvd is not None:
-            if hvd.rank() == 0:
-                return tqdm_tqdm(*args, ncols=80, file=sys.stdout, ascii='.=', **kwargs)
-    return args[0]
+    hvd = kwargs.pop('hvd', None)
+    if hvd is not None and hvd.rank() != 0:
+        return args[0] if len(args) > 0 else mcpt.stubs.Noop()
+    return tqdm_tqdm(*args, ncols=80, file=sys.stdout, ascii='.=', **kwargs)
 
 
 def trange(*args, **kwargs) -> tqdm_tqdm:
@@ -183,6 +181,7 @@ def create_model_from_config(
         model_config: Union[str, Dict[str, Any]],
         load_model: Optional[str] = None,
         use_pinyin: bool = False,
+        device: Optional = None,
 ) -> Tuple[Dict[str, Any], Any]:
     if isinstance(model_config, str):
         model_config = load_config(model_config)
@@ -192,5 +191,5 @@ def create_model_from_config(
     else:
         model = mcpt.models.MCPTModel(model_config)
     if load_model is not None:
-        model.load_state_dict(torch.load(load_model))
+        model.load_state_dict(torch.load(load_model, map_location=device))
     return model_config, model
