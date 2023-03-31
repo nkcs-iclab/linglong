@@ -1,6 +1,7 @@
 import fire
 import torch
 import pathlib
+import contextlib
 
 from typing import *
 
@@ -22,6 +23,7 @@ def main(
         validation_data: Optional[str] = None,
         validation_meta: str = 'valid-meta.pkl',
         use_pinyin: bool = False,
+        fp16: bool = False,
         load_model: Optional[str] = None,
         save_path: str = './ckpt',
         save_frequency: Union[int, str, Tuple[Union[int, str], ...]] = 'epoch',
@@ -112,7 +114,7 @@ def main(
     if hvd.rank() == 0:
         print(model)
 
-    scaler = torch.cuda.amp.GradScaler()
+    scaler = torch.cuda.amp.GradScaler() if fp16 else mcpt.stubs.Noop()
     for epoch in range(1, training_config['epochs'] + 1):
         if hvd.rank() == 0:
             print(f'Epoch {epoch}/{training_config["epochs"]}')
@@ -121,15 +123,22 @@ def main(
         for batch_idx, (data, target) in train_tqdm:
             data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
-            with torch.cuda.amp.autocast():
+            with (torch.cuda.amp.autocast() if fp16 else contextlib.nullcontext()):
                 logits, present = model(data)
                 loss = torch.nn.functional.cross_entropy(logits.permute(0, 2, 1), target, ignore_index=0)
-            scaler.scale(loss).backward()
-            optimizer.synchronize()
+            if fp16:
+                scaler.scale(loss).backward()
+            else:
+                loss.backward()
+            if not isinstance(hvd, mcpt.stubs.Horovod):
+                optimizer.synchronize()
             scaler.unscale_(optimizer)
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=training_config['clip_norm'])
-            with optimizer.skip_synchronize():
-                scaler.step(optimizer)
+            with (contextlib.nullcontext() if isinstance(hvd, mcpt.stubs.Horovod) else optimizer.skip_synchronize()):
+                if fp16:
+                    scaler.step(optimizer)
+                else:
+                    optimizer.step()
             scaler.update()
             lr_scheduler.step()
             loss = loss.item()

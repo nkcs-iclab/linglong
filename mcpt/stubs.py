@@ -43,8 +43,8 @@ class Writable:
 
 class Noop:
 
-    def noop(self, *args, **kwargs):
-        pass
+    def noop(self, *_, **__):
+        return self
 
     def __getattr__(self, item):
         return self.noop
