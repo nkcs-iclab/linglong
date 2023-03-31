@@ -5,7 +5,7 @@ with open('README.md', 'r') as f:
 
 setuptools.setup(
     name='mcpt-torch',
-    version='0.3',
+    version='0.4',
     author='NKCS MCPT Team',
     author_email='zyzhong@mail.nankai.edu.cn',
     description='Implementation of MCPT in PyTorch',
