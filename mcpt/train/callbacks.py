@@ -33,4 +33,4 @@ class ModelCheckpointCallback:
         if isinstance(self.save_frequency, int):
             if batch is None or batch % self.save_frequency != 0:
                 return
-        torch.save(model.state_dict(), str(self.save_path.joinpath(save_name)))
+        torch.save(model.state_dict(), str(self.save_path / save_name))

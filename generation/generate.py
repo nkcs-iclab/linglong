@@ -206,6 +206,7 @@ def main(
                 model_config,
                 load_model=load_model,
                 use_pinyin=use_pinyin,
+                device=device,
             )
             model.to(device)
             model.eval()

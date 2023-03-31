@@ -70,11 +70,11 @@ class TFRecordDataset(IterableDataset):
     ):
         super().__init__()
         path = pathlib.Path(path)
-        with open(path.joinpath(meta), 'rb') as f:
+        with open(path / meta, 'rb') as f:
             meta = pickle.load(f)
         padding_shape = meta['padding_shape']
         self.samples_per_rank = math.ceil(meta['count'] / dp_size)
-        dataset = tf.data.TFRecordDataset(list(map(lambda x: str(path.joinpath(x)), meta['files'])))
+        dataset = tf.data.TFRecordDataset(list(map(lambda x: str(path / x), meta['files'])))
 
         if dp_size > 1:
             dataset = dataset.shard(dp_size, dp_rank)

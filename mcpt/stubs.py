@@ -39,3 +39,12 @@ class Writable:
 
     def write(self, text_):
         self._print_fn(text_)
+
+
+class Noop:
+
+    def noop(self, *args, **kwargs):
+        pass
+
+    def __getattr__(self, item):
+        return self.noop
