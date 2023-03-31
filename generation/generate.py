@@ -32,8 +32,6 @@ class MCPTGenerate(cmd.Cmd):
         self._pinyin_tokenizer = pinyin_tokenizer
         self._use_pinyin = use_pinyin
         self._model_config = model_config
-        self._model = model
-        self._device = device
         self._special_tokens = special_tokens
         self._backward = backward
         self._prompt = prompt
@@ -43,6 +41,15 @@ class MCPTGenerate(cmd.Cmd):
         self._next_sample_idx = 1
         self._renew_cmd_prompt()
         self.use_rawinput = True
+        self._sampler = mcpt.generation.Sampler(
+            model_config=self._model_config,
+            model=model,
+            end_id=self._end_id,
+            device=device,
+            tokenizer=self._tokenizer,
+            pinyin_tokenizer=self._pinyin_tokenizer,
+            use_pinyin=self._use_pinyin,
+        )
 
     def _renew_cmd_prompt(self):
         prompt = f'{self._prompt[:10]}...' if len(self._prompt) > 10 else self._prompt
@@ -65,17 +72,16 @@ class MCPTGenerate(cmd.Cmd):
             spinner.write(f'{mcpt.text(text_prompt, style=mcpt.ERROR)}{text_generated}')
             self._next_sample_idx += 1
 
-    def _print_char(self, samples):
-        if samples[0][0] != self._end_id:
-            token = self._tokenizer.convert_ids_to_string(samples[0])
-            if token.startswith('##'):
-                token = token[2:]
-            elif token[0] in set(list(string.ascii_letters)):
-                token = ' ' + token
-            print(token, end='', flush=True)
+    def _print_char(self, token_id: int):
+        token = self._tokenizer.convert_ids_to_string(token_id)
+        if token.startswith('##'):
+            token = token[2:]
+        elif token[0] in set(list(string.ascii_letters)):
+            token = ' ' + token
+        print(token, end='', flush=True)
 
     def _generate(self):
-        step_by_step = self._generation_config['batch_size'] == 1 and not self._backward
+        step_by_step = self._generation_config['batch_size'] == 1
         prompt = self._prompt_prefix + (self._prompt[::-1] if self._backward else self._prompt) + self._prompt_suffix
         with mcpt.running(
                 f'Generating {self._generation_config["batch_size"]} sample(s)',
@@ -93,26 +99,15 @@ class MCPTGenerate(cmd.Cmd):
                 if step_by_step:
                     print(mcpt.text(f'[ ITEM {self._next_sample_idx} ]', style=mcpt.STRUCTURE))
                     print(f'{mcpt.text(prompt, style=mcpt.ERROR)}', end='')
-                samples = mcpt.sampling.sample(
-                    model_config=self._model_config,
-                    config=self._generation_config,
-                    prompt_ids=prompt_ids,
-                    model=self._model,
-                    end_id=self._end_id,
-                    device=self._device,
-                    tokenizer=self._tokenizer,
-                    pinyin_tokenizer=self._pinyin_tokenizer,
-                    use_pinyin=self._use_pinyin,
-                    callback=self._print_char if step_by_step else None,
-                )
+                    for token_id in self._sampler.sample(prompt_ids=prompt_ids, config=self._generation_config):
+                        self._print_char(token_id)
+                    self._next_sample_idx += 1
+                    print()
+                else:
+                    samples = self._sampler.batch_sample(prompt_ids=prompt_ids, config=self._generation_config)
+                    self._print_samples(samples, prompt_ids[0] if self._use_pinyin else prompt_ids, spinner)
             except KeyboardInterrupt:
                 print()
-                return
-            if step_by_step:
-                self._next_sample_idx += 1
-                print()
-            else:
-                self._print_samples(samples, prompt_ids[0] if self._use_pinyin else prompt_ids, spinner)
 
     def do_set(self, arg):
         k, v = arg.split()
