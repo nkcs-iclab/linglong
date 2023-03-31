@@ -25,6 +25,7 @@ def main(
         load_model: Optional[str] = None,
         save_path: str = './ckpt',
         save_frequency: Union[int, str, Tuple[Union[int, str], ...]] = 'epoch',
+        log_frequency: int = 10,
         device: str = 'cuda',
 ):
     hvd.init()
@@ -132,7 +133,7 @@ def main(
             scaler.update()
             lr_scheduler.step()
             loss = loss.item()
-            if hvd.rank() == 0:
+            if hvd.rank() == 0 and (batch_idx + 1) % log_frequency == 0:
                 train_tqdm.write(
                     f'Train Epoch: {epoch}/{training_config["epochs"]} [{batch_idx + 1}/{len(train_loader)}] '
                     f'Loss: {loss} Loss Scale: {scaler.get_scale()}'
