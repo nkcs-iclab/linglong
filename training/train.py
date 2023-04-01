@@ -145,7 +145,7 @@ def main(
             if hvd.rank() == 0 and (batch_idx + 1) % log_frequency == 0:
                 train_tqdm.write(
                     f'Train Epoch: {epoch}/{training_config["epochs"]} [{batch_idx + 1}/{len(train_loader)}] '
-                    f'Loss: {loss} Loss Scale: {scaler.get_scale()}'
+                    f'Loss: {loss}' + (f' Loss Scale: {scaler.get_scale()}' if fp16 else ''),
                 )
             for callback in callbacks:
                 callback(model=model, epoch=epoch, batch=batch_idx + 1, loss=loss)
