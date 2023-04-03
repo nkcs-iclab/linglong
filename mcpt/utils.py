@@ -192,4 +192,5 @@ def create_model_from_config(
         model = mcpt.models.MCPTModel(model_config)
     if load_model is not None:
         model.load_state_dict(torch.load(load_model, map_location=device))
+    model.to(device)
     return model_config, model

@@ -158,7 +158,7 @@ class Sampler:
             prev = self._process_logits(logits[:, -1], config, candidates)
             token_id = prev[0][0].item() if self._use_pinyin else prev.item()
             if token_id == self._end_id:
-                raise StopIteration
+                break
             else:
                 yield token_id
             past = presents if past is None else torch.cat((past, presents), dim=-2)

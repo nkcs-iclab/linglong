@@ -23,8 +23,8 @@ class MCPTGenerate(cmd.Cmd):
             special_tokens: Dict[str, str],
             backward: bool,
             prompt: str,
-            prompt_prefix: str,
-            prompt_suffix: str,
+            prefix: str,
+            suffix: str,
     ):
         super().__init__()
         self._generation_config = generation_config
@@ -35,8 +35,8 @@ class MCPTGenerate(cmd.Cmd):
         self._special_tokens = special_tokens
         self._backward = backward
         self._prompt = prompt
-        self._prompt_prefix = prompt_prefix
-        self._prompt_suffix = prompt_suffix
+        self._prefix = prefix
+        self._suffix = suffix
         self._end_id = self._tokenizer.convert_tokens_to_ids(self._special_tokens['end-token'])
         self._next_sample_idx = 1
         self._renew_cmd_prompt()
@@ -55,10 +55,10 @@ class MCPTGenerate(cmd.Cmd):
         prompt = f'{self._prompt[:10]}...' if len(self._prompt) > 10 else self._prompt
         self.prompt = mcpt.text(f'({prompt})', style=mcpt.WARNING)
         self.prompt += f' [max length: {mcpt.text(self._generation_config["length"], style=mcpt.STRUCTURE)}'
-        if self._prompt_prefix:
-            self.prompt += f', prefix: {mcpt.text(self._prompt_prefix, style=mcpt.STRUCTURE)}'
-        if self._prompt_suffix:
-            self.prompt += f', suffix: {mcpt.text(self._prompt_suffix, style=mcpt.STRUCTURE)}'
+        if self._prefix:
+            self.prompt += f', prefix: {mcpt.text(self._prefix, style=mcpt.STRUCTURE)}'
+        if self._suffix:
+            self.prompt += f', suffix: {mcpt.text(self._suffix, style=mcpt.STRUCTURE)}'
         self.prompt += '] -> '
 
     def _print_samples(self, samples, prompt_ids: List[int], spinner):
@@ -68,6 +68,8 @@ class MCPTGenerate(cmd.Cmd):
                 end_id=self._end_id,
                 tokenizer=self._tokenizer,
         ):
+            text_prompt = text_prompt.replace(self._special_tokens['new-line'], '\\n')
+            text_generated = text_generated.replace(self._special_tokens['new-line'], '\\n')
             spinner.write(mcpt.text(f'[ ITEM {self._next_sample_idx} ]', style=mcpt.STRUCTURE))
             spinner.write(f'{mcpt.text(text_prompt, style=mcpt.ERROR)}{text_generated}')
             self._next_sample_idx += 1
@@ -78,11 +80,13 @@ class MCPTGenerate(cmd.Cmd):
             token = token[2:]
         elif token[0] in set(list(string.ascii_letters)):
             token = ' ' + token
+        elif token == self._special_tokens['new-line']:
+            token = '\\n'
         print(token, end='', flush=True)
 
     def _generate(self):
         step_by_step = self._generation_config['batch_size'] == 1
-        prompt = self._prompt_prefix + (self._prompt[::-1] if self._backward else self._prompt) + self._prompt_suffix
+        prompt = self._prefix + (self._prompt[::-1] if self._backward else self._prompt) + self._suffix
         with mcpt.running(
                 f'Generating {self._generation_config["batch_size"]} sample(s)',
                 spinner=not step_by_step,
@@ -116,9 +120,9 @@ class MCPTGenerate(cmd.Cmd):
         elif k in ('temperature', 'top_p'):
             v = float(v)
         elif k == 'prefix':
-            self._prompt_prefix = v
+            self._prefix = v
         elif k == 'suffix':
-            self._prompt_suffix = v
+            self._suffix = v
         if k == 'length' and v > self._model_config['n_ctx']:
             warnings.warn(f'The max generation length is set to {v}. '
                           f'Generating text longer than {self._model_config["n_ctx"]} '
@@ -128,17 +132,14 @@ class MCPTGenerate(cmd.Cmd):
         print(mcpt.text(f'`{k}` is set to {v}', style=mcpt.INFO))
         self._renew_cmd_prompt()
 
-    def do_config(self, _):
-        mcpt.print_dict(self._generation_config)
-
     def do_clear(self, arg):
         if len(arg) == 0:
             os.system('cls' if os.name == 'nt' else 'clear')
         else:
             if arg == 'prefix':
-                self._prompt_prefix = ''
+                self._prefix = ''
             elif arg == 'suffix':
-                self._prompt_suffix = ''
+                self._suffix = ''
             self._renew_cmd_prompt()
 
     @staticmethod
@@ -170,8 +171,8 @@ def main(
         use_pinyin: bool = False,
         special_tokens: Optional[Dict[str, str]] = None,
         prompt: str = '齐小明，科学家',
-        prompt_prefix: str = '',
-        prompt_suffix: str = '',
+        prefix: str = '',
+        suffix: str = '',
 ):
     load_model = model
     generation_config = {
@@ -186,6 +187,7 @@ def main(
         'end-token': '[CLS]',
         'part-separator': '[unused1]',
         'segment-separator': '[unused2]',
+        'new-line': '[SEP]',
         **(special_tokens or {}),
     }
     try:
@@ -208,7 +210,6 @@ def main(
                 use_pinyin=use_pinyin,
                 device=device,
             )
-            model.to(device)
             model.eval()
 
         MCPTGenerate(
@@ -222,8 +223,8 @@ def main(
             backward=backward,
             use_pinyin=use_pinyin,
             prompt=prompt,
-            prompt_prefix=prompt_prefix,
-            prompt_suffix=prompt_suffix,
+            prefix=prefix,
+            suffix=suffix,
         ).cmdloop()
     except KeyboardInterrupt:
         print(mcpt.text('\nGoodbye', style=mcpt.INFO))
