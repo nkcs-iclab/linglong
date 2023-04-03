@@ -59,6 +59,7 @@ The required packages are not listed in `setup.py` yet, so you need to install t
 
 - Add dataset scripts for fine-tuning.
 - Fix missing guard statements in the training script.
+- Replace `[SEP]` with `\n` in generation results.
 
 ### 0.3
 
