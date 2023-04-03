@@ -41,7 +41,6 @@ def work(
         use_pinyin=config['use-pinyin'],
         device=device,
     )
-    model.to(device)
     y_pred = eval_fn(
         x=x,
         model=model,

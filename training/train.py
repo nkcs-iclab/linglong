@@ -81,7 +81,6 @@ def main(
             use_pinyin=use_pinyin,
             device=device,
         )
-        model.to(device)
         training_config['lr'] = training_config['lr'] * hvd.size() * training_config['backward_passes_per_step']
         optimizer = mcpt.train.optimizers.adamw(model.parameters(), config=training_config)
         optimizer = hvd.DistributedOptimizer(
