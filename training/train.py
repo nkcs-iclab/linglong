@@ -75,8 +75,8 @@ def main(
         )
 
     with mcpt.running('Loading the model', hvd=hvd, timer=True):
-        model_config, model = mcpt.create_model_from_config(
-            model_config,
+        model = mcpt.models.Model.from_config(
+            config=model_config,
             load_model=load_model,
             use_pinyin=use_pinyin,
             device=device,
@@ -92,7 +92,7 @@ def main(
         lr_scheduler = mcpt.train.schedulers.cosine_annealing_warmup(
             optimizer,
             config=training_config,
-            n_ctx=model_config['n_ctx'],
+            n_ctx=model.config['n_ctx'],
             dp_size=hvd.size(),
         )
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)

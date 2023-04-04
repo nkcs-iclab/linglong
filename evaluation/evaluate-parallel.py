@@ -35,8 +35,8 @@ def work(
         callbacks: Optional[List[Callable]] = None,
 ):
     eval_fn = mcpt.evaluation.get_eval_fn(config.get('evaluation-method', 'generation'))
-    model_config, model = mcpt.create_model_from_config(
-        config['model-config'],
+    model = mcpt.models.Model.from_config(
+        config=config['model-config'],
         load_model=config['model'],
         use_pinyin=config['use-pinyin'],
         device=device,
@@ -49,7 +49,6 @@ def work(
         config=config,
         tokenizer=tokenizer,
         candidates=candidates,
-        model_config=model_config,
         pinyin_tokenizer=pinyin_tokenizer,
         special_token_ids=special_token_ids,
         device=device,

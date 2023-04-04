@@ -175,22 +175,3 @@ def running(text_: str, spinner: bool = True, hvd=None, **kwargs):
     else:
         print(text(text_, style=INFO))
         yield mcpt.stubs.Writable()
-
-
-def create_model_from_config(
-        model_config: Union[str, Dict[str, Any]],
-        load_model: Optional[str] = None,
-        use_pinyin: bool = False,
-        device: Optional = None,
-) -> Tuple[Dict[str, Any], Any]:
-    if isinstance(model_config, str):
-        model_config = load_config(model_config)
-    if use_pinyin:
-        model = mcpt.models.MCPTPinyinModel(model_config)
-        model.build(input_shape=(None, 2, model_config['n_ctx']))
-    else:
-        model = mcpt.models.MCPTModel(model_config)
-    if load_model is not None:
-        model.load_state_dict(torch.load(load_model, map_location=device))
-    model.to(device)
-    return model_config, model

@@ -63,15 +63,13 @@ class Sampler:
 
     def __init__(
             self,
-            model_config: Dict[str, Any],
-            model,
+            model: mcpt.models.Model,
             end_id: int,
             device: str,
-            tokenizer=None,
-            pinyin_tokenizer=None,
+            tokenizer: mcpt.tokenization.Tokenizer = None,
+            pinyin_tokenizer: mcpt.tokenization.PinyinTokenizer = None,
             use_pinyin: bool = False,
     ):
-        self._model_config = model_config
         self._model = model
         self._end_id = end_id
         self._device = device
@@ -105,11 +103,11 @@ class Sampler:
     def _past_shape(self, batch_size: int) -> List[int]:
         return [
             batch_size,
-            self._model_config['n_layer'],
+            self._model.config['n_layer'],
             2,
-            self._model_config['n_head'],
+            self._model.config['n_head'],
             -1,  # n_ctx,
-            self._model_config['n_embd'] // self._model_config['n_head'],
+            self._model.config['n_embd'] // self._model.config['n_head'],
         ]
 
     def _process_logits(self, logits, config: Dict[str, Any], candidates):
@@ -165,9 +163,8 @@ class Sampler:
 
 
 def generate(
-        model,
-        model_config: Dict[str, Any],
-        tokenizer,
+        model: mcpt.models.Model,
+        tokenizer: mcpt.tokenization.Tokenizer,
         prompt: str,
         device: str,
         temperature: float = 1.0,
@@ -177,7 +174,7 @@ def generate(
         start_token: str = '[MASK]',
         end_token: str = '[CLS]',
 ) -> str:
-    sampler = Sampler(model_config, model, tokenizer.convert_tokens_to_ids(end_token), device)
+    sampler = Sampler(model, tokenizer.convert_tokens_to_ids(end_token), device)
     prompt_ids = tokenizer.convert_string_to_ids(prompt)
     prompt_ids = [tokenizer.convert_tokens_to_ids(start_token)] + prompt_ids
     config = {

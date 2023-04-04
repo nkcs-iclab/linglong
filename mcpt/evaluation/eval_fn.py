@@ -17,7 +17,6 @@ def generation(x: List[np.ndarray], model, callbacks: Optional[Callable] = None,
         kwargs['candidates'].append(kwargs['special_token_ids']['end-token'])
     y_pred = []
     sampler = mcpt.generation.Sampler(
-        model_config=kwargs['model_config'],
         model=model,
         end_id=kwargs['special_token_ids']['end-token'],
         device=kwargs['device'],

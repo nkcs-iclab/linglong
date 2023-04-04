@@ -14,8 +14,8 @@ def load_tf_model(model_config: str, path: str):
 
 
 def create_torch_model(model_config: str):
-    model_config, model = mcpt.create_model_from_config(model_config)
-    return model_config, model
+    model = mcpt.models.Model.from_config(model_config)
+    return model.config, model
 
 
 def find_tf_weight(weights, key: str):

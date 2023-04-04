@@ -17,8 +17,7 @@ class MCPTGenerate(cmd.Cmd):
             tokenizer: mcpt.tokenization.Tokenizer,
             pinyin_tokenizer: mcpt.tokenization.PinyinTokenizer,
             use_pinyin: bool,
-            model_config: Dict[str, Any],
-            model: mcpt.models.MCPTModel,
+            model: mcpt.models.Model,
             device: str,
             special_tokens: Dict[str, str],
             backward: bool,
@@ -31,7 +30,7 @@ class MCPTGenerate(cmd.Cmd):
         self._tokenizer = tokenizer
         self._pinyin_tokenizer = pinyin_tokenizer
         self._use_pinyin = use_pinyin
-        self._model_config = model_config
+        self._model = model
         self._special_tokens = special_tokens
         self._backward = backward
         self._prompt = prompt
@@ -42,8 +41,7 @@ class MCPTGenerate(cmd.Cmd):
         self._renew_cmd_prompt()
         self.use_rawinput = True
         self._sampler = mcpt.generation.Sampler(
-            model_config=self._model_config,
-            model=model,
+            model=self._model,
             end_id=self._end_id,
             device=device,
             tokenizer=self._tokenizer,
@@ -123,9 +121,9 @@ class MCPTGenerate(cmd.Cmd):
             self._prefix = v
         elif k == 'suffix':
             self._suffix = v
-        if k == 'length' and v > self._model_config['n_ctx']:
+        if k == 'length' and v > self._model.config['n_ctx']:
             warnings.warn(f'The max generation length is set to {v}. '
-                          f'Generating text longer than {self._model_config["n_ctx"]} '
+                          f'Generating text longer than {self._model.config["n_ctx"]} '
                           f'characters may lead to suboptimal performance.')
         if k in self._generation_config:
             self._generation_config[k] = v
@@ -204,8 +202,8 @@ def main(
                               f'characters may lead to suboptimal performance.')
 
         with mcpt.running('Loading the model', timer=True):
-            model_config, model = mcpt.create_model_from_config(
-                model_config,
+            model = mcpt.models.Model.from_config(
+                config=model_config,
                 load_model=load_model,
                 use_pinyin=use_pinyin,
                 device=device,
@@ -214,7 +212,6 @@ def main(
 
         MCPTGenerate(
             generation_config=generation_config,
-            model_config=model_config,
             tokenizer=tokenizer,
             pinyin_tokenizer=pinyin_tokenizer,
             model=model,

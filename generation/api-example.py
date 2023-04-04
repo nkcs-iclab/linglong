@@ -10,15 +10,15 @@ def main(
         vocab: str = '../common/vocab/char-13312.txt',
         device: str = 'cuda',
 ):
-    model_config, model = mcpt.create_model_from_config(
-        model_config=model_config,
+    model = mcpt.models.Model.from_config(
+        config=model_config,
         load_model=model,
         device=device,
     )
+    model.eval()
     tokenizer = mcpt.tokenization.Tokenizer(vocab)
     generated = mcpt.generation.generate(
         model=model,
-        model_config=model_config,
         tokenizer=tokenizer,
         prompt=prompt,
         device=device,

@@ -161,7 +161,7 @@ class Block(nn.Module):
         return h, present
 
 
-class MCPTLayer(nn.Module):
+class MCPTModel(nn.Module):
     supports_gradient_checkpointing = True
 
     def __init__(self, config: Dict[str, Any]):
@@ -195,13 +195,3 @@ class MCPTLayer(nn.Module):
         h = self.ln_f(h)
         logits = torch.matmul(h, self.wte.weight.t())
         return logits, presents
-
-
-class MCPTModel(nn.Module):
-
-    def __init__(self, config: Dict[str, Any]):
-        super().__init__()
-        self.transformer = MCPTLayer(config)
-
-    def forward(self, inputs, past=None):
-        return self.transformer(inputs, past=past)
