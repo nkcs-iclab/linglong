@@ -38,7 +38,7 @@ def main(
             'use-cache': use_cache,
             'special-tokens': special_tokens,
         }, mcpt.load_config(dataset_config, key=dataset))
-        tokenizer = mcpt.tokenization.Tokenizer(vocab)
+        tokenizer = mcpt.Tokenizer(vocab)
         spinner.write(mcpt.print_dict(config, export=True))
 
     with mcpt.running(f'Loading {dataset} dataset', spinner=use_cache):

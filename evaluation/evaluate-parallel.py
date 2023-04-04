@@ -28,14 +28,14 @@ def work(
         config: Dict[str, Any],
         pid: int,
         offset: int,
-        tokenizer: mcpt.tokenization.Tokenizer,
-        pinyin_tokenizer: mcpt.tokenization.PinyinTokenizer,
+        tokenizer: mcpt.Tokenizer,
+        pinyin_tokenizer: mcpt.PinyinTokenizer,
         special_token_ids: Dict[str, int],
         device: str,
         callbacks: Optional[List[Callable]] = None,
 ):
     eval_fn = mcpt.evaluation.get_eval_fn(config.get('evaluation-method', 'generation'))
-    model = mcpt.models.Model.from_config(
+    model = mcpt.Model.from_config(
         config=config['model-config'],
         load_model=config['model'],
         use_pinyin=config['use-pinyin'],
@@ -107,8 +107,8 @@ def main(
             kwargs,
         )
 
-        tokenizer = mcpt.tokenization.Tokenizer(vocab)
-        pinyin_tokenizer = mcpt.tokenization.PinyinTokenizer(vocab_file=pinyin_vocab, fallback=tokenizer)
+        tokenizer = mcpt.Tokenizer(vocab)
+        pinyin_tokenizer = mcpt.PinyinTokenizer(vocab_file=pinyin_vocab, fallback=tokenizer)
         output_path = mcpt.evaluation.get_output_path(config)
         config['output-path'] = output_path
         special_token_ids = {

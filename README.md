@@ -60,7 +60,8 @@ The required packages are not listed in `setup.py` yet, so you need to install t
 - Add dataset scripts for fine-tuning.
 - Fix missing guard statements in the training script.
 - Replace `[SEP]` with `\n` in generation results.
-- Add `mcpt.models.Model` class. This class can be used to load a specified model from a checkpoint.
+- Add `mcpt.Model` class. This class can be used to load a specified model from a checkpoint.
+- Export `mcpt.Tokenizer`, `mcpt.PinyinTokenizer`, and `mcpt.generate` to the top-level module.
 
 ### 0.3
 

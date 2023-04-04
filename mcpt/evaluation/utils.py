@@ -119,7 +119,7 @@ class LogResultCallback(BaseCallback):
             self,
             path: str,
             verbose: int,
-            tokenizer: mcpt.tokenization.Tokenizer,
+            tokenizer: mcpt.Tokenizer,
             use_perplexity: bool = False,
             use_pinyin: bool = False,
             lock: Optional[multiprocessing.Lock] = None,

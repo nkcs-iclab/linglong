@@ -14,10 +14,10 @@ class MCPTGenerate(cmd.Cmd):
     def __init__(
             self,
             generation_config: Dict[str, Any],
-            tokenizer: mcpt.tokenization.Tokenizer,
-            pinyin_tokenizer: mcpt.tokenization.PinyinTokenizer,
+            tokenizer: mcpt.Tokenizer,
+            pinyin_tokenizer: mcpt.PinyinTokenizer,
             use_pinyin: bool,
-            model: mcpt.models.Model,
+            model: mcpt.Model,
             device: str,
             special_tokens: Dict[str, str],
             backward: bool,
@@ -190,8 +190,8 @@ def main(
     }
     try:
         with mcpt.running('Loading configs'):
-            tokenizer = mcpt.tokenization.Tokenizer(vocab)
-            pinyin_tokenizer = mcpt.tokenization.PinyinTokenizer(
+            tokenizer = mcpt.Tokenizer(vocab)
+            pinyin_tokenizer = mcpt.PinyinTokenizer(
                 vocab_file=pinyin_vocab,
                 fallback=tokenizer,
             )
@@ -202,7 +202,7 @@ def main(
                               f'characters may lead to suboptimal performance.')
 
         with mcpt.running('Loading the model', timer=True):
-            model = mcpt.models.Model.from_config(
+            model = mcpt.Model.from_config(
                 config=model_config,
                 load_model=load_model,
                 use_pinyin=use_pinyin,

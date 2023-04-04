@@ -14,7 +14,7 @@ def load_tf_model(model_config: str, path: str):
 
 
 def create_torch_model(model_config: str):
-    model = mcpt.models.Model.from_config(model_config)
+    model = mcpt.Model.from_config(model_config)
     return model.config, model
 
 

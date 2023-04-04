@@ -138,7 +138,7 @@ def print_dict(
     print(formatted)
 
 
-def print_training_records(records, tokenizer: mcpt.tokenization.Tokenizer):
+def print_training_records(records, tokenizer: mcpt.Tokenizer):
     data, label, mask = records
     output = {
         'shape': {

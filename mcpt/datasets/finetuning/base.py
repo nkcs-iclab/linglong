@@ -31,8 +31,8 @@ class BaseDataset:
         self._input_path = next(pathlib.Path(input_path).glob(f'{self._split}*'))
         self._output_path = pathlib.Path(output_path) / f'template-{template_id}{"-pinyin" if self._use_pinyin else ""}'
         self._output_path.mkdir(parents=True, exist_ok=True)
-        self._tokenizer = mcpt.tokenization.Tokenizer(vocab_path)
-        self._pinyin_tokenizer = mcpt.tokenization.PinyinTokenizer(
+        self._tokenizer = mcpt.Tokenizer(vocab_path)
+        self._pinyin_tokenizer = mcpt.PinyinTokenizer(
             vocab_file=pinyin_vocab_path,
             fallback=self._tokenizer,
         )

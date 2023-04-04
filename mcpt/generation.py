@@ -9,8 +9,8 @@ import mcpt
 
 def convert_prompt_to_ids(
         prompt: str,
-        tokenizer: mcpt.tokenization.Tokenizer,
-        pinyin_tokenizer: mcpt.tokenization.PinyinTokenizer,
+        tokenizer: mcpt.Tokenizer,
+        pinyin_tokenizer: mcpt.PinyinTokenizer,
         special_tokens: Dict[str, str],
         use_pinyin: bool = False,
 ) -> Union[List[int], List[List[int]]]:
@@ -45,7 +45,7 @@ def process_samples(
         samples,
         prompt_ids: List[int],
         end_id: int,
-        tokenizer: mcpt.tokenization.Tokenizer,
+        tokenizer: mcpt.Tokenizer,
 ):
     # Exclude the start token.
     samples = np.asarray(samples.to('cpu'))[:, 1:]
@@ -63,11 +63,11 @@ class Sampler:
 
     def __init__(
             self,
-            model: mcpt.models.Model,
+            model: mcpt.Model,
             end_id: int,
             device: str,
-            tokenizer: mcpt.tokenization.Tokenizer = None,
-            pinyin_tokenizer: mcpt.tokenization.PinyinTokenizer = None,
+            tokenizer: mcpt.Tokenizer = None,
+            pinyin_tokenizer: mcpt.PinyinTokenizer = None,
             use_pinyin: bool = False,
     ):
         self._model = model
@@ -163,8 +163,8 @@ class Sampler:
 
 
 def generate(
-        model: mcpt.models.Model,
-        tokenizer: mcpt.tokenization.Tokenizer,
+        model: mcpt.Model,
+        tokenizer: mcpt.Tokenizer,
         prompt: str,
         device: str,
         temperature: float = 1.0,

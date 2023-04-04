@@ -10,14 +10,14 @@ def main(
         vocab: str = '../common/vocab/char-13312.txt',
         device: str = 'cuda',
 ):
-    model = mcpt.models.Model.from_config(
+    model = mcpt.Model.from_config(
         config=model_config,
         load_model=model,
         device=device,
     )
     model.eval()
-    tokenizer = mcpt.tokenization.Tokenizer(vocab)
-    generated = mcpt.generation.generate(
+    tokenizer = mcpt.Tokenizer(vocab)
+    generated = mcpt.generate(
         model=model,
         tokenizer=tokenizer,
         prompt=prompt,

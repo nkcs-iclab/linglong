@@ -75,7 +75,7 @@ def main(
         )
 
     with mcpt.running('Loading the model', hvd=hvd, timer=True):
-        model = mcpt.models.Model.from_config(
+        model = mcpt.Model.from_config(
             config=model_config,
             load_model=load_model,
             use_pinyin=use_pinyin,

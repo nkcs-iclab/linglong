@@ -75,7 +75,7 @@ def main(
     dataset = tf.data.TFRecordDataset(list(map(lambda x: str(dataset_path / x), meta['files'])))
     dataset = dataset.map(decode_fn)
     dataset = dataset.padded_batch(n_example, padded_shapes=padded_shapes)
-    tokenizer = mcpt.tokenization.Tokenizer(vocab)
+    tokenizer = mcpt.Tokenizer(vocab)
     for batch in dataset:
         mcpt.print_training_records(batch, tokenizer=tokenizer)
         break
