@@ -141,9 +141,9 @@ class Sampler:
             presents = presents.view(self._past_shape(batch_size=batch_size))
             prev = self._process_logits(logits[:, -1], config, candidates)
             past = presents if past is None else torch.cat((past, presents), dim=-2)
-            output = torch.cat((output, prev), dim=-1)
             if batch_size == 1 and (prev[0][0].item() if self._use_pinyin else prev.item()) == self._end_id:
                 break
+            output = torch.cat((output, prev), dim=-1)
         return output[:, 0] if self._use_pinyin else output
 
     def sample(self, prompt_ids, config: Dict[str, Any], candidates=None):
@@ -162,3 +162,29 @@ class Sampler:
             else:
                 yield token_id
             past = presents if past is None else torch.cat((past, presents), dim=-2)
+
+
+def generate(
+        model,
+        model_config: Dict[str, Any],
+        tokenizer,
+        prompt: str,
+        device: str,
+        temperature: float = 1.0,
+        top_k: int = 20,
+        top_p: float = 1.0,
+        length: int = 128,
+        start_token: str = '[MASK]',
+        end_token: str = '[CLS]',
+) -> str:
+    sampler = Sampler(model_config, model, tokenizer.convert_tokens_to_ids(end_token), device)
+    prompt_ids = tokenizer.convert_string_to_ids(prompt)
+    prompt_ids = [tokenizer.convert_tokens_to_ids(start_token)] + prompt_ids
+    config = {
+        'temperature': temperature,
+        'top_k': top_k,
+        'top_p': top_p,
+        'length': length,
+    }
+    output_ids = sampler.batch_sample(prompt_ids, config)[0, 1:].to('cpu')
+    return tokenizer.convert_ids_to_string(output_ids)
