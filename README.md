@@ -55,19 +55,20 @@ The required packages are not listed in `setup.py` yet, so you need to install t
    
 ## Changelog
 
-### 0.4 (prerelease)
+### 0.4
 
-- Add dataset scripts for fine-tuning.
-- Add `mcpt.Model` class. This class can be used to load a specified model from a checkpoint.
-- Replace `[SEP]` with `\n` in generation results.
-- Export `mcpt.Tokenizer`, `mcpt.PinyinTokenizer`, and `mcpt.generate` to the top-level module.
-- Fix missing guard statements in the training script.
-- Fix model saving in the training script.
+- Added dataset scripts for fine-tuning.
+- Introduced `mcpt.generate` function for generation.
+- Introduced `mcpt.Model` class. This class can be used to load a specified model from a checkpoint.
+- Replaced `[SEP]` with `\n` in generation results.
+- Exported `mcpt.Tokenizer` and `mcpt.PinyinTokenizer` to the top-level module.
+- Fixed the training script by adding if statements to prevent missing object/attribute/reference errors when using mixed precision training or data parallel training.
+- Fixed the model saving callback.
 
 ### 0.3
 
-- Add modules for evaluation.
-- Refactor `mcpt/sampling.py`. The `Sampler` class is now located in `mcpt/generation.py`.
+- Added modules for evaluation.
+- Refactored `mcpt/sampling.py`. The `Sampler` class has now been moved to `mcpt/generation.py`.
 
 ## Copyright
 
