@@ -58,10 +58,11 @@ The required packages are not listed in `setup.py` yet, so you need to install t
 ### 0.4 (prerelease)
 
 - Add dataset scripts for fine-tuning.
-- Fix missing guard statements in the training script.
-- Replace `[SEP]` with `\n` in generation results.
 - Add `mcpt.Model` class. This class can be used to load a specified model from a checkpoint.
+- Replace `[SEP]` with `\n` in generation results.
 - Export `mcpt.Tokenizer`, `mcpt.PinyinTokenizer`, and `mcpt.generate` to the top-level module.
+- Fix missing guard statements in the training script.
+- Fix model saving in the training script.
 
 ### 0.3
 
