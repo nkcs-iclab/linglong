@@ -10,8 +10,8 @@ import mcpt
 def convert_prompt_to_ids(
         prompt: str,
         tokenizer: mcpt.Tokenizer,
-        pinyin_tokenizer: mcpt.PinyinTokenizer,
         special_tokens: Dict[str, str],
+        pinyin_tokenizer: Optional[mcpt.PinyinTokenizer] = None,
         use_pinyin: bool = False,
 ) -> Union[List[int], List[List[int]]]:
     prompt_parts = prompt.split(special_tokens['part-separator'])
@@ -171,12 +171,16 @@ def generate(
         top_k: int = 20,
         top_p: float = 1.0,
         length: int = 128,
-        start_token: str = '[MASK]',
-        end_token: str = '[CLS]',
+        special_tokens: Optional[Dict[str, str]] = None,
 ) -> str:
-    sampler = Sampler(model, tokenizer.convert_tokens_to_ids(end_token), device)
-    prompt_ids = tokenizer.convert_string_to_ids(prompt)
-    prompt_ids = [tokenizer.convert_tokens_to_ids(start_token)] + prompt_ids
+    special_tokens = {
+        'start-token': '[MASK]',
+        'end-token': '[CLS]',
+        'part-separator': '[unused1]',
+        **(special_tokens or {}),
+    }
+    sampler = Sampler(model=model, end_id=tokenizer.convert_tokens_to_ids(special_tokens['end-token']), device=device)
+    prompt_ids = convert_prompt_to_ids(prompt=prompt, tokenizer=tokenizer, special_tokens=special_tokens)
     config = {
         'temperature': temperature,
         'top_k': top_k,
