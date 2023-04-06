@@ -3,6 +3,8 @@ import pathlib
 
 from typing import *
 
+import mcpt
+
 
 class ModelCheckpointCallback:
 
@@ -10,27 +12,35 @@ class ModelCheckpointCallback:
             self,
             save_path: pathlib.Path,
             save_frequency: Union[int, str],
-            has_validation_data: bool = False,
     ):
         self.save_path = save_path
         self.save_frequency = save_frequency
         self.save_path.mkdir(parents=True, exist_ok=True)
-        self.save_name = 'E{epoch}'
-        if self.save_frequency != 'epoch':
-            self.save_name += 'B{batch}'
-        self.save_name += 'L{loss:.6f}'
-        if self.save_frequency == 'epoch' and has_validation_data:
-            self.save_name += 'VL{val_loss:.6f}'
-        self.save_name += '.pt'
-        self.last_epoch = 1
 
-    def __call__(self, model, epoch: int, loss: float, batch: Optional[int] = None, val_loss: Optional[float] = None):
-        save_name = self.save_name.format(epoch=epoch, batch=batch, loss=loss, val_loss=val_loss)
-        if self.save_frequency == 'epoch':
-            if epoch == self.last_epoch:
-                return
-            self.last_epoch = epoch
+    def _get_save_name(self, batch: Optional[int] = None, val_loss: Optional[float] = None,) -> str:
+        save_name = 'E{epoch}'
+        if self.save_frequency != 'epoch' and batch is not None:
+            save_name += 'B{batch}'
+        save_name += 'L{loss:.6f}'
+        if self.save_frequency == 'epoch' and val_loss is not None:
+            save_name += 'VL{val_loss:.6f}'
+        save_name += '.pt'
+        return save_name
+
+    def __call__(
+            self,
+            model: mcpt.Model,
+            epoch: int,
+            loss: float,
+            batch: Optional[int] = None,
+            val_loss: Optional[float] = None,
+            end_of_epoch: bool = False,
+    ):
+        save_name = self._get_save_name(batch=batch, val_loss=val_loss)
+        save_name = save_name.format(epoch=epoch, batch=batch, loss=loss, val_loss=val_loss)
+        if self.save_frequency == 'epoch' and not end_of_epoch:
+            return
         if isinstance(self.save_frequency, int):
-            if batch is None or batch % self.save_frequency != 0:
+            if end_of_epoch or batch % self.save_frequency != 0:
                 return
         torch.save(model.state_dict(), str(self.save_path / save_name))

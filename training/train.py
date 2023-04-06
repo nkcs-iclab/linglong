@@ -104,10 +104,11 @@ def main(
             for freq in save_frequency:
                 if isinstance(freq, str):
                     assert freq in ('epoch', 'step')
-                callbacks.append(mcpt.train.callbacks.ModelCheckpointCallback(
-                    save_path=save_path,
-                    save_frequency=freq,
-                    has_validation_data=validation_data is not None),
+                callbacks.append(
+                    mcpt.train.callbacks.ModelCheckpointCallback(
+                        save_path=save_path,
+                        save_frequency=freq,
+                    ),
                 )
 
     if hvd.rank() == 0:
@@ -162,9 +163,9 @@ def main(
             callback(
                 model=model,
                 epoch=epoch,
-                batch=None,
                 loss=loss,
                 val_loss=val_loss.item() if validation_data is not None else None,
+                end_of_epoch=True,
             )
 
 
