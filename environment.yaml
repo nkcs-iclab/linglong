@@ -5,20 +5,5 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - cudatoolkit=11.8
-  - nccl
+  - python=3.11
   - mpich
-  - pip
-  - pip:
-    - torch --index-url https://download.pytorch.org/whl/cu118
-    - beautifulsoup4
-    - lxml
-    - colorama
-    - fire
-    - mergedeep
-    - psutil
-    - pypinyin
-    - PyYAML
-    - tensorflow
-    - transformers
-    - yaspin

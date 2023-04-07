@@ -1,0 +1,11 @@
+beautifulsoup4
+lxml
+colorama
+fire
+mergedeep
+pypinyin
+PyYAML
+transformers
+yaspin
+tensorflow
+nvidia-nccl-cu11
