@@ -23,6 +23,7 @@ def generation(x: List[np.ndarray], model, callbacks: Optional[Callable] = None,
         pinyin_tokenizer=kwargs['pinyin_tokenizer'],
         tokenizer=kwargs['tokenizer'],
         use_pinyin=kwargs['config']['use_pinyin'],
+        verbose=0,
     )
     for idx, (data, label) in enumerate(zip(x, kwargs['y_true'])):
         samples = sampler.batch_sample(data[0], generation_config, kwargs['candidates'])

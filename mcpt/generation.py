@@ -68,6 +68,7 @@ class Sampler:
             tokenizer: mcpt.Tokenizer = None,
             pinyin_tokenizer: mcpt.PinyinTokenizer = None,
             use_pinyin: bool = False,
+            verbose: int = 1,
     ):
         self._model = model
         self._end_id = end_id
@@ -75,6 +76,7 @@ class Sampler:
         self._tokenizer = tokenizer
         self._pinyin_tokenizer = pinyin_tokenizer
         self._use_pinyin = use_pinyin
+        self._verbose = verbose
 
     @staticmethod
     def _top_k_logits(logits, k):
@@ -127,13 +129,25 @@ class Sampler:
             prev = torch.cat((prev, pinyin_ids), dim=1).view((-1, 2, 1))
         return prev
 
+    def _clip_context(self, context: List[int], max_length: int) -> Tuple[List[int], int]:
+        if len(context) > self._model.config['n_ctx']:
+            context = context[-self._model.config['n_ctx']:]
+            if self._verbose > 0:
+                warnings.warn(f'Context is clipped to {self._model.config["n_ctx"]} tokens.')
+        if len(context) + max_length > self._model.config['n_ctx']:
+            max_length = self._model.config['n_ctx'] - len(context)
+            if self._verbose > 0:
+                warnings.warn(f'`max_length` is clipped to {max_length} tokens.')
+        return context, max_length
+
     def batch_sample(self, prompt_ids, config: Dict[str, Any], candidates=None):
         batch_size = config.get('batch_size', 1)
+        prompt_ids, max_length = self._clip_context(prompt_ids, config.get('max_length'))
         prompt_ids = torch.tensor(prompt_ids, dtype=torch.int32).to(self._device)
         context = prompt_ids.repeat(batch_size, 1, 1) if self._use_pinyin else prompt_ids.repeat(batch_size, 1)
         past, prev, output = None, context, context
         end_status = [False] * batch_size
-        for i in range(config.get('length')):
+        for i in range(max_length):
             with torch.no_grad():
                 logits, presents = self._model(prev, past=past)
             presents = presents.view(self._past_shape(batch_size=batch_size))
@@ -149,11 +163,12 @@ class Sampler:
         return output[:, 0] if self._use_pinyin else output
 
     def sample(self, prompt_ids, config: Dict[str, Any], candidates=None):
+        prompt_ids, max_length = self._clip_context(prompt_ids, config.get('max_length'))
         prompt_ids = torch.tensor(prompt_ids, dtype=torch.int32).to(self._device)
         context = prompt_ids.unsqueeze(0)
         past = None
         prev = context
-        for i in range(config.get('length')):
+        for i in range(max_length):
             with torch.no_grad():
                 logits, presents = self._model(prev, past=past)
             presents = presents.view(self._past_shape(batch_size=1))
