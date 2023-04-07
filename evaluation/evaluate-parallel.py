@@ -34,11 +34,11 @@ def work(
         device: str,
         callbacks: Optional[List[Callable]] = None,
 ):
-    eval_fn = mcpt.evaluation.get_eval_fn(config.get('evaluation-method', 'generation'))
+    eval_fn = mcpt.evaluation.get_eval_fn(config.get('evaluation_method', 'generation'))
     model = mcpt.Model.from_config(
-        config=config['model-config'],
+        config=config['model_config'],
         load_model=config['model'],
-        use_pinyin=config['use-pinyin'],
+        use_pinyin=config['use_pinyin'],
         device=device,
     )
     y_pred = eval_fn(
@@ -68,7 +68,7 @@ def main(
         pinyin_vocab: str = '../common/vocab/pinyin-1354.txt',
         use_pinyin: bool = False,
         use_cache: bool = False,
-        output_path_template: str = '{dataset}-{model}-{split}-{template-id}-{timestamp}',
+        output_path_template: str = '{dataset}-{model}-{split}-{template_id}-{timestamp}',
         special_tokens: Optional[Dict[str, str]] = None,
         verbose: int = 2,
         slicer: Optional[str] = None,
@@ -78,29 +78,29 @@ def main(
 ):
     with mcpt.running('Loading configs') as spinner:
         special_tokens = {
-            'start-token': '[MASK]',
-            'end-token': '[CLS]',
-            'part-separator': '[unused1]',
-            'segment-separator': '[unused2]',
+            'start_token': '[MASK]',
+            'end_token': '[CLS]',
+            'part_separator': '[unused1]',
+            'segment_separator': '[unused2]',
             **(special_tokens or {}),
         }
         config = mcpt.merge_configs(
             {
                 'dataset': dataset,
-                'dataset-config': dataset_config,
-                'model-config': model_config,
-                'input-path': input_path,
-                'cache-path': cache_path,
+                'dataset_config': dataset_config,
+                'model_config': model_config,
+                'input_path': input_path,
+                'cache_path': cache_path,
                 'vocab': vocab,
-                'pinyin-vocab': pinyin_vocab,
-                'use-pinyin': use_pinyin,
-                'use-cache': use_cache,
-                'output-path-template': output_path_template,
-                'special-tokens': special_tokens,
+                'pinyin_vocab': pinyin_vocab,
+                'use_pinyin': use_pinyin,
+                'use_cache': use_cache,
+                'output_path_template': output_path_template,
+                'special_tokens': special_tokens,
                 'verbose': verbose,
                 'slicer': slicer,
                 'workers': workers,
-                'items-per-process': items_per_process,
+                'items_per_process': items_per_process,
                 'device': device,
             },
             mcpt.load_config(dataset_config, key=dataset),
@@ -110,11 +110,11 @@ def main(
         tokenizer = mcpt.Tokenizer(vocab)
         pinyin_tokenizer = mcpt.PinyinTokenizer(vocab_file=pinyin_vocab, fallback=tokenizer)
         output_path = mcpt.evaluation.get_output_path(config)
-        config['output-path'] = output_path
+        config['output_path'] = output_path
         special_token_ids = {
             key: tokenizer.convert_tokens_to_ids(value) for (key, value) in special_tokens.items()
         }
-        eval_metric = mcpt.evaluation.get_eval_metric(config.get('evaluation-metric'))
+        eval_metric = mcpt.evaluation.get_eval_metric(config.get('evaluation_metric'))
         spinner.write(mcpt.print_dict(config, export=True))
 
     with mcpt.running(f'Loading {dataset} dataset', spinner=use_cache):

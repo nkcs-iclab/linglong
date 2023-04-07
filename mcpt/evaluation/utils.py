@@ -22,7 +22,7 @@ def load_dataset(config: Dict[str, Any]) -> \
     items, candidates = dataset.prepare()
     data, label = [], []
     for item in items:
-        if config['use-pinyin']:
+        if config['use_pinyin']:
             if isinstance(item['text'], np.ndarray):
                 text = np.expand_dims(item['text'], axis=-2)
                 pinyin = np.expand_dims(item['pinyin'], axis=-2)
@@ -45,10 +45,10 @@ def get_output_path(config: Dict[str, Any]) -> str:
         'dataset': config['dataset'],
         'model': pathlib.Path(config['model']).stem if config.get('model') is not None else 'None',
         'timestamp': str(int(time.time())),
-        'template-id': str(config['template-id']),
+        'template_id': str(config['template_id']),
         'split': config['split'],
     }
-    path = config['output-path-template']
+    path = config['output_path_template']
     for k, v in info.items():
         path = path.replace(f'{{{k}}}', v)
     return path

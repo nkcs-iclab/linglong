@@ -35,25 +35,25 @@ def main(
 
     with mcpt.running('Loading configs', hvd=hvd) as spinner:
         config = {
-            'training-data': training_data,
-            'model-config': model_config,
-            'training-config': training_config,
-            'extra-config': extra_config,
-            'training-meta': training_meta,
-            'validation-data': validation_data,
-            'validation-meta': validation_meta,
-            'use-pinyin': use_pinyin,
-            'load-model': load_model,
-            'save-path': save_path,
-            'save-frequency': save_frequency,
+            'training_data': training_data,
+            'model_config': model_config,
+            'training_config': training_config,
+            'extra_config': extra_config,
+            'training_meta': training_meta,
+            'validation_data': validation_data,
+            'validation_meta': validation_meta,
+            'use_pinyin': use_pinyin,
+            'load_model': load_model,
+            'save_path': save_path,
+            'save_frequency': save_frequency,
         }
         model_config = mcpt.load_config(model_config)
         model_config = mcpt.merge_configs(model_config, (extra_config or {}).get('model', {}))
         training_config = mcpt.load_config(training_config)
         training_config = mcpt.merge_configs(training_config, (extra_config or {}).get('training', {}))
         save_path = pathlib.Path(save_path)
-        config['model-config-dict'] = model_config
-        config['training-config-dict'] = training_config
+        config['model_config_dict'] = model_config
+        config['training_config_dict'] = training_config
         spinner.write(mcpt.print_dict(config, export=True))
 
     with mcpt.running('Loading the dataset', hvd=hvd, timer=True):

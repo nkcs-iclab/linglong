@@ -27,7 +27,7 @@ class SIGHANDataset(BaseDataset):
             target[error_index] = correct_char
         parts = [
             {'text': f'原始文本：{source}'},
-            {'text': [self._special_tokens['part-separator']]},
+            {'text': [self._special_tokens['part_separator']]},
             {'text': '纠错后文本：'},
         ]
         label = [
@@ -44,7 +44,7 @@ class SIGHANDataset(BaseDataset):
             corrections.append(f'{error_index}:-{target[error_index]}+{error[1]}')
         parts = [
             {'text': f'原始文本：{source}'},
-            {'text': [self._special_tokens['part-separator']]},
+            {'text': [self._special_tokens['part_separator']]},
             {'text': '纠错：'}
         ]
         label = [

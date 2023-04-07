@@ -36,7 +36,7 @@ class MCPTGenerate(cmd.Cmd):
         self._prompt = prompt
         self._prefix = prefix
         self._suffix = suffix
-        self._end_id = self._tokenizer.convert_tokens_to_ids(self._special_tokens['end-token'])
+        self._end_id = self._tokenizer.convert_tokens_to_ids(self._special_tokens['end_token'])
         self._next_sample_idx = 1
         self._renew_cmd_prompt()
         self.use_rawinput = True
@@ -52,7 +52,7 @@ class MCPTGenerate(cmd.Cmd):
     def _renew_cmd_prompt(self):
         prompt = f'{self._prompt[:10]}...' if len(self._prompt) > 10 else self._prompt
         self.prompt = mcpt.text(f'({prompt})', style=mcpt.WARNING)
-        self.prompt += f' [max length: {mcpt.text(self._generation_config["length"], style=mcpt.STRUCTURE)}'
+        self.prompt += f' [max length: {mcpt.text(self._generation_config["max_length"], style=mcpt.STRUCTURE)}'
         if self._prefix:
             self.prompt += f', prefix: {mcpt.text(self._prefix, style=mcpt.STRUCTURE)}'
         if self._suffix:
@@ -66,8 +66,8 @@ class MCPTGenerate(cmd.Cmd):
                 end_id=self._end_id,
                 tokenizer=self._tokenizer,
         ):
-            text_prompt = text_prompt.replace(self._special_tokens['new-line'], '\\n')
-            text_generated = text_generated.replace(self._special_tokens['new-line'], '\\n')
+            text_prompt = text_prompt.replace(self._special_tokens['new_line'], '\\n')
+            text_generated = text_generated.replace(self._special_tokens['new_line'], '\\n')
             spinner.write(mcpt.text(f'[ ITEM {self._next_sample_idx} ]', style=mcpt.STRUCTURE))
             spinner.write(f'{mcpt.text(text_prompt, style=mcpt.ERROR)}{text_generated}')
             self._next_sample_idx += 1
@@ -78,7 +78,7 @@ class MCPTGenerate(cmd.Cmd):
             token = token[2:]
         elif token[0] in set(list(string.ascii_letters)):
             token = ' ' + token
-        elif token == self._special_tokens['new-line']:
+        elif token == self._special_tokens['new_line']:
             token = '\\n'
         print(token, end='', flush=True)
 
@@ -113,7 +113,7 @@ class MCPTGenerate(cmd.Cmd):
 
     def do_set(self, arg):
         k, v = arg.split()
-        if k in ('length', 'batch_size', 'top_k'):
+        if k in ('max_length', 'batch_size', 'top_k'):
             v = int(v)
         elif k in ('temperature', 'top_p'):
             v = float(v)
@@ -121,10 +121,10 @@ class MCPTGenerate(cmd.Cmd):
             self._prefix = v
         elif k == 'suffix':
             self._suffix = v
-        if k == 'length' and v > self._model.config['n_ctx']:
-            warnings.warn(f'The max generation length is set to {v}. '
-                          f'Generating text longer than {self._model.config["n_ctx"]} '
-                          f'characters may lead to suboptimal performance.')
+        if k == 'max_length' and v > self._model.config['n_ctx']:
+            v = self._model.config['n_ctx']
+            warnings.warn(f'The max generation length cannot be set to {v}. '
+                          f'Clipping the length to {self._model.config["n_ctx"]}.')
         if k in self._generation_config:
             self._generation_config[k] = v
         print(mcpt.text(f'`{k}` is set to {v}', style=mcpt.INFO))
@@ -160,7 +160,7 @@ def main(
         vocab: str = '../common/vocab/char-13312.txt',
         pinyin_vocab: str = '../common/vocab/pinyin-1354.txt',
         batch_size: int = 1,
-        length: int = 128,
+        max_length: int = 128,
         temperature: float = 1.0,
         top_k: int = 20,
         top_p: float = 1.0,
@@ -175,17 +175,17 @@ def main(
     load_model = model
     generation_config = {
         'batch_size': batch_size,
-        'length': length,
+        'max_length': max_length,
         'temperature': temperature,
         'top_k': top_k,
         'top_p': top_p,
     }
     special_tokens = {
-        'start-token': '[MASK]',
-        'end-token': '[CLS]',
-        'part-separator': '[unused1]',
-        'segment-separator': '[unused2]',
-        'new-line': '[SEP]',
+        'start_token': '[MASK]',
+        'end_token': '[CLS]',
+        'part_separator': '[unused1]',
+        'segment_separator': '[unused2]',
+        'new_line': '[SEP]',
         **(special_tokens or {}),
     }
     try:
@@ -196,10 +196,10 @@ def main(
                 fallback=tokenizer,
             )
             model_config = mcpt.load_config(model_config)
-            if length > model_config['n_ctx']:
-                warnings.warn(f'The max generation length is set to {length}. '
-                              f'Generating text longer than {model_config["n_ctx"]} '
-                              f'characters may lead to suboptimal performance.')
+            if max_length > model_config['n_ctx']:
+                max_length = model_config['n_ctx']
+                warnings.warn(f'The max generation length cannot be set to {max_length}. '
+                              f'Clipping the length to {model_config["n_ctx"]}.')
 
         with mcpt.running('Loading the model', timer=True):
             model = mcpt.Model.from_config(

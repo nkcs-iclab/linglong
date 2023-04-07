@@ -26,25 +26,25 @@ def main(
 ):
     with mcpt.running('Loading configs') as spinner:
         special_tokens = {
-            'start-token': '[MASK]',
-            'end-token': '[CLS]',
-            'part-separator': '[unused1]',
-            'segment-separator': '[unused2]',
+            'start_token': '[MASK]',
+            'end_token': '[CLS]',
+            'part_separator': '[unused1]',
+            'segment_separator': '[unused2]',
             **(special_tokens or {}),
         }
         config = mcpt.merge_configs({
             'dataset': dataset,
-            'dataset-config': dataset_config,
-            'input-path': input_path,
-            'output-path': output_path,
+            'dataset_config': dataset_config,
+            'input_path': input_path,
+            'output_path': output_path,
             'split': split,
-            'n-ctx': n_ctx,
+            'n_ctx': n_ctx,
             'vocab': vocab,
-            'pinyin-vocab': pinyin_vocab,
-            'use-pinyin': use_pinyin,
-            'use-cache': use_cache,
-            'items-per-file': items_per_file,
-            'special-tokens': special_tokens,
+            'pinyin_vocab': pinyin_vocab,
+            'use_pinyin': use_pinyin,
+            'use_cache': use_cache,
+            'items_per_file': items_per_file,
+            'special_tokens': special_tokens,
         }, mcpt.load_config(dataset_config, key=dataset))
         dataset_path = pathlib.Path(output_path) / dataset
         spinner.write(mcpt.print_dict(config, export=True))
@@ -64,11 +64,11 @@ def main(
 
     print(mcpt.text('Examples:', style=mcpt.INFO))
     if use_pinyin:
-        dataset_path = dataset_path / f'template-{config["template-id"]}-pinyin'
+        dataset_path = dataset_path / f'template-{config["template_id"]}-pinyin'
         decode_fn = mcpt.records.decode_pinyin
         padded_shapes = ((2, padding_shape), padding_shape, padding_shape)
     else:
-        dataset_path = dataset_path / f'template-{config["template-id"]}'
+        dataset_path = dataset_path / f'template-{config["template_id"]}'
         decode_fn = mcpt.records.decode
         padded_shapes = (padding_shape, padding_shape, padding_shape)
 

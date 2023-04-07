@@ -21,22 +21,22 @@ def main(
 ):
     with mcpt.running('Loading configs') as spinner:
         special_tokens = {
-            'start-token': '[MASK]',
-            'end-token': '[CLS]',
-            'part-separator': '[unused1]',
-            'segment-separator': '[unused2]',
+            'start_token': '[MASK]',
+            'end_token': '[CLS]',
+            'part_separator': '[unused1]',
+            'segment_separator': '[unused2]',
             **(special_tokens or {}),
         }
         config = mcpt.merge_configs({
             'dataset': dataset,
-            'dataset-config': dataset_config,
-            'input-path': input_path,
-            'cache-path': cache_path,
+            'dataset_config': dataset_config,
+            'input_path': input_path,
+            'cache_path': cache_path,
             'vocab': vocab,
-            'pinyin-vocab': pinyin_vocab,
-            'use-pinyin': use_pinyin,
-            'use-cache': use_cache,
-            'special-tokens': special_tokens,
+            'pinyin_vocab': pinyin_vocab,
+            'use_pinyin': use_pinyin,
+            'use_cache': use_cache,
+            'special_tokens': special_tokens,
         }, mcpt.load_config(dataset_config, key=dataset))
         tokenizer = mcpt.Tokenizer(vocab)
         spinner.write(mcpt.print_dict(config, export=True))
@@ -65,7 +65,7 @@ def main(
                 y_true[i] = [y_true[i]]
             y_true_ids = [str(_.tolist()) for _ in y_true[i]]
             example['y_true'] = y_true_ids if len(y_true_ids) > 1 else y_true_ids[0]
-            if not config.get('use-perplexity', False):
+            if not config.get('use_perplexity', False):
                 y_true_str = [tokenizer.convert_ids_to_string(list(_)) for _ in y_true[i]]
                 example['y_true_str'] = y_true_str if len(y_true_str) > 1 else y_true_str[0]
         else:

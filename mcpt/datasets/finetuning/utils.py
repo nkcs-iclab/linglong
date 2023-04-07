@@ -13,19 +13,19 @@ def load(config: Dict[str, Any]):
         'CustomQA': mcpt.datasets.finetuning.datasets.CustomQADataset,
     }
     datasets = mcpt.merge_configs(datasets, experimental_datasets)
-    input_path = pathlib.Path(config['input-path']) / config.get('base', config['dataset'])
-    output_path = pathlib.Path(config['output-path']) / config['dataset']
+    input_path = pathlib.Path(config['input_path']) / config.get('base', config['dataset'])
+    output_path = pathlib.Path(config['output_path']) / config['dataset']
     return datasets[config['dataset']](
         input_path=input_path,
         output_path=output_path,
         vocab_path=config['vocab'],
-        pinyin_vocab_path=config['pinyin-vocab'],
-        template_id=config['template-id'],
-        n_ctx=config['n-ctx'],
-        use_pinyin=config['use-pinyin'],
-        special_tokens=config['special-tokens'],
+        pinyin_vocab_path=config['pinyin_vocab'],
+        template_id=config['template_id'],
+        n_ctx=config['n_ctx'],
+        use_pinyin=config['use_pinyin'],
+        special_tokens=config['special_tokens'],
         split=config['split'],
-        use_cache=config['use-cache'],
-        items_per_file=config['items-per-file'],
+        use_cache=config['use_cache'],
+        items_per_file=config['items_per_file'],
         extra_config=config.get('extra-config', None),
     )

@@ -68,8 +68,8 @@ class BaseDataset(metaclass=abc.ABCMeta):
         for i in mcpt.trange(len(objs)):
             parts, label, extra = self._templatize(objs, i)
             text, pinyin, label, _ = self._assemble(parts, label)
-            text = self._tokenizer.convert_tokens_to_ids([self._special_tokens['start-token']]) + text
-            pinyin = self._pinyin_tokenizer.convert_tokens_to_ids([self._special_tokens['start-token']]) + pinyin
+            text = self._tokenizer.convert_tokens_to_ids([self._special_tokens['start_token']]) + text
+            pinyin = self._pinyin_tokenizer.convert_tokens_to_ids([self._special_tokens['start_token']]) + pinyin
             if len(text) != len(pinyin):
                 warnings.warn(f'`text` has size {len(text)} and `pinyin` has size {len(pinyin)}'
                               f' (most likely due to omitted control characters).')

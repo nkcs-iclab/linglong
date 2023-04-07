@@ -14,19 +14,19 @@ def convert_prompt_to_ids(
         pinyin_tokenizer: Optional[mcpt.PinyinTokenizer] = None,
         use_pinyin: bool = False,
 ) -> Union[List[int], List[List[int]]]:
-    prompt_parts = prompt.split(special_tokens['part-separator'])
-    prompt_text_ids = tokenizer.convert_tokens_to_ids([special_tokens['start-token']])
+    prompt_parts = prompt.split(special_tokens['part_separator'])
+    prompt_text_ids = tokenizer.convert_tokens_to_ids([special_tokens['start_token']])
     for prompt_part in prompt_parts:
         prompt_text_ids.extend(tokenizer.convert_string_to_ids(prompt_part))
-        prompt_text_ids.append(tokenizer.convert_tokens_to_ids(special_tokens['part-separator']))
+        prompt_text_ids.append(tokenizer.convert_tokens_to_ids(special_tokens['part_separator']))
     prompt_text_ids = prompt_text_ids[:-1]
 
     if use_pinyin:
-        prompt_pinyin_ids = pinyin_tokenizer.convert_tokens_to_ids([special_tokens['start-token']])
+        prompt_pinyin_ids = pinyin_tokenizer.convert_tokens_to_ids([special_tokens['start_token']])
         for prompt_part in prompt_parts:
             prompt_pinyin_ids.extend(pinyin_tokenizer.convert_string_to_ids(prompt_part))
             prompt_pinyin_ids.append(
-                pinyin_tokenizer.convert_tokens_to_ids(special_tokens['part-separator'])
+                pinyin_tokenizer.convert_tokens_to_ids(special_tokens['part_separator'])
             )
         prompt_pinyin_ids = prompt_pinyin_ids[:-1]
         if len(prompt_text_ids) != len(prompt_pinyin_ids):
@@ -174,22 +174,22 @@ def generate(
         temperature: float = 1.0,
         top_k: int = 20,
         top_p: float = 1.0,
-        length: int = 128,
+        max_length: int = 128,
         special_tokens: Optional[Dict[str, str]] = None,
 ) -> str:
     special_tokens = {
-        'start-token': '[MASK]',
-        'end-token': '[CLS]',
-        'part-separator': '[unused1]',
+        'start_token': '[MASK]',
+        'end_token': '[CLS]',
+        'part_separator': '[unused1]',
         **(special_tokens or {}),
     }
-    sampler = Sampler(model=model, end_id=tokenizer.convert_tokens_to_ids(special_tokens['end-token']), device=device)
+    sampler = Sampler(model=model, end_id=tokenizer.convert_tokens_to_ids(special_tokens['end_token']), device=device)
     prompt_ids = convert_prompt_to_ids(prompt=prompt, tokenizer=tokenizer, special_tokens=special_tokens)
     config = {
         'temperature': temperature,
         'top_k': top_k,
         'top_p': top_p,
-        'length': length,
+        'max_length': max_length
     }
     output_ids = sampler.batch_sample(prompt_ids, config)[0, 1:].to('cpu')
     return tokenizer.convert_ids_to_string(output_ids)

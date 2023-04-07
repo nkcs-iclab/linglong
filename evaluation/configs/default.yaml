@@ -1,5 +1,5 @@
 SIGHAN15:
   model:
-  evaluation-method: generation
-  template-id: 1
+  evaluation_method: generation
+  template_id: 1
   split: test
