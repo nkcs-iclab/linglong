@@ -49,12 +49,11 @@ def process_samples(
 ):
     # Exclude the start token.
     samples = np.asarray(samples.to('cpu'))[:, 1:]
-    prompt_ids = prompt_ids[1:]
     for sample in samples:
         if end_id in sample:
             sample = sample[:sample.tolist().index(end_id)]
-        sample = sample[len(prompt_ids):]
-        text_prompt = tokenizer.convert_ids_to_string(prompt_ids)
+        sample = sample[len(prompt_ids[1:]):]
+        text_prompt = tokenizer.convert_ids_to_string(prompt_ids[1:])
         text_generated = tokenizer.convert_ids_to_string(sample)
         yield text_prompt, text_generated
 
