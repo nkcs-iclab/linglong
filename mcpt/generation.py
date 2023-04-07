@@ -132,13 +132,18 @@ class Sampler:
         prompt_ids = torch.tensor(prompt_ids, dtype=torch.int32).to(self._device)
         context = prompt_ids.repeat(batch_size, 1, 1) if self._use_pinyin else prompt_ids.repeat(batch_size, 1)
         past, prev, output = None, context, context
+        end_status = [False] * batch_size
         for i in range(config.get('length')):
             with torch.no_grad():
                 logits, presents = self._model(prev, past=past)
             presents = presents.view(self._past_shape(batch_size=batch_size))
             prev = self._process_logits(logits[:, -1], config, candidates)
             past = presents if past is None else torch.cat((past, presents), dim=-2)
-            if batch_size == 1 and (prev[0][0].item() if self._use_pinyin else prev.item()) == self._end_id:
+            for batch_idx in range(batch_size):
+                if not end_status[batch_idx] and \
+                        (prev[batch_idx][0].item() if self._use_pinyin else prev[batch_idx].item()) == self._end_id:
+                    end_status[batch_idx] = True
+            if all(end_status):
                 break
             output = torch.cat((output, prev), dim=-1)
         return output[:, 0] if self._use_pinyin else output
