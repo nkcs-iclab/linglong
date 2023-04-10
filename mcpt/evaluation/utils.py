@@ -22,7 +22,7 @@ def load_dataset(config: Dict[str, Any]) -> \
     items, candidates = dataset.prepare()
     data, label = [], []
     for item in items:
-        if config['use_pinyin']:
+        if config['model_config'].get('use_pinyin', False):
             if isinstance(item['text'], np.ndarray):
                 text = np.expand_dims(item['text'], axis=-2)
                 pinyin = np.expand_dims(item['pinyin'], axis=-2)

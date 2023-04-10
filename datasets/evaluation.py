@@ -11,10 +11,10 @@ def main(
         dataset: str,
         input_path: str,
         cache_path: str,
-        dataset_config: str,
+        model_config: str,
+        dataset_config: str = '../evaluation/configs/local.yaml',
         vocab: str = '../common/vocab/char-13312.txt',
-        pinyin_vocab: str = '../common/vocab/pinyin-1354.txt',
-        use_pinyin: bool = False,
+        pinyin_vocab: Optional[str] = '../common/vocab/pinyin-1354.txt',
         use_cache: bool = False,
         special_tokens: Optional[Dict[str, str]] = None,
         slicer: Optional[str] = '0:3',
@@ -27,14 +27,17 @@ def main(
             'segment_separator': '[unused2]',
             **(special_tokens or {}),
         }
+        model_config_path = model_config
+        model_config = mcpt.load_config(model_config_path)
         config = mcpt.merge_configs({
             'dataset': dataset,
-            'dataset_config': dataset_config,
+            'dataset_config_path': dataset_config,
+            'model_config_path': model_config_path,
+            'model_config': model_config,
             'input_path': input_path,
             'cache_path': cache_path,
             'vocab': vocab,
             'pinyin_vocab': pinyin_vocab,
-            'use_pinyin': use_pinyin,
             'use_cache': use_cache,
             'special_tokens': special_tokens,
         }, mcpt.load_config(dataset_config, key=dataset))
@@ -53,11 +56,12 @@ def main(
         'examples': [],
     }
     for i in range(len(x)):
-        example = {}
+        example: Dict[str, Optional[Union[str, List[int]]]] = {}
         if isinstance(x[i], np.ndarray):
             x[i] = [x[i]]
         x_ids = [str(_.tolist()) for _ in x[i]]
-        x_str = [tokenizer.convert_ids_to_string(list(_[0][0] if use_pinyin else _[0])) for _ in x[i]]
+        x_str = [tokenizer.convert_ids_to_string(list(_[0][0] if model_config.get('use_pinyin', False) else _[0])) for
+                 _ in x[i]]
         example['x'] = x_ids if len(x_ids) > 1 else x_ids[0]
         example['x_str'] = x_str if len(x_str) > 1 else x_str[0]
         if y_true[i] is not None:

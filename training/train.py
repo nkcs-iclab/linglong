@@ -22,7 +22,6 @@ def main(
         training_meta: str = 'train-meta.pkl',
         validation_data: Optional[str] = None,
         validation_meta: str = 'valid-meta.pkl',
-        use_pinyin: bool = False,
         fp16: bool = False,
         load_model: Optional[str] = None,
         save_path: str = './ckpt',
@@ -34,26 +33,26 @@ def main(
     mcpt.bind_gpu(hvd)
 
     with mcpt.running('Loading configs', hvd=hvd) as spinner:
+        model_config_path, training_config_path = model_config, training_config
+        model_config = mcpt.load_config(model_config_path)
+        model_config = mcpt.merge_configs(model_config, (extra_config or {}).get('model', {}))
+        training_config = mcpt.load_config(training_config_path)
+        training_config = mcpt.merge_configs(training_config, (extra_config or {}).get('training', {}))
         config = {
             'training_data': training_data,
-            'model_config': model_config,
-            'training_config': training_config,
+            'model_config_path': model_config_path,
+            'training_config_path': training_config_path,
             'extra_config': extra_config,
             'training_meta': training_meta,
             'validation_data': validation_data,
             'validation_meta': validation_meta,
-            'use_pinyin': use_pinyin,
             'load_model': load_model,
             'save_path': save_path,
             'save_frequency': save_frequency,
+            'model_config': model_config,
+            'training_config': training_config,
         }
-        model_config = mcpt.load_config(model_config)
-        model_config = mcpt.merge_configs(model_config, (extra_config or {}).get('model', {}))
-        training_config = mcpt.load_config(training_config)
-        training_config = mcpt.merge_configs(training_config, (extra_config or {}).get('training', {}))
         save_path = pathlib.Path(save_path)
-        config['model_config_dict'] = model_config
-        config['training_config_dict'] = training_config
         spinner.write(mcpt.print_dict(config, export=True))
 
     with mcpt.running('Loading the dataset', hvd=hvd, timer=True):
@@ -63,7 +62,7 @@ def main(
             batch_size=training_config['batch_size'],
             dp_size=hvd.size(),
             dp_rank=hvd.rank(),
-            use_pinyin=use_pinyin,
+            use_pinyin=model_config.get('use_pinyin', False),
         )
         validation_loader = mcpt.records.load(
             path=validation_data,
@@ -71,14 +70,13 @@ def main(
             batch_size=training_config['batch_size'],
             dp_size=hvd.size(),
             dp_rank=hvd.rank(),
-            use_pinyin=use_pinyin,
+            use_pinyin=model_config.get('use_pinyin', False),
         )
 
     with mcpt.running('Loading the model', hvd=hvd, timer=True):
         model = mcpt.Model.from_config(
             config=model_config,
             load_model=load_model,
-            use_pinyin=use_pinyin,
             device=device,
         )
         training_config['lr'] = training_config['lr'] * hvd.size() * training_config['backward_passes_per_step']

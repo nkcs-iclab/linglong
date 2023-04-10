@@ -10,5 +10,4 @@ resid_dropout: 0.1
 mode: sparse
 stride: 128
 c: 8
-n_vocab_pinyin: 1354
-use_pinyin: true
+backward: true

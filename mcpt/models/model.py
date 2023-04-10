@@ -18,13 +18,12 @@ class Model(nn.Module):
     def from_config(
             config: Union[str, Dict[str, Any]],
             load_model: Optional[str] = None,
-            use_pinyin: bool = False,
             device: Optional = None,
     ) -> 'Model':
         import mcpt
         if isinstance(config, str):
             config = mcpt.load_config(config)
-        if use_pinyin:
+        if config.get('use_pinyin', False):
             model = Model(mcpt.models.MCPTPinyinModel(config))
         else:
             model = Model(mcpt.models.MCPTModel(config))

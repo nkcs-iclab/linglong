@@ -21,11 +21,10 @@ def load(config: Dict[str, Any]):
         vocab_path=config['vocab'],
         pinyin_vocab_path=config['pinyin_vocab'],
         template_id=config['template_id'],
-        n_ctx=config['n_ctx'],
-        use_pinyin=config['use_pinyin'],
+        model_config=config['model_config'],
         special_tokens=config['special_tokens'],
         split=config['split'],
         use_cache=config['use_cache'],
         items_per_file=config['items_per_file'],
-        extra_config=config.get('extra-config', None),
+        extra_config=config.get('extra_config', None),
     )

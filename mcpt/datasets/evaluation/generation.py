@@ -60,11 +60,11 @@ class SIGHANDataset(BaseDataset):
             target[error_index] = correct_char
         parts = [
             {'text': obj['text']},
-            {'text': [self._special_tokens['end-token']]},
+            {'text': [self._special_tokens['end_token']]},
         ]
         label = [
-            {'text': [self._special_tokens['start-token']]},
+            {'text': [self._special_tokens['start_token']]},
             {'text': ''.join(target)},
-            {'text': [self._special_tokens['end-token']]},
+            {'text': [self._special_tokens['end_token']]},
         ]
         return parts, label, {}

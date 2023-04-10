@@ -29,16 +29,15 @@ def work(
         pid: int,
         offset: int,
         tokenizer: mcpt.Tokenizer,
-        pinyin_tokenizer: mcpt.PinyinTokenizer,
         special_token_ids: Dict[str, int],
         device: str,
+        pinyin_tokenizer: Optional[mcpt.PinyinTokenizer] = None,
         callbacks: Optional[List[Callable]] = None,
 ):
     eval_fn = mcpt.evaluation.get_eval_fn(config.get('evaluation_method', 'generation'))
     model = mcpt.Model.from_config(
         config=config['model_config'],
         load_model=config['model'],
-        use_pinyin=config['use_pinyin'],
         device=device,
     )
     y_pred = eval_fn(
@@ -65,8 +64,7 @@ def main(
         workers: str,
         dataset_config: str = 'configs/local.yaml',
         vocab: str = '../common/vocab/char-13312.txt',
-        pinyin_vocab: str = '../common/vocab/pinyin-1354.txt',
-        use_pinyin: bool = False,
+        pinyin_vocab: Optional[str] = '../common/vocab/pinyin-1354.txt',
         use_cache: bool = False,
         output_path_template: str = '{dataset}-{model}-{split}-{template_id}-{timestamp}',
         special_tokens: Optional[Dict[str, str]] = None,
@@ -84,16 +82,17 @@ def main(
             'segment_separator': '[unused2]',
             **(special_tokens or {}),
         }
+        model_config_ = mcpt.load_config(model_config)
         config = mcpt.merge_configs(
             {
                 'dataset': dataset,
-                'dataset_config': dataset_config,
-                'model_config': model_config,
+                'dataset_config_path': dataset_config,
+                'model_config_path': model_config,
+                'model_config': model_config_,
                 'input_path': input_path,
                 'cache_path': cache_path,
                 'vocab': vocab,
                 'pinyin_vocab': pinyin_vocab,
-                'use_pinyin': use_pinyin,
                 'use_cache': use_cache,
                 'output_path_template': output_path_template,
                 'special_tokens': special_tokens,
@@ -108,7 +107,7 @@ def main(
         )
 
         tokenizer = mcpt.Tokenizer(vocab)
-        pinyin_tokenizer = mcpt.PinyinTokenizer(vocab_file=pinyin_vocab, fallback=tokenizer)
+        pinyin_tokenizer = mcpt.PinyinTokenizer(vocab_file=pinyin_vocab, fallback=tokenizer) if pinyin_vocab else None
         output_path = mcpt.evaluation.get_output_path(config)
         config['output_path'] = output_path
         special_token_ids = {
@@ -163,8 +162,8 @@ def main(
         path=output_path,
         verbose=verbose,
         tokenizer=tokenizer,
-        use_perplexity=config.get('use-perplexity', False),
-        use_pinyin=use_pinyin,
+        use_perplexity=config.get('use_perplexity', False),
+        use_pinyin=config['model_config'].get('use_pinyin', False),
         lock=lock,
     )
     for gpu_id, worker in worker_config.items():
@@ -221,7 +220,7 @@ def main(
             output_path=output_path,
             special_token_ids=special_token_ids,
         )
-        print(f'{config["evaluation-metric"]}: {mcpt.print_dict(result)}')
+        print(f'{config["evaluation_metric"]}: {mcpt.print_dict(result)}')
     else:
         print(mcpt.text('No evaluation metric is specified.', style=mcpt.WARNING))
 

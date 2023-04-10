@@ -13,12 +13,11 @@ def main(
         dataset: str,
         input_path: str,
         output_path: str,
+        model_config: str,
         split: str = 'train',
-        n_ctx: int = 1024,
         dataset_config: str = 'configs/fine-tuning/local.yaml',
         vocab: str = '../common/vocab/char-13312.txt',
         pinyin_vocab: str = '../common/vocab/pinyin-1354.txt',
-        use_pinyin: bool = False,
         use_cache: bool = False,
         items_per_file: int = 200000,
         special_tokens: Optional[Dict[str, str]] = None,
@@ -32,16 +31,18 @@ def main(
             'segment_separator': '[unused2]',
             **(special_tokens or {}),
         }
+        model_config_path = model_config
+        model_config = mcpt.load_config(model_config_path)
         config = mcpt.merge_configs({
             'dataset': dataset,
-            'dataset_config': dataset_config,
+            'dataset_config_path': dataset_config,
+            'model_config_path': model_config_path,
+            'model_config': model_config,
             'input_path': input_path,
             'output_path': output_path,
             'split': split,
-            'n_ctx': n_ctx,
             'vocab': vocab,
             'pinyin_vocab': pinyin_vocab,
-            'use_pinyin': use_pinyin,
             'use_cache': use_cache,
             'items_per_file': items_per_file,
             'special_tokens': special_tokens,
@@ -63,7 +64,7 @@ def main(
         }, export=True))
 
     print(mcpt.text('Examples:', style=mcpt.INFO))
-    if use_pinyin:
+    if model_config.get('use_pinyin', False):
         dataset_path = dataset_path / f'template-{config["template_id"]}-pinyin'
         decode_fn = mcpt.records.decode_pinyin
         padded_shapes = ((2, padding_shape), padding_shape, padding_shape)

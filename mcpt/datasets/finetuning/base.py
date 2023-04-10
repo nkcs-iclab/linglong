@@ -16,18 +16,18 @@ class BaseDataset:
             input_path: str,
             output_path: str,
             vocab_path: str,
-            pinyin_vocab_path: str,
             template_id: int,
-            n_ctx: int,
-            use_pinyin: bool,
+            model_config: Dict[str, Any],
             special_tokens: Dict[str, str],
             items_per_file: int,
+            pinyin_vocab_path: Optional[str] = None,
             split: str = 'train',
             use_cache: bool = False,
             extra_config: Optional[Dict[str, Any]] = None,
     ):
         self._split = split
-        self._use_pinyin = use_pinyin
+        self._use_pinyin = model_config.get('use_pinyin', False)
+        self._n_ctx = model_config['n_ctx']
         self._input_path = next(pathlib.Path(input_path).glob(f'{self._split}*'))
         self._output_path = pathlib.Path(output_path) / f'template-{template_id}{"-pinyin" if self._use_pinyin else ""}'
         self._output_path.mkdir(parents=True, exist_ok=True)
@@ -35,9 +35,8 @@ class BaseDataset:
         self._pinyin_tokenizer = mcpt.PinyinTokenizer(
             vocab_file=pinyin_vocab_path,
             fallback=self._tokenizer,
-        )
+        ) if self._use_pinyin else None
         self._template_id = template_id
-        self._n_ctx = n_ctx
         self._use_cache = use_cache
         self._items_per_file = items_per_file
         self._extra_config = extra_config
@@ -46,7 +45,7 @@ class BaseDataset:
         self._file_format = None
         self._special_tokens = special_tokens
 
-    def _load_file(self, path: str):
+    def _load_file(self, path: str) -> Union[List, Dict]:
         return mcpt.load_file(path, format=self._file_format)
 
     @staticmethod
@@ -74,12 +73,12 @@ class BaseDataset:
         for i in mcpt.trange(len(objs)):
             parts = self._templatize(objs, i)
             text, pinyin = self._assemble(parts)
-            text = self._tokenizer.convert_tokens_to_ids([self._special_tokens['start-token']]) + text
-            text += self._tokenizer.convert_tokens_to_ids([self._special_tokens['end-token']])
+            text = self._tokenizer.convert_tokens_to_ids([self._special_tokens['start_token']]) + text
+            text += self._tokenizer.convert_tokens_to_ids([self._special_tokens['end_token']])
             if self._use_pinyin:
-                pinyin = self._pinyin_tokenizer.convert_tokens_to_ids([self._special_tokens['start-token']]) + pinyin
-                pinyin += self._pinyin_tokenizer.convert_tokens_to_ids([self._special_tokens['end-token']])
-                if self._use_pinyin and len(text) != len(pinyin):
+                pinyin = self._pinyin_tokenizer.convert_tokens_to_ids([self._special_tokens['start_token']]) + pinyin
+                pinyin += self._pinyin_tokenizer.convert_tokens_to_ids([self._special_tokens['end_token']])
+                if len(text) != len(pinyin):
                     self._discard_obj(
                         objs[i],
                         discarded,

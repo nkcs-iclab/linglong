@@ -15,12 +15,10 @@ class MCPTGenerate(cmd.Cmd):
             self,
             generation_config: Dict[str, Any],
             tokenizer: mcpt.Tokenizer,
-            pinyin_tokenizer: mcpt.PinyinTokenizer,
-            use_pinyin: bool,
+            pinyin_tokenizer: Optional[mcpt.PinyinTokenizer],
             model: mcpt.Model,
             device: str,
             special_tokens: Dict[str, str],
-            backward: bool,
             prompt: str,
             prefix: str,
             suffix: str,
@@ -29,10 +27,9 @@ class MCPTGenerate(cmd.Cmd):
         self._generation_config = generation_config
         self._tokenizer = tokenizer
         self._pinyin_tokenizer = pinyin_tokenizer
-        self._use_pinyin = use_pinyin
         self._model = model
+        self._use_pinyin = self._model.config.get('use_pinyin', False)
         self._special_tokens = special_tokens
-        self._backward = backward
         self._prompt = prompt
         self._prefix = prefix
         self._suffix = suffix
@@ -46,7 +43,6 @@ class MCPTGenerate(cmd.Cmd):
             device=device,
             tokenizer=self._tokenizer,
             pinyin_tokenizer=self._pinyin_tokenizer,
-            use_pinyin=self._use_pinyin,
         )
 
     def _renew_cmd_prompt(self):
@@ -84,7 +80,8 @@ class MCPTGenerate(cmd.Cmd):
 
     def _generate(self):
         step_by_step = self._generation_config['batch_size'] == 1
-        prompt = self._prefix + (self._prompt[::-1] if self._backward else self._prompt) + self._suffix
+        backward = self._model.config.get('backward', False)
+        prompt = self._prefix + (self._prompt[::-1] if backward else self._prompt) + self._suffix
         with mcpt.running(
                 f'Generating {self._generation_config["batch_size"]} sample(s)',
                 spinner=not step_by_step,
@@ -158,15 +155,13 @@ def main(
         model: str,
         model_config: str,
         vocab: str = '../common/vocab/char-13312.txt',
-        pinyin_vocab: str = '../common/vocab/pinyin-1354.txt',
+        pinyin_vocab: Optional[str] = '../common/vocab/pinyin-1354.txt',
         batch_size: int = 1,
         max_length: int = 128,
         temperature: float = 1.0,
         top_k: int = 20,
         top_p: float = 1.0,
-        backward: bool = False,
         device: str = 'cuda',
-        use_pinyin: bool = False,
         special_tokens: Optional[Dict[str, str]] = None,
         prompt: str = '齐小明，科学家',
         prefix: str = '',
@@ -190,12 +185,12 @@ def main(
     }
     try:
         with mcpt.running('Loading configs'):
+            model_config = mcpt.load_config(model_config)
             tokenizer = mcpt.Tokenizer(vocab)
             pinyin_tokenizer = mcpt.PinyinTokenizer(
                 vocab_file=pinyin_vocab,
                 fallback=tokenizer,
-            )
-            model_config = mcpt.load_config(model_config)
+            ) if model_config.get('use_pinyin', False) else None
             if max_length > model_config['n_ctx']:
                 max_length = model_config['n_ctx']
                 warnings.warn(f'The max generation length cannot be set to {max_length}. '
@@ -205,7 +200,6 @@ def main(
             model = mcpt.Model.from_config(
                 config=model_config,
                 load_model=load_model,
-                use_pinyin=use_pinyin,
                 device=device,
             )
             model.eval()
@@ -217,8 +211,6 @@ def main(
             model=model,
             device=device,
             special_tokens=special_tokens,
-            backward=backward,
-            use_pinyin=use_pinyin,
             prompt=prompt,
             prefix=prefix,
             suffix=suffix,

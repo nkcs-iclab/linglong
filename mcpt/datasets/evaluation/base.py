@@ -17,20 +17,22 @@ class BaseDataset(metaclass=abc.ABCMeta):
             output_path: str,
             split: str,
             vocab_path: str,
-            pinyin_vocab_path: str,
             template_id: int,
+            model_config: Dict[str, Any],
             special_tokens: Dict[str, str],
+            pinyin_vocab_path: Optional[str] = None,
             use_cache: bool = False,
             method: str = 'generation',
             extra_config: Optional[Dict[str, Any]] = None,
     ):
         self._input_path = input_path
         self._split = split
+        self._use_pinyin = model_config.get('use_pinyin', False)
         self._tokenizer = mcpt.Tokenizer(vocab_path)
         self._pinyin_tokenizer = mcpt.PinyinTokenizer(
             vocab_file=pinyin_vocab_path,
             fallback=self._tokenizer,
-        )
+        ) if self._use_pinyin else None
         self._template_id = template_id
         self._use_cache = use_cache
         self._extra_config = extra_config
@@ -43,10 +45,7 @@ class BaseDataset(metaclass=abc.ABCMeta):
         self._templates = {}
         self._special_tokens = special_tokens
 
-    def raw_data(self) -> List[Dict[str, Any]]:
-        return self._load_file(str(self._input_path))
-
-    def _load_file(self, path: str):
+    def _load_file(self, path: str) -> Union[List, Dict]:
         return mcpt.load_file(path, format=self._file_format)
 
     @staticmethod
@@ -54,6 +53,7 @@ class BaseDataset(metaclass=abc.ABCMeta):
         warnings.warn(f'The pinyin information of {mcpt.print_dict(obj, export=True)} is discarded.')
         discarded.append(obj)
 
+    # noinspection PyMethodMayBeStatic
     def _postprocess(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         return data
 
@@ -67,17 +67,18 @@ class BaseDataset(metaclass=abc.ABCMeta):
 
         for i in mcpt.trange(len(objs)):
             parts, label, extra = self._templatize(objs, i)
-            text, pinyin, label, _ = self._assemble(parts, label)
+            text, pinyin, label = self._assemble(parts, label)
             text = self._tokenizer.convert_tokens_to_ids([self._special_tokens['start_token']]) + text
-            pinyin = self._pinyin_tokenizer.convert_tokens_to_ids([self._special_tokens['start_token']]) + pinyin
-            if len(text) != len(pinyin):
-                warnings.warn(f'`text` has size {len(text)} and `pinyin` has size {len(pinyin)}'
-                              f' (most likely due to omitted control characters).')
-                pinyin = np.zeros_like(text)
-                self._discard_obj(objs[i], discarded)
+            if self._use_pinyin:
+                pinyin = self._pinyin_tokenizer.convert_tokens_to_ids([self._special_tokens['start_token']]) + pinyin
+                if len(text) != len(pinyin):
+                    warnings.warn(f'`text` has size {len(text)} and `pinyin` has size {len(pinyin)}'
+                                  f' (most likely due to omitted control characters).')
+                    pinyin = np.zeros_like(text)
+                    self._discard_obj(objs[i], discarded)
             data.append({
                 'text': np.asarray([text]),
-                'pinyin': np.asarray([pinyin]),
+                **({'pinyin': np.asarray([pinyin])} if self._use_pinyin else {}),
                 'label': np.asarray(label) if label is not None else None,
                 **extra,
             })
@@ -97,14 +98,13 @@ class BaseDataset(metaclass=abc.ABCMeta):
         return ids
 
     def _assemble(self, data_parts: List[Dict[str, Any]], label_parts: Optional[List[Dict[str, Any]]]) \
-            -> Tuple[List[int], List[int], Optional[List[int]], Optional[List[int]]]:
+            -> Tuple[List[int], List[int], Optional[List[int]]]:
         label, pinyin_label = None, None
         text = self._convert_parts_to_ids(data_parts)
-        pinyin = self._convert_parts_to_ids(data_parts, use_pinyin=True)
+        pinyin = self._convert_parts_to_ids(data_parts, use_pinyin=True) if self._use_pinyin else None
         if label_parts is not None:
             label = self._convert_parts_to_ids(label_parts)
-            pinyin_label = self._convert_parts_to_ids(label_parts, use_pinyin=True)
-        return text, pinyin, label, pinyin_label
+        return text, pinyin, label
 
     def prepare(self) -> Tuple[List[Dict[str, Any]], Optional[List[str]]]:
         save_path = self._output_path / f'{self._split}-template-{self._template_id}.pkl'
@@ -133,26 +133,28 @@ class PerplexityDataset(BaseDataset, metaclass=abc.ABCMeta):
 
         for i in mcpt.trange(len(objs)):
             parts_list, label = self._templatize(objs, i)
-            text, pinyin, label = [], [], [label] if label is not None else None
+            text, label = [], [label] if label is not None else None
+            pinyin = [] if self._use_pinyin else None
 
             for parts in parts_list:
-                text_i, pinyin_i, _, _ = self._assemble(parts, None)
-                text_i = self._tokenizer.convert_tokens_to_ids([self._special_tokens['start-token']]) + text_i
-                text_i += self._tokenizer.convert_tokens_to_ids([self._special_tokens['end-token']])
-                pinyin_i = self._pinyin_tokenizer.convert_tokens_to_ids(
-                    [self._special_tokens['start-token']]) + pinyin_i
-                pinyin_i += self._pinyin_tokenizer.convert_tokens_to_ids([self._special_tokens['end-token']])
-                if len(text_i) != len(pinyin_i):
-                    warnings.warn(f'`text` has size {len(text_i)} and `pinyin` has size {len(pinyin_i)}.'
-                                  f' (most likely due to omitted control characters).')
-                    pinyin_i = np.zeros_like(text_i)
-                    self._discard_obj(objs[i], discarded)
+                text_i, pinyin_i, _ = self._assemble(parts, None)
+                text_i = self._tokenizer.convert_tokens_to_ids([self._special_tokens['start_token']]) + text_i
+                text_i += self._tokenizer.convert_tokens_to_ids([self._special_tokens['end_token']])
                 text.append(np.asarray([text_i]))
-                pinyin.append(np.asarray([pinyin_i]))
+                if self._use_pinyin:
+                    pinyin_i = self._pinyin_tokenizer.convert_tokens_to_ids(
+                        [self._special_tokens['start_token']]) + pinyin_i
+                    pinyin_i += self._pinyin_tokenizer.convert_tokens_to_ids([self._special_tokens['end_token']])
+                    if len(text_i) != len(pinyin_i):
+                        warnings.warn(f'`text` has size {len(text_i)} and `pinyin` has size {len(pinyin_i)}.'
+                                      f' (most likely due to omitted control characters).')
+                        pinyin_i = np.zeros_like(text_i)
+                        self._discard_obj(objs[i], discarded)
+                    pinyin.append(np.asarray([pinyin_i]))
             label = np.asarray(label)
             data.append({
                 'text': text,
-                'pinyin': pinyin,
+                **({'pinyin': pinyin} if self._use_pinyin else {}),
                 'label': label,
             })
         if len(discarded) > 0:

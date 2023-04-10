@@ -5,7 +5,12 @@ from typing import *
 import mcpt
 
 
-def generation(x: List[np.ndarray], model, callbacks: Optional[Callable] = None, **kwargs) -> List[np.ndarray]:
+def generation(
+        x: List[np.ndarray],
+        model: mcpt.Model,
+        callbacks: Optional[Callable] = None,
+        **kwargs,
+) -> List[np.ndarray]:
     generation_config = {
         'max_length': kwargs['config'].get('extra_config', {}).get('max_length', 256),
         'temperature': kwargs['config'].get('extra_config', {}).get('temperature', 1.0),
@@ -22,13 +27,13 @@ def generation(x: List[np.ndarray], model, callbacks: Optional[Callable] = None,
         device=kwargs['device'],
         pinyin_tokenizer=kwargs['pinyin_tokenizer'],
         tokenizer=kwargs['tokenizer'],
-        use_pinyin=kwargs['config']['use_pinyin'],
         verbose=0,
     )
+    use_pinyin = model.config.get('use_pinyin', False)
     for idx, (data, label) in enumerate(zip(x, kwargs['y_true'])):
         samples = sampler.batch_sample(data[0], generation_config, kwargs['candidates'])
         items = []
-        for pred in np.asarray(samples.to('cpu'))[:, len(data[0][0] if kwargs['config']['use_pinyin'] else data[0]):]:
+        for pred in np.asarray(samples.to('cpu'))[:, len(data[0][0] if use_pinyin else data[0]):]:
             if kwargs['special_token_ids']['end_token'] in pred:
                 pred = pred[:pred.tolist().index(kwargs['special_token_ids']['end_token'])]
             items.append(pred)

@@ -65,9 +65,8 @@ class Sampler:
             model: mcpt.Model,
             end_id: int,
             device: str,
-            tokenizer: mcpt.Tokenizer = None,
-            pinyin_tokenizer: mcpt.PinyinTokenizer = None,
-            use_pinyin: bool = False,
+            tokenizer: Optional[mcpt.Tokenizer] = None,
+            pinyin_tokenizer: Optional[mcpt.PinyinTokenizer] = None,
             verbose: int = 1,
     ):
         self._model = model
@@ -75,7 +74,7 @@ class Sampler:
         self._device = device
         self._tokenizer = tokenizer
         self._pinyin_tokenizer = pinyin_tokenizer
-        self._use_pinyin = use_pinyin
+        self._use_pinyin = self._model.config.get('use_pinyin', False)
         self._verbose = verbose
 
     @staticmethod
