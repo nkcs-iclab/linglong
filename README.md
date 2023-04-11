@@ -57,10 +57,17 @@ The required packages are not listed in `setup.py` yet, so you need to install t
     HOROVOD_WITH_...=1 pip install --no-cache-dir horovod
     ```
    
+3. Install DeepSpeed (optional, experimental, for DeepSpeed enabled training).
+
+    ```
+    pip install deepspeed
+    ```
+
 ## Changelog
 
 ### 0.5 (prerelease)
 
+- Add `train-ds.py` for DeepSpeed enabled training.
 - Stop batch text generation when the end of the text is reached in all samples.
 - Move `use_pinyin` and `backward` arguments from method arguments to the model configuration.
 - Fix: Text are now clipped to the maximum context length of the model.

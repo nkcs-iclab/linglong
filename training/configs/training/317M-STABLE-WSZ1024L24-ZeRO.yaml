@@ -3,7 +3,7 @@ gradient_accumulation_steps: 1
 optimizer:
   type: AdamW
   params:
-    lr: 2.5e-04
+    lr: 8.0e-05
     betas:
       - 0.9
       - 0.95
@@ -14,7 +14,11 @@ fp16:
   autocast: true
 gradient_clipping: 1.0
 zero_optimization:
-  stage: 0
+  stage: 3
+  offload_optimizer:
+    device: cpu
+  contiguous_gradients: true
+  overlap_comm: true
 steps_per_print: 1.0e+10
-warmup_tokens: 6.0e+8
-decay_tokens: 1.06e+10
+warmup_tokens: 2.0e+5
+decay_tokens: 4.0e+5

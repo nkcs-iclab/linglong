@@ -34,8 +34,8 @@ def cosine_annealing_warmup(
         alpha: float = 0.1,
         last_epoch: int = -1,
 ):
-    warmup_steps = int(config['warmup_tokens'] / config['batch_size'] / dp_size / n_ctx)
-    decay_steps = int(config['decay_tokens'] / config['batch_size'] / dp_size / n_ctx)
+    warmup_steps = int(config['warmup_tokens'] / config['train_micro_batch_size_per_gpu'] / dp_size / n_ctx)
+    decay_steps = int(config['decay_tokens'] / config['train_micro_batch_size_per_gpu'] / dp_size / n_ctx)
     return CosineAnnealingWarmup(
         optimizer,
         warmup_steps=warmup_steps,

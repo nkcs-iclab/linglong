@@ -58,7 +58,6 @@ class DSModelCheckpointCallback(mcpt.train.callbacks.ModelCheckpointCallback):
         model.save_checkpoint(str(self.save_path), tag=save_name[:-3])
 
 
-# noinspection PyTypeChecker
 def main(cmd_args: argparse.Namespace):
     hvd = mcpt.stubs.Horovod(
         size=deepspeed.comm.comm.get_world_size(),
@@ -68,7 +67,6 @@ def main(cmd_args: argparse.Namespace):
     with mcpt.running('Loading configs', hvd=hvd) as spinner:
         model_config = mcpt.load_config(cmd_args.model_config)
         training_config = mcpt.load_config(cmd_args.training_config)
-        ds_config = mcpt.load_config(cmd_args.deepspeed_config)
         save_path = pathlib.Path(cmd_args.save_path)
         spinner.write(cmd_args)
         spinner.write(model_config)
@@ -78,7 +76,7 @@ def main(cmd_args: argparse.Namespace):
         train_loader = mcpt.records.load(
             path=cmd_args.training_data,
             meta=cmd_args.training_meta,
-            batch_size=ds_config['train_micro_batch_size_per_gpu'],
+            batch_size=training_config['train_micro_batch_size_per_gpu'],
             dp_size=hvd.size(),
             dp_rank=hvd.rank(),
             use_pinyin=model_config.get('use_pinyin', False),
@@ -91,19 +89,17 @@ def main(cmd_args: argparse.Namespace):
         )
 
         lr_scheduler = cosine_annealing_warmup(
-            config={
-                'batch_size': ds_config['train_micro_batch_size_per_gpu'],
-                'warmup_tokens': training_config['warmup_tokens'],
-                'decay_tokens': training_config['decay_tokens'],
-            },
+            config=training_config,
             n_ctx=model.config['n_ctx'],
             dp_size=hvd.size(),
         )
+        # noinspection PyTypeChecker
         model_engine, optimizer, _, _ = deepspeed.initialize(
             args=cmd_args,
             model=model,
             model_parameters=model.parameters(),
             lr_scheduler=lr_scheduler,
+            config=training_config,
         )
         callbacks = []
         for freq in cmd_args.save_frequency:
@@ -119,7 +115,7 @@ def main(cmd_args: argparse.Namespace):
     if hvd.rank() == 0:
         print(model)
 
-    for epoch in range(1, training_config['epochs'] + 1):
+    for epoch in range(1, cmd_args.epochs + 1):
         train_tqdm = mcpt.tqdm(enumerate(train_loader), total=len(train_loader), hvd=hvd)
         loss = 0
         for batch_idx, (data, target) in train_tqdm:
@@ -130,7 +126,7 @@ def main(cmd_args: argparse.Namespace):
             model_engine.step()
             if hvd.rank() == 0 and (batch_idx + 1) % cmd_args.log_frequency == 0:
                 train_tqdm.write(
-                    f'Train Epoch: {1}/{training_config["epochs"]} [{batch_idx + 1}/{len(train_loader)}] '
+                    f'Train Epoch: {1}/{cmd_args.epochs} [{batch_idx + 1}/{len(train_loader)}] '
                     f'Loss: {loss.item()}'
                 )
             for callback in callbacks:
@@ -156,6 +152,7 @@ if __name__ == '__main__':
     parser.add_argument('--save_path', type=str, default='./ckpt')
     parser.add_argument('--log_frequency', type=int, default=10)
     parser.add_argument('--save_frequency', type=int_or_str, nargs='+', default=['epoch'])
+    parser.add_argument('--epochs', type=int, default=5)
     parser = deepspeed.add_config_arguments(parser)
     deepspeed.init_distributed()
     main(parser.parse_args())

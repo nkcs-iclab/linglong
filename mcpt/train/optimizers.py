@@ -10,7 +10,7 @@ def adamw(
     return torch.optim.AdamW(
         params,
         lr=config['lr'],
-        betas=(config['beta_1'], config['beta_2']),
-        eps=config['epsilon'],
-        weight_decay=config['weight_decay_rate'],
+        betas=config['betas'],
+        eps=config['eps'],
+        weight_decay=config['weight_decay'],
     )

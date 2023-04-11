@@ -22,7 +22,7 @@ def main(
         training_meta: str = 'train-meta.pkl',
         validation_data: Optional[str] = None,
         validation_meta: str = 'valid-meta.pkl',
-        fp16: bool = False,
+        epochs: int = 5,
         load_model: Optional[str] = None,
         save_path: str = './ckpt',
         save_frequency: Union[int, str, Tuple[Union[int, str], ...]] = 'epoch',
@@ -46,6 +46,7 @@ def main(
             'training_meta': training_meta,
             'validation_data': validation_data,
             'validation_meta': validation_meta,
+            'epochs': epochs,
             'load_model': load_model,
             'save_path': save_path,
             'save_frequency': save_frequency,
@@ -59,7 +60,7 @@ def main(
         train_loader = mcpt.records.load(
             path=training_data,
             meta=training_meta,
-            batch_size=training_config['batch_size'],
+            batch_size=training_config['train_micro_batch_size_per_gpu'],
             dp_size=hvd.size(),
             dp_rank=hvd.rank(),
             use_pinyin=model_config.get('use_pinyin', False),
@@ -67,7 +68,7 @@ def main(
         validation_loader = mcpt.records.load(
             path=validation_data,
             meta=validation_meta,
-            batch_size=training_config['batch_size'],
+            batch_size=training_config['train_micro_batch_size_per_gpu'],
             dp_size=hvd.size(),
             dp_rank=hvd.rank(),
             use_pinyin=model_config.get('use_pinyin', False),
@@ -79,13 +80,14 @@ def main(
             load_model=load_model,
             device=device,
         )
-        training_config['lr'] = training_config['lr'] * hvd.size() * training_config['backward_passes_per_step']
-        optimizer = mcpt.train.optimizers.adamw(model.parameters(), config=training_config)
+        training_config['optimizer']['params']['lr'] = \
+            training_config['optimizer']['params']['lr'] * hvd.size() * training_config['gradient_accumulation_steps']
+        optimizer = mcpt.train.optimizers.adamw(model.parameters(), config=training_config['optimizer']['params'])
         optimizer = hvd.DistributedOptimizer(
             optimizer,
             named_parameters=model.named_parameters(),
             sparse_as_dense=True,
-            backward_passes_per_step=training_config['backward_passes_per_step'],
+            backward_passes_per_step=training_config['gradient_accumulation_steps'],
         )
         lr_scheduler = mcpt.train.schedulers.cosine_annealing_warmup(
             optimizer,
@@ -112,28 +114,28 @@ def main(
     if hvd.rank() == 0:
         print(model)
 
-    scaler = torch.cuda.amp.GradScaler() if fp16 else mcpt.stubs.Noop()
-    for epoch in range(1, training_config['epochs'] + 1):
+    scaler = torch.cuda.amp.GradScaler() if training_config['fp16']['enabled'] else mcpt.stubs.Noop()
+    for epoch in range(1, epochs + 1):
         if hvd.rank() == 0:
-            print(f'Epoch {epoch}/{training_config["epochs"]}')
+            print(f'Epoch {epoch}/{epochs}')
         train_tqdm = mcpt.tqdm(enumerate(train_loader), total=len(train_loader), hvd=hvd)
         loss = 0
         for batch_idx, (data, target) in train_tqdm:
             data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
-            with (torch.cuda.amp.autocast() if fp16 else contextlib.nullcontext()):
+            with (torch.cuda.amp.autocast() if training_config['fp16']['enabled'] else contextlib.nullcontext()):
                 logits, present = model(data)
                 loss = torch.nn.functional.cross_entropy(logits.permute(0, 2, 1), target, ignore_index=0)
-            if fp16:
+            if training_config['fp16']['enabled']:
                 scaler.scale(loss).backward()
             else:
                 loss.backward()
             if not isinstance(hvd, mcpt.stubs.Horovod):
                 optimizer.synchronize()
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=training_config['clip_norm'])
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=training_config['gradient_clipping'])
             with (contextlib.nullcontext() if isinstance(hvd, mcpt.stubs.Horovod) else optimizer.skip_synchronize()):
-                if fp16:
+                if training_config['fp16']['enabled']:
                     scaler.step(optimizer)
                 else:
                     optimizer.step()
@@ -142,8 +144,9 @@ def main(
             loss = loss.item()
             if hvd.rank() == 0 and (batch_idx + 1) % log_frequency == 0:
                 train_tqdm.write(
-                    f'Train Epoch: {epoch}/{training_config["epochs"]} [{batch_idx + 1}/{len(train_loader)}] '
-                    f'Loss: {loss}' + (f' Loss Scale: {scaler.get_scale()}' if fp16 else ''),
+                    f'Train Epoch: {epoch}/{epochs} [{batch_idx + 1}/{len(train_loader)}] '
+                    f'Loss: {loss}' +
+                    (f' Loss Scale: {scaler.get_scale()}' if training_config['fp16']['enabled'] else ''),
                 )
             for callback in callbacks:
                 callback(model=model, epoch=epoch, batch=batch_idx + 1, loss=loss)
