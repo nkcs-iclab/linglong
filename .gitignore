@@ -3,6 +3,7 @@ __pycache__/
 
 demo/
 
+hostfile
 *.pt
 *local.yaml
 *.sh
