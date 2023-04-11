@@ -85,7 +85,7 @@ class Sampler:
         indices = torch.topk(logits_flat, k, dim=-1)[1]
         mask = torch.zeros_like(logits_flat).scatter_(-1, indices, 1)
         mask = mask.view(logits.size())
-        logits = logits.masked_fill((mask == 0), -1e10)
+        logits = logits.masked_fill((mask == 0), -torch.inf)
         return logits
 
     @staticmethod
@@ -97,7 +97,7 @@ class Sampler:
         sorted_indices_to_remove[..., 0] = False
         n_remove = sorted_indices_to_remove.sum(dim=-1)
         min_logits = sorted_logits.flip(-1).gather(-1, n_remove.unsqueeze(-1))
-        logits[logits < min_logits] = -1e10
+        logits[logits < min_logits] = -torch.inf
         return logits
 
     def _past_shape(self, batch_size: int) -> List[int]:
