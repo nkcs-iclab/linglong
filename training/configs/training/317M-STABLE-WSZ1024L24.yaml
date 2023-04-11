@@ -14,7 +14,9 @@ fp16:
   autocast: true
 gradient_clipping: 1.0
 zero_optimization:
-  stage: 0
+  stage: 2
+  contiguous_gradients: true
+  overlap_comm: true
 steps_per_print: 1.0e+10
 warmup_tokens: 2.0e+5
 decay_tokens: 4.0e+5

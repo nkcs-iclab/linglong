@@ -1,13 +1,13 @@
 import torch
 import pathlib
 import argparse
+import deepspeed
 
 from typing import *
+from deepspeed.utils import zero_to_fp32
 
 import mcpt
 import mcpt.records
-
-import deepspeed
 
 
 def int_or_str(value: str) -> Union[int, str]:
@@ -39,6 +39,11 @@ def cosine_annealing_warmup(
 
 class DSModelCheckpointCallback(mcpt.train.callbacks.ModelCheckpointCallback):
 
+    def __init__(self, zero_optimization: bool = False, hvd: Optional = None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._zero_optimization = zero_optimization
+        self._rank = hvd.rank() if hvd is not None else 0
+
     def __call__(
             self,
             model: deepspeed.DeepSpeedEngine,
@@ -55,7 +60,16 @@ class DSModelCheckpointCallback(mcpt.train.callbacks.ModelCheckpointCallback):
         if isinstance(self.save_frequency, int):
             if end_of_epoch or batch % self.save_frequency != 0:
                 return
-        model.save_checkpoint(str(self.save_path), tag=save_name[:-3])
+        model.save_checkpoint(str(self.save_path), tag=save_name.split('L')[0])
+        if self._rank == 0:
+            if self._zero_optimization:
+                zero_to_fp32.convert_zero_checkpoint_to_fp32_state_dict(
+                    checkpoint_dir=str(self.save_path),
+                    output_file=str(self.save_path / save_name),
+                    tag=save_name.split('L')[0],
+                )
+            else:
+                torch.save(model.module.state_dict(), str(self.save_path / save_name))
 
 
 def main(cmd_args: argparse.Namespace):
@@ -68,9 +82,8 @@ def main(cmd_args: argparse.Namespace):
         model_config = mcpt.load_config(cmd_args.model_config)
         training_config = mcpt.load_config(cmd_args.training_config)
         save_path = pathlib.Path(cmd_args.save_path)
-        spinner.write(cmd_args)
-        spinner.write(model_config)
-        spinner.write(training_config)
+        spinner.write(mcpt.print_dict(cmd_args.__dict__, export=True))
+        spinner.write(mcpt.print_dict(model_config, export=True))
 
     with mcpt.running('Loading the dataset', hvd=hvd, timer=True):
         train_loader = mcpt.records.load(
@@ -107,6 +120,8 @@ def main(cmd_args: argparse.Namespace):
                 assert freq in ('epoch', 'step')
             callbacks.append(
                 DSModelCheckpointCallback(
+                    zero_optimization=training_config['zero_optimization']['stage'] > 0,
+                    hvd=hvd,
                     save_path=save_path,
                     save_frequency=freq,
                 ),

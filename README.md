@@ -67,7 +67,7 @@ The required packages are not listed in `setup.py` yet, so you need to install t
 
 ### 0.6 (pre-release)
 
-- TBA
+- Fix model saving issue with DeepSpeed models
 
 ### 0.5
 
