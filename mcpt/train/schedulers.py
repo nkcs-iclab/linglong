@@ -27,7 +27,7 @@ class CosineAnnealingWarmup(torch.optim.lr_scheduler.LambdaLR):
 
 
 def cosine_annealing_warmup(
-        optimizer,
+        optimizer: torch.optim.Optimizer,
         config: Dict[str, Any],
         n_ctx: int,
         dp_size: int = 1,

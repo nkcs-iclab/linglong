@@ -29,5 +29,6 @@ class Model(nn.Module):
             model = Model(mcpt.models.MCPTModel(config))
         if load_model is not None:
             model.load_state_dict(torch.load(load_model, map_location=device))
-        model.to(device)
+        if device is not None:
+            model.to(device)
         return model
