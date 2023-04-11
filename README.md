@@ -1,6 +1,6 @@
 # MCPT (PyTorch)
 
-![version 0.5](https://img.shields.io/badge/version-0.5-blue)
+![version 0.6](https://img.shields.io/badge/version-0.6-blue)
 ![Python 3.11](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
 ![PyTorch 2.0.0](https://img.shields.io/badge/PyTorch-2.0.0-EE4C2C?logo=pytorch&logoColor=white)
 
@@ -65,7 +65,11 @@ The required packages are not listed in `setup.py` yet, so you need to install t
 
 ## Changelog
 
-### 0.5 (prerelease)
+### 0.6 (pre-release)
+
+- TBA
+
+### 0.5
 
 - Add `train-ds.py` for DeepSpeed enabled training.
 - Stop batch text generation when the end of the text is reached in all samples.
