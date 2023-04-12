@@ -1,9 +1,6 @@
 name: mcpt-torch
 channels:
-  - pytorch
-  - nvidia
   - conda-forge
-  - defaults
 dependencies:
   - python=3.11
   - mpich
