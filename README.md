@@ -1,15 +1,17 @@
-# MCPT (PyTorch)
+# Mini-Scale Chinese PreTrained Language Model (MCPT)
 
 ![version 0.6](https://img.shields.io/badge/version-0.6-blue)
 ![Python >=3.6,<=3.11](https://img.shields.io/badge/Python->=3.6,<=3.11-blue?logo=python&logoColor=white)
-![PyTorch 2.0.0](https://img.shields.io/badge/PyTorch-2.0.0-EE4C2C?logo=pytorch&logoColor=white)
+![PyTorch 2.0](https://img.shields.io/badge/PyTorch-2.0-EE4C2C?logo=pytorch&logoColor=white)
+![TensorFlow 2.12](https://img.shields.io/badge/TensorFlow-2.12-FF6F00?logo=tensorflow&logoColor=white)
 
 ## Python Requirements
 
 This package requires Python 3.6 or later, with a few exceptions:
 
 - If you want to use the parallel evaluation script, you need Python 3.11 or later.
-- PyTorch 2.0.0 requires Python 3.8 or later. PyTorch with a lower version number may work, but it is not tested.
+- PyTorch 2.0 requires Python 3.8 or later. PyTorch with a lower version number may work, but it is not tested.
+- TensorFlow 2.12 requires Python 3.8 or later. TensorFlow with a lower version number may work, but it is not tested.
 
 ## Installation
 
@@ -42,10 +44,9 @@ The required packages are not listed in `setup.py` yet, so you need to install t
 2. Install Horovod (optional, for data parallel training).
 
     ```
-    export NCCL_DIR=$CONDA_PREFIX/lib/python3.11/site-packages/nvidia/nccl
-    ln -s $NCCL_DIR/lib/libnccl.so.2 $NCCL_DIR/lib/libnccl.so
-    HOROVOD_NCCL_INCLUDE=$NCCL_DIR/include/ \
-      HOROVOD_NCCL_LIB=$NCCL_DIR/lib/ \
+    export NCCL_HOME=$(python -c "import sysconfig; print(sysconfig.get_path('purelib'))")/nvidia/nccl
+    ln -s $NCCL_HOME/lib/libnccl.so.2 $NCCL_HOME/lib/libnccl.so
+    HOROVOD_NCCL_HOME=$NCCL_HOME \
       HOROVOD_GPU_OPERATIONS=NCCL \
       HOROVOD_WITH_PYTORCH=1 \
       pip install --no-cache-dir horovod[pytorch]
@@ -56,19 +57,15 @@ The required packages are not listed in `setup.py` yet, so you need to install t
     horovodrun --check-build
     ```
 
-    Every feature that was successfully enabled will be marked with an ‘X’. 
-    If you intended to install Horovod with a feature that is not listed as enabled, you can reinstall Horovod, setting the appropriate environment variables to diagnose failures:
-
-    ```
-    pip uninstall horovod
-    HOROVOD_WITH_...=1 pip install --no-cache-dir horovod
-    ```
+    Every feature that was successfully enabled will be marked with an "X".
    
 3. Install DeepSpeed (optional, experimental, for DeepSpeed enabled training).
 
     ```
     pip install deepspeed
     ```
+   
+    After installation, you can validate your installation and see which ops your machine is compatible with via the DeepSpeed environment report with `ds_report` or `python -m deepspeed.env_report`.
 
 ## Changelog
 
