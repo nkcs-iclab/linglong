@@ -18,5 +18,6 @@ zero_optimization:
   contiguous_gradients: true
   overlap_comm: true
 steps_per_print: 1.0e+10
-warmup_tokens: 2.0e+5
-decay_tokens: 4.0e+5
+mcpt:
+  warmup_tokens: 2.0e+5
+  decay_tokens: 4.0e+5
