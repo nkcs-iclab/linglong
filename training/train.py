@@ -123,7 +123,7 @@ def main(
         for batch_idx, (data, target) in train_tqdm:
             data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
-            with (torch.cuda.amp.autocast() if training_config['fp16']['enabled'] else contextlib.nullcontext()):
+            with (torch.cuda.amp.autocast() if training_config['fp16']['enabled'] else contextlib.suppress()):
                 logits, present = model(data)
                 loss = torch.nn.functional.cross_entropy(logits.permute(0, 2, 1), target, ignore_index=0)
             if training_config['fp16']['enabled']:
@@ -134,7 +134,7 @@ def main(
                 optimizer.synchronize()
             scaler.unscale_(optimizer)
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=training_config['gradient_clipping'])
-            with (contextlib.nullcontext() if isinstance(hvd, mcpt.stubs.Horovod) else optimizer.skip_synchronize()):
+            with (contextlib.suppress() if isinstance(hvd, mcpt.stubs.Horovod) else optimizer.skip_synchronize()):
                 if training_config['fp16']['enabled']:
                     scaler.step(optimizer)
                 else:

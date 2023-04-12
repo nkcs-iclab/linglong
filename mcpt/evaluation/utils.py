@@ -104,7 +104,7 @@ class EvalOutputReader(Sequence):
 class BaseCallback:
 
     def __init__(self, lock: Optional[multiprocessing.Lock] = None):
-        self._lock = contextlib.nullcontext() if lock is None else lock
+        self._lock = contextlib.suppress() if lock is None else lock
 
     def __call__(self, *args, **kwargs):
         pass

@@ -40,7 +40,8 @@ def generation(
             items.append(kwargs['tokenizer'].convert_string_to_ids(
                 kwargs['config'].get('extra_config', {}).get('merge_tokens', '')
             ))
-        if merge_method := kwargs['config'].get('extra_config', {}).get('merge_method', 'concat') == 'concat':
+        merge_method = kwargs['config'].get('extra_config', {}).get('merge_method', 'concat')
+        if merge_method == 'concat':
             pred = np.concatenate(items[:-1])
         else:
             raise ValueError(f'Invalid merge method: {merge_method}')

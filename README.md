@@ -1,8 +1,15 @@
 # MCPT (PyTorch)
 
 ![version 0.6](https://img.shields.io/badge/version-0.6-blue)
-![Python 3.11](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
+![Python >=3.6,<=3.11](https://img.shields.io/badge/Python->=3.6,<=3.11-blue?logo=python&logoColor=white)
 ![PyTorch 2.0.0](https://img.shields.io/badge/PyTorch-2.0.0-EE4C2C?logo=pytorch&logoColor=white)
+
+## Python Requirements
+
+This package requires Python 3.6 or later, with a few exceptions:
+
+- If you want to use the parallel evaluation script, you need Python 3.11 or later.
+- PyTorch 2.0.0 requires Python 3.8 or later. PyTorch with a lower version number may work, but it is not tested.
 
 ## Installation
 
@@ -67,14 +74,15 @@ The required packages are not listed in `setup.py` yet, so you need to install t
 
 ### 0.6 (pre-release)
 
-- Fix model saving issue with DeepSpeed models
+- The code is now compatible with Python 3.6.
+- Fixed model saving issue with DeepSpeed models
 
 ### 0.5
 
-- Add `train-ds.py` for DeepSpeed enabled training.
+- Added `train-ds.py` for DeepSpeed enabled training.
 - Stop batch text generation when the end of the text is reached in all samples.
-- Move `use_pinyin` and `backward` arguments from method arguments to the model configuration.
-- Fix: Text are now clipped to the maximum context length of the model.
+- Moved `use_pinyin` and `backward` arguments from method arguments to the model configuration.
+- Fixed: Text are now clipped to the maximum context length of the model.
 
 ### 0.4
 

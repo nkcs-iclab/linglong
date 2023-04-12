@@ -27,7 +27,8 @@ def load(config: Dict[str, Any]):
     input_path = pathlib.Path(config['input_path']) / config.get('base', config['dataset'])
     output_path = pathlib.Path(config['cache_path']) / config['dataset']
 
-    if (dataset := datasets[method].get(config['dataset'], None)) is None:
+    dataset = datasets[method].get(config['dataset'], None)
+    if dataset is None:
         raise ValueError(f'The {method} method is not supported for this dataset.')
     return dataset(
         input_path=str(input_path),

@@ -89,10 +89,11 @@ class BaseDataset:
             if len(text) > self._n_ctx:
                 self._discard_obj(objs[i], discarded, f'`text` has size {len(text)}, exceeding `n_ctx`: {self._n_ctx}.')
                 continue
-            if (file_idx_ := i // self._items_per_file) != file_idx:
+            new_file_idx = i // self._items_per_file
+            if new_file_idx != file_idx:
                 if writer is not None:
                     writer.close()
-                file_idx = file_idx_
+                file_idx = new_file_idx
                 filename = f'{self._split}-{file_idx + 1:0{len(str(n_file))}d}-of-{n_file}.tfrecord'
                 meta['files'].append(filename)
                 writer = tf.io.TFRecordWriter(str(self._output_path / filename))

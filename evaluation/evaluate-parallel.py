@@ -226,5 +226,7 @@ def main(
 
 
 if __name__ == '__main__':
+    if mcpt.python_version('3.11'):
+        raise RuntimeError('This script is not compatible with Python below 3.11.')
     mcpt.init()
     fire.Fire(main)
