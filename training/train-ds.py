@@ -147,12 +147,7 @@ def main(cmd_args: argparse.Namespace):
             for callback in callbacks:
                 callback(model=model_engine, epoch=epoch, batch=batch_idx + 1, loss=loss)
         for callback in callbacks:
-            callback(
-                model=model_engine,
-                epoch=epoch,
-                loss=loss,
-                end_of_epoch=True,
-            )
+            callback(model=model_engine, epoch=epoch, loss=loss, end_of_epoch=True)
 
 
 if __name__ == '__main__':
