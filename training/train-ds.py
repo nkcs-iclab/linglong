@@ -1,6 +1,6 @@
+import fire
 import torch
 import pathlib
-import argparse
 import deepspeed
 
 from typing import *
@@ -72,23 +72,53 @@ class DSModelCheckpointCallback(mcpt.train.callbacks.ModelCheckpointCallback):
                 torch.save(model.module.state_dict(), str(self.save_path / save_name))
 
 
-def main(cmd_args: argparse.Namespace):
+def main(
+        training_data: str,
+        model_config: str,
+        training_config: str,
+        extra_config: Optional[Dict] = None,
+        training_meta: str = 'train-meta.pkl',
+        epochs: int = 5,
+        load_model: Optional[str] = None,
+        save_path: str = './ckpt',
+        save_frequency: Union[int, str, List[Union[int, str]]] = 'epoch',
+        log_frequency: int = 10,
+        local_rank: int = 0,
+):
+    deepspeed.init_distributed()
     hvd = mcpt.stubs.Horovod(
-        size=deepspeed.comm.comm.get_world_size(),
-        rank=deepspeed.comm.comm.get_rank(),
-        local_rank=deepspeed.comm.comm.get_local_rank(),
+        size=deepspeed.comm.get_world_size(),
+        rank=deepspeed.comm.get_rank(),
+        local_rank=local_rank,
     )
+
     with mcpt.running('Loading configs', hvd=hvd) as spinner:
-        model_config = mcpt.load_config(cmd_args.model_config)
-        training_config = mcpt.load_config(cmd_args.training_config)
-        save_path = pathlib.Path(cmd_args.save_path)
-        spinner.write(mcpt.print_dict(cmd_args.__dict__, export=True))
-        spinner.write(mcpt.print_dict(model_config, export=True))
+        model_config_path, training_config_path = model_config, training_config
+        model_config = mcpt.load_config(model_config_path)
+        model_config = mcpt.merge_configs(model_config, (extra_config or {}).get('model', {}))
+        training_config = mcpt.load_config(training_config_path)
+        training_config = mcpt.merge_configs(training_config, (extra_config or {}).get('training', {}))
+        config = {
+            'training_data': training_data,
+            'model_config_path': model_config_path,
+            'training_config_path': training_config_path,
+            'extra_config': extra_config,
+            'training_meta': training_meta,
+            'epochs': epochs,
+            'load_model': load_model,
+            'save_path': save_path,
+            'save_frequency': save_frequency,
+            'model_config': model_config,
+            'training_config': training_config,
+            'log_frequency': log_frequency,
+        }
+        save_path = pathlib.Path(save_path)
+        spinner.write(mcpt.print_dict(config, export=True))
 
     with mcpt.running('Loading the dataset', hvd=hvd, timer=True):
         train_loader = mcpt.records.load(
-            path=cmd_args.training_data,
-            meta=cmd_args.training_meta,
+            path=training_data,
+            meta=training_meta,
             batch_size=training_config['train_micro_batch_size_per_gpu'],
             dp_size=hvd.size(),
             dp_rank=hvd.rank(),
@@ -98,7 +128,7 @@ def main(cmd_args: argparse.Namespace):
     with mcpt.running('Loading the model', hvd=hvd, timer=True):
         model = mcpt.Model.from_config(
             config=model_config,
-            load_model=cmd_args.load_model,
+            load_model=load_model,
         )
 
         lr_scheduler = cosine_annealing_warmup(
@@ -108,14 +138,15 @@ def main(cmd_args: argparse.Namespace):
         )
         # noinspection PyTypeChecker
         model_engine, optimizer, _, _ = deepspeed.initialize(
-            args=cmd_args,
             model=model,
             model_parameters=model.parameters(),
             lr_scheduler=lr_scheduler,
             config=training_config,
         )
         callbacks = []
-        for freq in cmd_args.save_frequency:
+        if not isinstance(save_frequency, Union[Tuple, List]):
+            save_frequency = (save_frequency,)
+        for freq in save_frequency:
             if isinstance(freq, str):
                 assert freq in ('epoch', 'step')
             callbacks.append(
@@ -130,7 +161,7 @@ def main(cmd_args: argparse.Namespace):
     if hvd.rank() == 0:
         print(model)
 
-    for epoch in range(1, cmd_args.epochs + 1):
+    for epoch in range(1, epochs + 1):
         train_tqdm = mcpt.tqdm(enumerate(train_loader), total=len(train_loader), hvd=hvd)
         loss = 0
         for batch_idx, (data, target) in train_tqdm:
@@ -139,9 +170,9 @@ def main(cmd_args: argparse.Namespace):
             loss = torch.nn.functional.cross_entropy(logits.permute(0, 2, 1), target, ignore_index=0)
             model_engine.backward(loss)
             model_engine.step()
-            if hvd.rank() == 0 and (batch_idx + 1) % cmd_args.log_frequency == 0:
+            if hvd.rank() == 0 and (batch_idx + 1) % log_frequency == 0:
                 train_tqdm.write(
-                    f'Train Epoch: {1}/{cmd_args.epochs} [{batch_idx + 1}/{len(train_loader)}] '
+                    f'Train Epoch: {1}/{epochs} [{batch_idx + 1}/{len(train_loader)}] '
                     f'Loss: {loss.item()}'
                 )
             for callback in callbacks:
@@ -152,17 +183,4 @@ def main(cmd_args: argparse.Namespace):
 
 if __name__ == '__main__':
     mcpt.init()
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--local_rank', type=int, default=0)
-    parser.add_argument('--model_config', type=str, required=True)
-    parser.add_argument('--training_config', type=str, required=True)
-    parser.add_argument('--training_data', type=str, required=True)
-    parser.add_argument('--training_meta', type=str, default='train-meta.pkl')
-    parser.add_argument('--load_model', type=str)
-    parser.add_argument('--save_path', type=str, default='./ckpt')
-    parser.add_argument('--log_frequency', type=int, default=10)
-    parser.add_argument('--save_frequency', type=int_or_str, nargs='+', default=['epoch'])
-    parser.add_argument('--epochs', type=int, default=5)
-    parser = deepspeed.add_config_arguments(parser)
-    deepspeed.init_distributed()
-    main(parser.parse_args())
+    fire.Fire(main)

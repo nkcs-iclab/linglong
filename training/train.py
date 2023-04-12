@@ -25,7 +25,7 @@ def main(
         epochs: int = 5,
         load_model: Optional[str] = None,
         save_path: str = './ckpt',
-        save_frequency: Union[int, str, Tuple[Union[int, str], ...]] = 'epoch',
+        save_frequency: Union[int, str, List[Union[int, str]]] = 'epoch',
         log_frequency: int = 10,
         device: str = 'cuda',
 ):
@@ -52,6 +52,8 @@ def main(
             'save_frequency': save_frequency,
             'model_config': model_config,
             'training_config': training_config,
+            'log_frequency': log_frequency,
+            'device': device,
         }
         save_path = pathlib.Path(save_path)
         spinner.write(mcpt.print_dict(config, export=True))
@@ -99,7 +101,7 @@ def main(
         hvd.broadcast_optimizer_state(optimizer, root_rank=0)
         callbacks = []
         if hvd.rank() == 0:
-            if not isinstance(save_frequency, tuple):
+            if not isinstance(save_frequency, Union[Tuple, List]):
                 save_frequency = (save_frequency,)
             for freq in save_frequency:
                 if isinstance(freq, str):
