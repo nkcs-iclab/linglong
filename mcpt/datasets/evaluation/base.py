@@ -42,7 +42,6 @@ class BaseDataset(metaclass=abc.ABCMeta):
 
         self._candidates = None
         self._file_format = None
-        self._templates = {}
         self._special_tokens = special_tokens
 
     def _load_file(self, path: str) -> Union[List, Dict]:
@@ -59,7 +58,7 @@ class BaseDataset(metaclass=abc.ABCMeta):
 
     def _templatize(self, objs, i: int) \
             -> Tuple[List[Dict[str, Any]], Optional[List[Dict[str, Any]]], Dict[str, Any]]:
-        return self._templates[self._template_id](objs[i])
+        return getattr(self, f'_template_{self._template_id}')(objs[i])
 
     def _process(self) -> List[Dict[str, Any]]:
         data, discarded = [], []
@@ -125,7 +124,7 @@ class PerplexityDataset(BaseDataset, metaclass=abc.ABCMeta):
         super().__init__(method='perplexity', **kwargs)
 
     def _templatize(self, objs, i: int) -> Tuple[List[List[Dict[str, Any]]], Optional[int]]:
-        return self._templates[self._template_id](objs[i])
+        return getattr(self, f'_template_{self._template_id}')(objs[i])
 
     def _process(self) -> List[Dict[str, Any]]:
         data, discarded = [], []

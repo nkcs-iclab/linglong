@@ -72,6 +72,7 @@ The required packages are not listed in `setup.py` yet, so you need to install t
 ### 0.6 (pre-release)
 
 - The code is now compatible with Python 3.6.
+- Removed the template list from dataset classes.
 - Fixed model saving issue with DeepSpeed models
 
 ### 0.5

@@ -5,15 +5,6 @@ from mcpt.datasets.evaluation.base import BaseDataset
 
 class SIGHANDataset(BaseDataset):
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._templates = {
-            0: self._template_0,
-            1: self._template_1,
-            2: self._template_2,
-        }
-        self._file_format = 'json'
-
     def _load_file(self, path: str) -> List[Dict[str, Any]]:
         objs = super()._load_file(path)
         return list(objs.values())

@@ -11,6 +11,7 @@ def load(config: Dict[str, Any]):
     }
     experimental_datasets = {
         'CustomQA': mcpt.datasets.finetuning.datasets.CustomQADataset,
+        'CustomMath': mcpt.datasets.finetuning.datasets.CustomMathDataset,
     }
     datasets = mcpt.merge_configs(datasets, experimental_datasets)
     input_path = pathlib.Path(config['input_path']) / config.get('base', config['dataset'])

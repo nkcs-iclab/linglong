@@ -112,7 +112,10 @@ def merge_configs(*configs: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # noinspection PyShadowingBuiltins
-def load_file(path: str, format: str = 'txt') -> Union[List, Dict]:
+def load_file(path: str, format: Optional[str] = None) -> Union[List, Dict]:
+    if format is None:
+        format = path.split('.')[-1]
+    format = format.lower()
     with open(path, 'r', encoding='utf-8') as f:
         if format == 'txt':
             data = f.read().splitlines()

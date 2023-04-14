@@ -40,8 +40,6 @@ class BaseDataset:
         self._use_cache = use_cache
         self._items_per_file = items_per_file
         self._extra_config = extra_config
-
-        self._templates = {}
         self._file_format = None
         self._special_tokens = special_tokens
 
@@ -55,7 +53,7 @@ class BaseDataset:
         discarded.append(obj)
 
     def _templatize(self, objs, i: int) -> List[Dict[str, Any]]:
-        return self._templates[self._template_id](objs[i])
+        return getattr(self, f'_template_{self._template_id}')(objs[i])
 
     def _process(self) -> Tuple[Dict[str, Any], List]:
         objs = self._load_file(str(self._input_path))
