@@ -76,7 +76,7 @@ def main(
         training_data: str,
         model_config: str,
         training_config: str,
-        extra_config: Optional[Dict] = None,
+        override_config: Optional[Dict] = None,
         training_meta: str = 'train-meta.pkl',
         epochs: int = 5,
         load_model: Optional[str] = None,
@@ -95,14 +95,14 @@ def main(
     with mcpt.running('Loading configs', hvd=hvd) as spinner:
         model_config_path, training_config_path = model_config, training_config
         model_config = mcpt.load_config(model_config_path)
-        model_config = mcpt.merge_configs(model_config, (extra_config or {}).get('model', {}))
+        model_config = mcpt.merge_configs(model_config, (override_config or {}).get('model_config', {}))
         training_config = mcpt.load_config(training_config_path)
-        training_config = mcpt.merge_configs(training_config, (extra_config or {}).get('training', {}))
+        training_config = mcpt.merge_configs(training_config, (override_config or {}).get('training_config', {}))
         config = {
             'training_data': training_data,
             'model_config_path': model_config_path,
             'training_config_path': training_config_path,
-            'extra_config': extra_config,
+            'override_config': override_config,
             'training_meta': training_meta,
             'epochs': epochs,
             'load_model': load_model,
