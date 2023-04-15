@@ -71,32 +71,32 @@ The required packages are not listed in `setup.py` yet, so you need to install t
 
 ### 0.6 (pre-release)
 
-- The code is now compatible with Python 3.6.
-- Removed the template list from dataset classes.
-- The templates in the dataset classes now accept a list of strings.
-- Fixed model saving issue with DeepSpeed models
+- *Compatibility* The code is now compatible with Python 3.6.
+- *Dataset:* Removed the template list from dataset classes.
+- *Dataset:* The templates in the dataset classes now accept a list of strings.
+- *Training:* *DeepSpeed:* Fixed model saving issue with DeepSpeed models
 
 ### 0.5
 
-- Added `train-ds.py` for DeepSpeed enabled training.
-- Stop batch text generation when the end of the text is reached in all samples.
+- *Training:* *DeepSpeed:* Added `train-ds.py` for DeepSpeed enabled training.
+- *Generation:* Stop batch text generation when the end of the text is reached in all samples.
 - Moved `use_pinyin` and `backward` arguments from method arguments to the model configuration.
-- Fixed: Text are now clipped to the maximum context length of the model.
+- *Generation:* Fixed: Text are now clipped to the maximum context length of the model.
 
 ### 0.4
 
-- Added dataset scripts for fine-tuning.
-- Introduced `mcpt.generate` function for generation.
+- *Dataset:* Added dataset scripts for fine-tuning.
+- *Generation:* Introduced `mcpt.generate` function for generation.
 - Introduced `mcpt.Model` class. This class can be used to load a specified model from a checkpoint.
-- Replaced `[SEP]` with `\n` in generation results.
+- *Generation:* Replaced `[SEP]` with `\n` in generation results.
 - Exported `mcpt.Tokenizer` and `mcpt.PinyinTokenizer` to the top-level module.
-- Fixed the training script by adding if statements to prevent missing object/attribute/reference errors when using mixed precision training or data parallel training.
-- Fixed the model saving callback.
+- *Training:* Fixed the training script by adding if statements to prevent missing object/attribute/reference errors when using mixed precision training or data parallel training.
+- *Training:* Fixed the model saving callback.
 
 ### 0.3
 
-- Added modules for evaluation.
-- Refactored `mcpt/sampling.py`. The `Sampler` class has now been moved to `mcpt/generation.py`.
+- *Dataset:* Added modules for evaluation.
+- *Generation:* Refactored `mcpt/sampling.py`. The `Sampler` class has now been moved to `mcpt/generation.py`.
 
 ## Copyright
 
