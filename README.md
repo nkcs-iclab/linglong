@@ -73,6 +73,7 @@ The required packages are not listed in `setup.py` yet, so you need to install t
 
 - The code is now compatible with Python 3.6.
 - Removed the template list from dataset classes.
+- The templates in the dataset classes now accept a list of strings.
 - Fixed model saving issue with DeepSpeed models
 
 ### 0.5

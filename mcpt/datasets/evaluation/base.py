@@ -57,7 +57,11 @@ class BaseDataset(metaclass=abc.ABCMeta):
         return data
 
     def _templatize(self, objs, i: int) \
-            -> Tuple[List[Dict[str, Any]], Optional[List[Dict[str, Any]]], Dict[str, Any]]:
+            -> Tuple[
+                List[Union[str, List[str], Dict[str, List[str]]]],
+                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
+                Dict[str, Any],
+            ]:
         return getattr(self, f'_template_{self._template_id}')(objs[i])
 
     def _process(self) -> List[Dict[str, Any]]:
@@ -85,19 +89,28 @@ class BaseDataset(metaclass=abc.ABCMeta):
             warnings.warn(f'\nThe pinyin information of {len(discarded)} item(s) is discarded.')
         return data
 
-    def _convert_parts_to_ids(self, parts: List[Dict[str, Any]], use_pinyin: bool = False) -> List[int]:
+    def _convert_parts_to_ids(
+            self,
+            parts: List[Union[str, List[str], Dict[str, List[str]]]],
+            use_pinyin: bool = False,
+    ) -> List[int]:
         tokenizer = self._pinyin_tokenizer if use_pinyin else self._tokenizer
         tokens = []
         for part in parts:
-            if isinstance(part['text'], list):
+            if isinstance(part, str):
+                tokens.extend(tokenizer.tokenize(part))
+            elif isinstance(part, list):
+                tokens.extend(part)
+            elif isinstance(part, dict):
                 tokens.extend(part.get('pinyin' if use_pinyin else 'text', part['text']))
-            else:
-                tokens.extend(tokenizer.tokenize(part['text']))
         ids = tokenizer.convert_tokens_to_ids(tokens)
         return ids
 
-    def _assemble(self, data_parts: List[Dict[str, Any]], label_parts: Optional[List[Dict[str, Any]]]) \
-            -> Tuple[List[int], List[int], Optional[List[int]]]:
+    def _assemble(
+            self,
+            data_parts: List[Union[str, List[str], Dict[str, List[str]]]],
+            label_parts: Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
+    ) -> Tuple[List[int], List[int], Optional[List[int]]]:
         label, pinyin_label = None, None
         text = self._convert_parts_to_ids(data_parts)
         pinyin = self._convert_parts_to_ids(data_parts, use_pinyin=True) if self._use_pinyin else None
@@ -123,7 +136,8 @@ class PerplexityDataset(BaseDataset, metaclass=abc.ABCMeta):
     def __init__(self, **kwargs):
         super().__init__(method='perplexity', **kwargs)
 
-    def _templatize(self, objs, i: int) -> Tuple[List[List[Dict[str, Any]]], Optional[int]]:
+    def _templatize(self, objs, i: int) \
+            -> Tuple[List[List[Union[str, List[str], Dict[str, List[str]]]]], Optional[int]]:
         return getattr(self, f'_template_{self._template_id}')(objs[i])
 
     def _process(self) -> List[Dict[str, Any]]:

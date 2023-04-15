@@ -9,7 +9,12 @@ class SIGHANDataset(BaseDataset):
         objs = super()._load_file(path)
         return list(objs.values())
 
-    def _template_0(self, obj) -> Tuple[List[Dict[str, Any]], Optional[List[Dict[str, Any]]], Dict[str, Any]]:
+    def _template_0(self, obj) -> \
+            Tuple[
+                List[Union[str, List[str], Dict[str, List[str]]]],
+                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
+                Dict[str, Any],
+            ]:
         source = obj['text']
         target = list(source)
         for error in obj['errors']:
@@ -17,16 +22,21 @@ class SIGHANDataset(BaseDataset):
             correct_char = error[1]
             target[error_index] = correct_char
         parts = [
-            {'text': f'原始文本：{source}'},
-            {'text': [self._special_tokens['part_separator']]},
-            {'text': '纠错后文本：'},
+            f'原始文本：{source}',
+            [self._special_tokens['part_separator']],
+            '纠错后文本：',
         ]
         label = [
-            {'text': ''.join(target)},
+            ''.join(target),
         ] if len(obj['errors']) > 0 else None
         return parts, label, {}
 
-    def _template_1(self, obj) -> Tuple[List[Dict[str, Any]], Optional[List[Dict[str, Any]]], Dict[str, Any]]:
+    def _template_1(self, obj) -> \
+            Tuple[
+                List[Union[str, List[str], Dict[str, List[str]]]],
+                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
+                Dict[str, Any],
+            ]:
         source = obj['text']
         target = list(source)
         corrections = []
@@ -34,28 +44,33 @@ class SIGHANDataset(BaseDataset):
             error_index = int(error[0]) - 1
             corrections.append(f'{error_index}:-{target[error_index]}+{error[1]}')
         parts = [
-            {'text': f'原始文本：{source}'},
-            {'text': [self._special_tokens['part_separator']]},
-            {'text': '纠错：'}
+            f'原始文本：{source}',
+            [self._special_tokens['part_separator']],
+            '纠错：',
         ]
         label = [
-            {'text': ';'.join(corrections)},
+            ';'.join(corrections),
         ] if len(obj['errors']) > 0 else None
         return parts, label, {}
 
-    def _template_2(self, obj) -> Tuple[List[Dict[str, Any]], Optional[List[Dict[str, Any]]], Dict[str, Any]]:
+    def _template_2(self, obj) -> \
+            Tuple[
+                List[Union[str, List[str], Dict[str, List[str]]]],
+                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
+                Dict[str, Any],
+            ]:
         target = list(obj['text'])
         for error in obj['errors']:
             error_index = int(error[0]) - 1
             correct_char = error[1]
             target[error_index] = correct_char
         parts = [
-            {'text': obj['text']},
-            {'text': [self._special_tokens['end_token']]},
+            obj['text'],
+            [self._special_tokens['end_token']],
         ]
         label = [
-            {'text': [self._special_tokens['start_token']]},
-            {'text': ''.join(target)},
-            {'text': [self._special_tokens['end_token']]},
+            [self._special_tokens['start_token']],
+            ''.join(target),
+            [self._special_tokens['end_token']],
         ]
         return parts, label, {}

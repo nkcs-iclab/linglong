@@ -52,7 +52,7 @@ class BaseDataset:
         warnings.warn(f'{len(discarded)} items are discarded.')
         discarded.append(obj)
 
-    def _templatize(self, objs, i: int) -> List[Dict[str, Any]]:
+    def _templatize(self, objs, i: int) -> List[Union[str, List[str], Dict[str, List[str]]]]:
         return getattr(self, f'_template_{self._template_id}')(objs[i])
 
     def _process(self) -> Tuple[Dict[str, Any], List]:
@@ -109,19 +109,28 @@ class BaseDataset:
             writer.close()
         return meta, discarded
 
-    def _assemble(self, parts: List[Dict[str, Any]]) -> Tuple[List[int], Optional[List[int]]]:
+    def _assemble(
+            self,
+            parts: List[Union[str, List[str], Dict[str, List[str]]]],
+    ) -> Tuple[List[int], Optional[List[int]]]:
         text = self._convert_parts_to_ids(parts)
         pinyin = self._convert_parts_to_ids(parts, use_pinyin=True) if self._use_pinyin else None
         return text, pinyin
 
-    def _convert_parts_to_ids(self, parts: List[Dict[str, Any]], use_pinyin: bool = False) -> List[int]:
+    def _convert_parts_to_ids(
+            self,
+            parts: List[Union[str, List[str], Dict[str, List[str]]]],
+            use_pinyin: bool = False,
+    ) -> List[int]:
         tokenizer = self._pinyin_tokenizer if use_pinyin else self._tokenizer
         tokens = []
         for part in parts:
-            if isinstance(part['text'], list):
+            if isinstance(part, str):
+                tokens.extend(tokenizer.tokenize(part))
+            elif isinstance(part, list):
+                tokens.extend(part)
+            elif isinstance(part, dict):
                 tokens.extend(part.get('pinyin' if use_pinyin else 'text', part['text']))
-            else:
-                tokens.extend(tokenizer.tokenize(part['text']))
         ids = tokenizer.convert_tokens_to_ids(tokens)
         return ids
 
