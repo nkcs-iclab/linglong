@@ -1,7 +1,7 @@
 # Mini-Scale Chinese PreTrained Language Model (MCPT)
 
 ![version 0.6](https://img.shields.io/badge/version-0.6-blue)
-![Python >=3.6,<=3.11](https://img.shields.io/badge/Python->=3.6,<=3.11-blue?logo=python&logoColor=white)
+![Python >=3.6,<3.12](https://img.shields.io/badge/Python->=3.6,<3.12-blue?logo=python&logoColor=white)
 ![PyTorch 2.0](https://img.shields.io/badge/PyTorch-2.0-EE4C2C?logo=pytorch&logoColor=white)
 ![TensorFlow 2.12](https://img.shields.io/badge/TensorFlow-2.12-FF6F00?logo=tensorflow&logoColor=white)
 
