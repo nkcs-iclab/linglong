@@ -3,6 +3,7 @@ import cmd
 import fire
 import string
 import warnings
+import importlib
 
 from typing import *
 
@@ -22,6 +23,7 @@ class MCPTGenerate(cmd.Cmd):
             prompt: str,
             prefix: str,
             suffix: str,
+            plugins: Optional[List[Dict[str, Union[str, Callable]]]] = None,
     ):
         super().__init__()
         self._generation_config = generation_config
@@ -33,6 +35,7 @@ class MCPTGenerate(cmd.Cmd):
         self._prompt = prompt
         self._prefix = prefix
         self._suffix = suffix
+        self._plugins = plugins or []
         self._end_id = self._tokenizer.convert_tokens_to_ids(self._special_tokens['end_token'])
         self._next_sample_idx = 1
         self._renew_cmd_prompt()
@@ -81,7 +84,11 @@ class MCPTGenerate(cmd.Cmd):
     def _generate(self):
         step_by_step = self._generation_config['batch_size'] == 1
         backward = self._model.config.get('backward', False)
-        prompt = self._prefix + (self._prompt[::-1] if backward else self._prompt) + self._suffix
+        prefix = self._prefix
+        for plugins in self._plugins:
+            if f'{{{plugins["name"]}}}' in self._prefix:
+                prefix = prefix.replace(f'{{{plugins["name"]}}}', plugins['func'](self._prompt))
+        prompt = prefix + (self._prompt[::-1] if backward else self._prompt) + self._suffix
         with mcpt.running(
                 f'Generating {self._generation_config["batch_size"]} sample(s)',
                 spinner=not step_by_step,
@@ -166,6 +173,7 @@ def main(
         prompt: str = '齐小明，科学家',
         prefix: str = '',
         suffix: str = '',
+        plugins: Optional[List[str]] = None,
 ):
     load_model = model
     generation_config = {
@@ -195,6 +203,11 @@ def main(
                 max_length = model_config['n_ctx']
                 warnings.warn(f'The max generation length cannot be set to {max_length}. '
                               f'Clipping the length to {model_config["n_ctx"]}.')
+            if plugins is not None:
+                plugins = [
+                    {'name': plugin, 'func': importlib.import_module(plugin).call}
+                    for plugin in plugins
+                ]
 
         with mcpt.running('Loading the model', timer=True):
             model = mcpt.Model.from_config(
@@ -214,6 +227,7 @@ def main(
             prompt=prompt,
             prefix=prefix,
             suffix=suffix,
+            plugins=plugins,
         ).cmdloop()
     except KeyboardInterrupt:
         print(mcpt.text('\nGoodbye', style=mcpt.INFO))
