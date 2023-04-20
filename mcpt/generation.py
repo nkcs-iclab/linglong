@@ -207,3 +207,9 @@ def generate(
     }
     output_ids = sampler.batch_sample(prompt_ids, config)[0, 1:].to('cpu')
     return tokenizer.convert_ids_to_string(output_ids)
+
+
+class BasePlugin:
+
+    def __call__(self, prompt: str) -> str:
+        raise NotImplementedError

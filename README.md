@@ -71,6 +71,7 @@ The required packages are not listed in `setup.py` yet, so you need to install t
 
 ### 0.6 (pre-release)
 
+- *Generation* Added prompt plugin support for text generation.
 - *Compatibility* The code is now compatible with Python 3.6.
 - *Dataset:* Removed the template list from dataset classes.
 - *Dataset:* The templates in the dataset classes now accept a list of strings.
