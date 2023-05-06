@@ -6,11 +6,11 @@
 ![TensorFlow 2.12](https://img.shields.io/badge/TensorFlow-2.12-FF6F00?logo=tensorflow&logoColor=white)
 ![License GNU GPL v3](https://img.shields.io/badge/License-GNU%20GPL%20v3-blue?logo=gnu&logoColor=white)
 
-This is Linglong (玲珑), a Chinese pretrained language model.
+This is LingLong (玲珑), a Chinese pretrained language model trained by the College of Software at Nankai University.
 Built on the foundation of the GPT-3 architecture, it has been meticulously trained on a vast collection of private datasets.
-With a modest parameter count of only 317 million, Linglong is significantly smaller than the original GPT-3 model, yet it delivers impressive results across various NLP tasks.
+With a modest parameter count of only 317 million, LingLong is significantly smaller than the original GPT-3 model, yet it delivers impressive results across various NLP tasks.
 In Chinese, "玲珑" translates to "exquisite" or "delicate," which perfectly embodies the small yet mighty nature of this model.
-Therefore, we chose to name it *Linglong* in honor of its exceptional precision and finesse.
+Therefore, we chose to name it "LingLong" in honor of its exceptional precision and finesse.
 
 Although it's true that this model's performance isn't on par with the large pretrained language models boasting hundreds of billions of parameters, its relatively low parameter count makes it accessible to researchers with limited computing resources.
 As a result, this model serves as an excellent foundation for conducting follow-up research, such as fine-tuning.
