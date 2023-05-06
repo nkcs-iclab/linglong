@@ -4,7 +4,6 @@ import pathlib
 import deepspeed
 
 from typing import *
-from deepspeed.utils import zero_to_fp32
 
 import mcpt
 import mcpt.records
@@ -61,15 +60,6 @@ class DSModelCheckpointCallback(mcpt.train.callbacks.ModelCheckpointCallback):
             if end_of_epoch or batch % self.save_frequency != 0:
                 return
         model.save_checkpoint(str(self.save_path), tag=save_name.split('L')[0])
-        if self._rank == 0:
-            if self._zero_optimization:
-                zero_to_fp32.convert_zero_checkpoint_to_fp32_state_dict(
-                    checkpoint_dir=str(self.save_path),
-                    output_file=str(self.save_path / save_name),
-                    tag=save_name.split('L')[0],
-                )
-            else:
-                torch.save(model.module.state_dict(), str(self.save_path / save_name))
 
 
 def main(
