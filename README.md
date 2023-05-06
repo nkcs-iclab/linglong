@@ -20,11 +20,11 @@ By utilizing this model, researchers can begin to delve into the intricacies of 
 
 The following hardware is recommended for training:
 
-- NVIDIA Tesla V100 32GB GPUs (or any other GPUs with at least 24GB of memory)
+- NVIDIA Tesla V100 32GB GPUs (or any other GPUs with at least 24 GB of memory)
 
 The following hardware is recommended for inference:
 
-- NVIDIA Tesla T4 16GB GPUs (or any other GPUs with at least 8GB of memory)
+- NVIDIA Tesla T4 16GB GPUs (or any other GPUs with at least 4 GB of memory)
 
 The model can also run on CPUs, but the training and inference speed will be significantly slower.
 
