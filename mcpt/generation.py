@@ -197,7 +197,8 @@ def generate(
         'part_separator': '[unused1]',
         **(special_tokens or {}),
     }
-    sampler = Sampler(model=model, end_id=tokenizer.convert_tokens_to_ids(special_tokens['end_token']), device=device)
+    end_id = tokenizer.convert_tokens_to_ids(special_tokens['end_token'])
+    sampler = Sampler(model=model, end_id=end_id, device=device)
     prompt_ids = convert_prompt_to_ids(prompt=prompt, tokenizer=tokenizer, special_tokens=special_tokens)
     config = {
         'temperature': temperature,
@@ -205,8 +206,15 @@ def generate(
         'top_p': top_p,
         'max_length': max_length
     }
-    output_ids = sampler.batch_sample(prompt_ids, config)[0, 1:].to('cpu')
-    return tokenizer.convert_ids_to_string(output_ids)
+    output_ids = sampler.batch_sample(prompt_ids, config)
+    for _, generated_text in process_samples(
+            samples=output_ids,
+            prompt_ids=prompt_ids,
+            end_id=end_id,
+            tokenizer=tokenizer,
+    ):
+        return generated_text
+    return ''
 
 
 class BasePlugin:
