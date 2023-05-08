@@ -60,8 +60,8 @@ The required packages are not listed in `setup.py` yet, so you need to install t
     ```
     conda env create -f environment.yaml
     conda activate mcpt-torch
-    pip install requirements.txt
-    pip install requirements-torch.txt
+    pip install -r requirements.txt
+    pip install -r requirements-torch.txt
     ```
 
 2. Install Horovod (optional, for data parallel training).
