@@ -104,9 +104,10 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 
 ## Pretrained Models
 
-| Model Name                      | Version | Parameters  | Size   | Download                                                                |
-|---------------------------------|---------|-------------|--------|-------------------------------------------------------------------------|
-| PT-01-GENERIC-WSZ1024-DP20-317M | V12     | 317M        | 1.2 GB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUj-wymU62HcCOduEZcg?e=bzyCzU) |
+| Model Name    | Version | Parameters | Size   | Download                                                                |
+|---------------|---------|------------|--------|-------------------------------------------------------------------------|
+| LingLong      | V12     | 317 M      | 1.2 GB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUj-wymU62HcCOduEZcg?e=bzyCzU) |
+| LingLong-Chat | V4      | 317 M      | 1.2 GB | TBD                                                                     |     
 
 ## Changelog
 
