@@ -91,6 +91,11 @@ class MCPTGenerate(cmd.Cmd):
         for plugin in self._plugins:
             if '{' + plugin.placeholder + '}' in self._prefix:
                 plugin_output = plugin(self._prompt)
+                if isinstance(plugin_output, Dict):
+                    plugin_output, debug_output = plugin_output['text'], plugin_output['debug']
+                    print(debug_output)
+                    for k, v in debug_output.items():
+                        print(mcpt.text(f'PLUGIN {plugin.placeholder} - {k}', style=mcpt.WARNING), v)
                 print(mcpt.text(f'PLUGIN {plugin.placeholder}', style=mcpt.WARNING), plugin_output)
                 prefix = prefix.replace('{' + plugin.placeholder + '}', plugin_output)
         prompt = prefix + (self._prompt[::-1] if backward else self._prompt) + self._suffix
