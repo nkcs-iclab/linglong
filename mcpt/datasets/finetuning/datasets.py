@@ -11,25 +11,3 @@ class Math23KDataset(BaseDataset):
             [self._special_tokens['part_separator']],
             f'答案：{obj["equation"][2:]}',
         ]
-
-
-class CustomQADataset(BaseDataset):
-
-    def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
-        return [
-            f'问题：{obj["question"]}',
-            [self._special_tokens['part_separator']],
-            f'答案：{obj["answer"]}',
-        ]
-
-
-class CustomMathDataset(BaseDataset):
-
-    def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
-        return [
-            f'问题：{obj["question"]}',
-            [self._special_tokens['part_separator']],
-            f'答案：{obj["answer"]}',
-            [self._special_tokens['part_separator']],
-            f'分析：{obj["analysis"]}',
-        ]

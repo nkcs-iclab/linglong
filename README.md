@@ -1,6 +1,6 @@
 # LingLong (玲珑): A Mini-Scale Chinese PreTrained Language Model
 
-![version 0.6](https://img.shields.io/badge/version-0.6-blue)
+![version 0.6.6](https://img.shields.io/badge/version-0.6.6-blue)
 ![Python >=3.6,<3.12](https://img.shields.io/badge/Python->=3.6,<3.12-blue?logo=python&logoColor=white)
 ![PyTorch 2.0](https://img.shields.io/badge/PyTorch-2.0-EE4C2C?logo=pytorch&logoColor=white)
 ![TensorFlow 2.12](https://img.shields.io/badge/TensorFlow-2.12-FF6F00?logo=tensorflow&logoColor=white)
@@ -117,7 +117,8 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 - *Compatibility* The code is now compatible with Python 3.6.
 - *Dataset:* Removed the template list from dataset classes.
 - *Dataset:* The templates in the dataset classes now accept a list of strings.
-- *Training:* *DeepSpeed:* Fixed model saving issue with DeepSpeed models
+- *Training:* *DeepSpeed:* Fixed model saving issue with DeepSpeed models.
+- *Experimental:* Added more experimental dataset classes.
 
 ### 0.5
 

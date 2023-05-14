@@ -1,4 +1,5 @@
 import mcpt.datasets
+import mcpt.experimental
 import mcpt.models
 from mcpt.models import Model
 import mcpt.train
