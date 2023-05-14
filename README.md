@@ -41,7 +41,7 @@ This package requires Python 3.6 or later, with a few exceptions:
 1. Clone the repository.
 
     ```
-    git clone https://github.com/alumik/linglong-mcpt.git
+    git clone https://github.com/NKCSICLab/linglong-mcpt.git
     cd linglong-mcpt
     ```
 
@@ -55,7 +55,7 @@ This package requires Python 3.6 or later, with a few exceptions:
 
 The required packages are not listed in `setup.py` yet, so you need to install them manually.
 
-1. Create new conda environment with either `environment.yaml`.
+1. Create new conda environment with `environment.yaml`.
 
     ```
     conda env create -f environment.yaml
