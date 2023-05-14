@@ -4,20 +4,20 @@ with open('README.md', 'r') as f:
     long_description = f.read()
 
 setuptools.setup(
-    name='mcpt-torch',
+    name='linglong-mcpt',
     version='0.6.6',
-    author='NKCS MCPT Team',
+    author='NKCS Intelligent Computing Lab',
     author_email='zyzhong@mail.nankai.edu.cn',
-    description='Implementation of MCPT in PyTorch',
+    description='A mini-scale Chinese pretrained language model.',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/alumik/mcpt-torch',
+    url='https://github.com/NKCSICLab/linglong-mcpt',
     packages=setuptools.find_packages(include=['mcpt', 'mcpt.*']),
     platforms='any',
     install_requires=[
     ],
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
