@@ -125,7 +125,11 @@ class MCPTGenerate(cmd.Cmd):
             self._print_samples(samples, prompt_ids[0] if self._use_pinyin else prompt_ids)
 
     def do_set(self, arg):
+        allowed_keys = {*self._generation_config.keys(), 'prefix', 'suffix'}
         k, v = arg.split()
+        if k not in allowed_keys:
+            print(mcpt.text(f'`{k}` is not a valid key. Valid keys are: {allowed_keys}', style=mcpt.ERROR))
+            return
         if k in ('max_length', 'batch_size', 'top_k'):
             v = int(v)
         elif k in ('temperature', 'top_p'):
