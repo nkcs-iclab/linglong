@@ -14,6 +14,8 @@ def load(config: Dict[str, Any]):
         'CustomMath': mcpt.experimental.datasets.finetuning.datasets.CustomMathDataset,
         'KBQABackward': mcpt.experimental.datasets.finetuning.datasets.KBQABackwardDataset,
         'LCSTSBackward': mcpt.experimental.datasets.finetuning.datasets.LCSTSBackwardDataset,
+        'AdGenBackward': mcpt.experimental.datasets.finetuning.datasets.AdGenBackwardDataset,
+        'LCQMCBackward': mcpt.experimental.datasets.finetuning.datasets.LCQMCBackwardDataset,
     }
     datasets = mcpt.merge_configs(datasets, experimental_datasets)
     input_path = pathlib.Path(config['input_path']) / config.get('base', config['dataset'])
