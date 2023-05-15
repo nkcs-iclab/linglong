@@ -1,6 +1,6 @@
 # LingLong (玲珑): A Mini-Scale Chinese PreTrained Language Model
 
-![version 0.6.6](https://img.shields.io/badge/version-0.6.6-blue)
+![version 0.6.0](https://img.shields.io/badge/version-0.6.0-blue)
 ![Python >=3.6,<3.12](https://img.shields.io/badge/Python->=3.6,<3.12-blue?logo=python&logoColor=white)
 ![PyTorch 2.0](https://img.shields.io/badge/PyTorch-2.0-EE4C2C?logo=pytorch&logoColor=white)
 ![TensorFlow 2.12](https://img.shields.io/badge/TensorFlow-2.12-FF6F00?logo=tensorflow&logoColor=white)
@@ -111,32 +111,32 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 
 ## Changelog
 
-### 0.6 (pre-release)
+### 0.6
 
-- *Generation:* Added prompt plugin support for text generation.
 - *Compatibility:* The code is now compatible with Python 3.6.
+- *Stability:* Various stability improvements.
 - *Dataset:* Removed the template list from dataset classes.
 - *Dataset:* The templates in the dataset classes now accept a list of strings.
 - *Training:* *DeepSpeed:* Fixed model saving issue with DeepSpeed models.
+- *Generation:* Added prompt plugin support for text generation.
 - *Experimental:* Added more experimental dataset classes.
-- *Stability:* Various stability improvements.
 
 ### 0.5
 
 - *Training:* *DeepSpeed:* Added `train-ds.py` for DeepSpeed enabled training.
 - *Generation:* Stop batch text generation when the end of the text is reached in all samples.
-- Moved `use_pinyin` and `backward` arguments from method arguments to the model configuration.
 - *Generation:* Fixed: Text are now clipped to the maximum context length of the model.
+- Moved `use_pinyin` and `backward` arguments from method arguments to the model configuration.
 
 ### 0.4
 
 - *Dataset:* Added dataset scripts for fine-tuning.
-- *Generation:* Introduced `mcpt.generate` function for generation.
-- Introduced `mcpt.Model` class. This class can be used to load a specified model from a checkpoint.
-- *Generation:* Replaced `[SEP]` with `\n` in generation results.
-- Exported `mcpt.Tokenizer` and `mcpt.PinyinTokenizer` to the top-level module.
 - *Training:* Fixed the training script by adding if statements to prevent missing object/attribute/reference errors when using mixed precision training or data parallel training.
 - *Training:* Fixed the model saving callback.
+- *Generation:* Introduced `mcpt.generate` function for generation.
+- *Generation:* Replaced `[SEP]` with `\n` in generation results.
+- Introduced `mcpt.Model` class. This class can be used to load a specified model from a checkpoint.
+- Exported `mcpt.Tokenizer` and `mcpt.PinyinTokenizer` to the top-level module.
 
 ### 0.3
 
