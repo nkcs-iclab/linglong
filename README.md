@@ -113,12 +113,13 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 
 ### 0.6 (pre-release)
 
-- *Generation* Added prompt plugin support for text generation.
-- *Compatibility* The code is now compatible with Python 3.6.
+- *Generation:* Added prompt plugin support for text generation.
+- *Compatibility:* The code is now compatible with Python 3.6.
 - *Dataset:* Removed the template list from dataset classes.
 - *Dataset:* The templates in the dataset classes now accept a list of strings.
 - *Training:* *DeepSpeed:* Fixed model saving issue with DeepSpeed models.
 - *Experimental:* Added more experimental dataset classes.
+- *Stability:* Various stability improvements.
 
 ### 0.5
 
