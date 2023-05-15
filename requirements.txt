@@ -1,11 +1,10 @@
-beautifulsoup4
-lxml
 colorama
+cmake
 fire
 mergedeep
+nvidia-nccl-cu11
 pypinyin
 PyYAML
+tensorflow
 transformers
 yaspin
-tensorflow
-nvidia-nccl-cu11
