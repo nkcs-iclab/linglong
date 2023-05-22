@@ -71,7 +71,7 @@ class AdGenBackwardDataset(BaseDataset):
 
 class LCQMCBackwardDataset(BaseDataset):
 
-    def _load_file(self, path: str) -> List[Dict[str, Any]]:
+    def _load_file(self, path: str) -> Union[List, Dict]:
         objs = super()._load_file(path)
         data = []
         for obj in objs:
@@ -88,4 +88,82 @@ class LCQMCBackwardDataset(BaseDataset):
             f'句子一“{obj["sentence1"]}”与句子二“{obj["sentence2"]}”的意思是否相似？'[::-1],
             [self._special_tokens['part_separator']],
             ['否', '是'][obj['label']],
+        ]
+
+
+class Math23KBackwardDataset(BaseDataset):
+
+    def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
+        return [
+            f'问题：{obj["text"][::-1]}',
+            [self._special_tokens['part_separator']],
+            f'答案：{obj["equation"][2:][::-1]}',
+        ]
+
+
+class BaseSegmentationBackwardDataset(BaseDataset):
+
+    @staticmethod
+    def _get_text(obj) -> str:
+        raise NotImplementedError
+
+    @staticmethod
+    def _get_segments(obj) -> List[str]:
+        raise NotImplementedError
+
+    def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
+        parts = [
+            f'原始文本：{self._get_text(obj)[::-1]}',
+            [self._special_tokens['part_separator']],
+            '分词结果：',
+        ]
+        segments = []
+        for segment in self._get_segments(obj):
+            segments.append(segment[::-1])
+            segments.append([self._special_tokens['segment_separator']])
+        # Drop the last segment separator.
+        parts.extend(segments[:-1][::-1])
+        return parts
+
+
+class CUGEStyleSegmentationBackwardDataset(BaseSegmentationBackwardDataset):
+
+    @staticmethod
+    def _get_text(obj) -> str:
+        return obj['text']
+
+    @staticmethod
+    def _get_segments(obj) -> List[str]:
+        return obj['ans'].split()
+
+
+class CEPSUM2BackwardDataset(BaseDataset):
+
+    def _load_file(self, path: str) -> Union[List, Dict]:
+        objs = super()._load_file(path)
+        data = []
+        for obj in objs:
+            for target in obj['tgt']:
+                data.append({
+                    'feature': obj['kb'],
+                    'type': obj['type'],
+                    'target': target,
+                    'source': obj['src'],
+                })
+        return data
+
+    def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
+        obj_type = {
+            'bc': '箱包',
+            'cl': '衣服',
+            'homea': '家具',
+        }[obj['type']]
+
+        features = '；'.join(
+            [f'{"".join(k.split())}：{"".join(v.split())}' for k, v in obj['feature'].items()]
+        )
+        return [
+            f'商品种类：{obj_type[::-1]}；特征信息：{features[::-1]}；商品描述：{"".join(obj["source"].split())[::-1]}',
+            [self._special_tokens['part_separator']],
+            f'商品简介：{"".join(obj["target"].split())[::-1]}',
         ]

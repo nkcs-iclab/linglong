@@ -16,6 +16,11 @@ def load(config: Dict[str, Any]):
         'LCSTSBackward': mcpt.experimental.datasets.finetuning.datasets.LCSTSBackwardDataset,
         'AdGenBackward': mcpt.experimental.datasets.finetuning.datasets.AdGenBackwardDataset,
         'LCQMCBackward': mcpt.experimental.datasets.finetuning.datasets.LCQMCBackwardDataset,
+        'Math23KBackward': mcpt.experimental.datasets.finetuning.datasets.Math23KBackwardDataset,
+        'WordSeg-WeiboBackward': mcpt.experimental.datasets.finetuning.datasets.CUGEStyleSegmentationBackwardDataset,
+        'CEPSUM2Backward-cases-bags': mcpt.experimental.datasets.finetuning.datasets.CEPSUM2BackwardDataset,
+        'CEPSUM2Backward-clothing': mcpt.experimental.datasets.finetuning.datasets.CEPSUM2BackwardDataset,
+        'CEPSUM2Backward-home-appliances': mcpt.experimental.datasets.finetuning.datasets.CEPSUM2BackwardDataset,
     }
     datasets = mcpt.merge_configs(datasets, experimental_datasets)
     input_path = pathlib.Path(config['input_path']) / config.get('base', config['dataset'])
