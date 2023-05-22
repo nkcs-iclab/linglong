@@ -1,6 +1,7 @@
 colorama
 cmake
 fire
+jieba
 mergedeep
 nvidia-nccl-cu11
 pypinyin
