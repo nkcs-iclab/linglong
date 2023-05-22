@@ -8,6 +8,14 @@ import mcpt
 def load(config: Dict[str, Any]):
     datasets = {
         'Math23K': mcpt.datasets.finetuning.datasets.Math23KDataset,
+        'KBQA': mcpt.datasets.finetuning.datasets.KBQADataset,
+        'LCSTS': mcpt.datasets.finetuning.datasets.LCSTSDataset,
+        'AdGen': mcpt.datasets.finetuning.datasets.AdGenDataset,
+        'LCQMC': mcpt.datasets.finetuning.datasets.LCQMCDataset,
+        'WordSeg-Weibo': mcpt.datasets.finetuning.datasets.CUGEStyleSegmentationDataset,
+        'CEPSUM2-cases-bags': mcpt.datasets.finetuning.datasets.CEPSUM2Dataset,
+        'CEPSUM2-clothing': mcpt.datasets.finetuning.datasets.CEPSUM2Dataset,
+        'CEPSUM2-home-appliances': mcpt.datasets.finetuning.datasets.CEPSUM2Dataset,
     }
     experimental_datasets = {
         'CustomQA': mcpt.experimental.datasets.finetuning.datasets.CustomQADataset,

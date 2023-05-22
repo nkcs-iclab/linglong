@@ -1,2 +1,26 @@
 Math23K:
   template_id: 0
+
+KBQA:
+  template_id: 0
+
+LCSTS:
+  template_id: 0
+
+AdGen:
+  template_id: 0
+
+LCQMC:
+  template_id: 0
+
+WordSeg-Weibo:
+  template_id: 0
+
+CEPSUM2-cases-bags:
+  template_id: 0
+
+CEPSUM2-clothing:
+  template_id: 0
+
+CEPSUM2-home-appliances:
+  template_id: 0
