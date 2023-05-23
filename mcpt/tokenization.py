@@ -278,14 +278,12 @@ class CPM2Tokenizer:
             vocab_file: str,
             unk_token: str = '[UNK]',
             max_len: Optional[str] = None,
-            max_sentinels: int = 190,
     ):
         self.max_len = max_len if max_len is not None else int(1e12)
         self.encoder = load_vocab(vocab_file)
         self.decoder = {v: k for k, v in self.encoder.items()}
         self.wordpiece_tokenizer = CPM2WordpieceTokenizer(vocab=self.encoder)
         self.translator = str.maketrans(" \n", "\u2582\u2583")
-        self.sentinel_list = [self.encoder['<s_{}>'.format(i)] for i in range(max_sentinels)]
         self.unk_token = unk_token
 
     def __len__(self) -> int:
