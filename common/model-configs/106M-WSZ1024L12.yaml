@@ -1,0 +1,10 @@
+n_ctx: 1024
+n_layer: 12
+n_vocab: 26240
+n_embd: 768
+n_head: 16
+epsilon: 1.0e-08
+embd_dropout: 0.1
+attn_dropout: 0.1
+resid_dropout: 0.1
+mode: all
