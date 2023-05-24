@@ -1,5 +1,7 @@
 SIGHAN15:
   model:
+    checkpoint:
+    config:
   evaluation_method: generation
   template_id: 1
   split: test

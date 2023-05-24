@@ -37,7 +37,7 @@ def work(
     eval_fn = mcpt.evaluation.get_eval_fn(config.get('evaluation_method', 'generation'))
     model = mcpt.Model.from_config(
         config=config['model_config'],
-        load_model=config['model'],
+        load_model=config['model']['checkpoint'],
         device=device,
     )
     model.eval()
@@ -59,7 +59,6 @@ def work(
 
 def main(
         dataset: str,
-        model_config: str,
         input_path: str,
         cache_path: str,
         workers: str,
@@ -83,13 +82,10 @@ def main(
             'segment_separator': '[unused2]',
             **(special_tokens or {}),
         }
-        model_config_ = mcpt.load_config(model_config)
         config = mcpt.merge_configs(
             {
                 'dataset': dataset,
                 'dataset_config_path': dataset_config,
-                'model_config_path': model_config,
-                'model_config': model_config_,
                 'input_path': input_path,
                 'cache_path': cache_path,
                 'vocab': vocab,
@@ -106,6 +102,7 @@ def main(
             mcpt.load_config(dataset_config, key=dataset),
             kwargs,
         )
+        config['model_config'] = mcpt.load_config(config['model']['config'])
 
         tokenizer = mcpt.Tokenizer(vocab)
         pinyin_tokenizer = mcpt.PinyinTokenizer(vocab_file=pinyin_vocab, fallback=tokenizer) if pinyin_vocab else None

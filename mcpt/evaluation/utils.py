@@ -43,7 +43,8 @@ def load_dataset(config: Dict[str, Any]) -> \
 def get_output_path(config: Dict[str, Any]) -> str:
     info = {
         'dataset': config['dataset'],
-        'model': pathlib.Path(config['model']).stem if config.get('model') is not None else 'None',
+        'model': pathlib.Path(config['model']['checkpoint']).stem if config['model'].get(
+            'checkpoint') is not None else 'None',
         'timestamp': str(int(time.time())),
         'template_id': str(config['template_id']),
         'split': config['split'],
