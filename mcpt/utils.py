@@ -128,8 +128,8 @@ def load_file(path: str, format: Optional[str] = None) -> Union[List, Dict]:
     return data
 
 
-def print_dict(
-        d: Dict[str, Any],
+def pprint(
+        d: Union[Dict, List],
         indent: Optional[Union[int, str]] = 2,
         ensure_ascii: bool = False,
         export: bool = False,
@@ -162,7 +162,7 @@ def print_training_records(records, tokenizer: mcpt.Tokenizer):
         example['label[label != 0].shape'] = label[i][label[i] != 0].shape.as_list()[0]
         example['mask[mask != 0].shape'] = mask[i][mask[i] != 0].shape.as_list()[0]
         output['examples'].append(example)
-    print_dict(output)
+    pprint(output)
 
 
 @contextlib.contextmanager

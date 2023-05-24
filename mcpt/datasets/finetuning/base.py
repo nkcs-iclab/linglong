@@ -48,7 +48,7 @@ class BaseDataset:
 
     @staticmethod
     def _discard_obj(obj, discarded: List, reason: str = ''):
-        warnings.warn(f'{mcpt.print_dict(obj, export=True)} is discarded. Reason: {reason}')
+        warnings.warn(f'{mcpt.pprint(obj, export=True)} is discarded. Reason: {reason}')
         warnings.warn(f'{len(discarded)} items are discarded.')
         discarded.append(obj)
 

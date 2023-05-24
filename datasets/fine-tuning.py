@@ -48,7 +48,7 @@ def main(
             'special_tokens': special_tokens,
         }, mcpt.load_config(dataset_config, key=dataset))
         dataset_path = pathlib.Path(output_path) / dataset
-        spinner.write(mcpt.print_dict(config, export=True))
+        spinner.write(mcpt.pprint(config, export=True))
 
     with mcpt.running(f'Processing {dataset} dataset', spinner=use_cache) as spinner:
         dataset = mcpt.datasets.finetuning.load(config)
@@ -56,7 +56,7 @@ def main(
         with open(meta_path, 'rb') as f:
             meta = pickle.load(f)
         padding_shape = meta['padding_shape']
-        spinner.write(mcpt.print_dict({
+        spinner.write(mcpt.pprint({
             'meta': meta_path,
             'records': records_path,
             'record_count': meta['count'],

@@ -113,7 +113,8 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 
 ### 0.7 (pre-release)
 
-- Added a word-based tokenizer and a word-based vocabulary file (from CPM-2).
+- *Experimental:* Added a word-based tokenizer and a word-based vocabulary file (from CPM-2).
+- Renamed `mcpt.print_dict` to `mcpt.pprint`.
 
 ### 0.6
 

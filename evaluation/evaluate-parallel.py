@@ -114,7 +114,7 @@ def main(
             key: tokenizer.convert_tokens_to_ids(value) for (key, value) in special_tokens.items()
         }
         eval_metric = mcpt.evaluation.get_eval_metric(config.get('evaluation_metric'))
-        spinner.write(mcpt.print_dict(config, export=True))
+        spinner.write(mcpt.pprint(config, export=True))
 
     with mcpt.running(f'Loading {dataset} dataset', spinner=use_cache):
         x, y_true, candidates = mcpt.evaluation.load_dataset(config)
@@ -145,7 +145,7 @@ def main(
         for processes, worker in zip(process_split, worker_config):
             worker[1]['processes'] = processes
         worker_config = {k: v for k, v in worker_config}
-        spinner.write(mcpt.print_dict(worker_config, export=True))
+        spinner.write(mcpt.pprint(worker_config, export=True))
 
     print(mcpt.text('Evaluating', style=mcpt.INFO))
     pid = 0
@@ -220,7 +220,7 @@ def main(
             output_path=output_path,
             special_token_ids=special_token_ids,
         )
-        print(f'{config["evaluation_metric"]}: {mcpt.print_dict(result)}')
+        print(f'{config["evaluation_metric"]}: {mcpt.pprint(result)}')
     else:
         print(mcpt.text('No evaluation metric is specified.', style=mcpt.WARNING))
 

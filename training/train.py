@@ -56,7 +56,7 @@ def main(
             'device': device,
         }
         save_path = pathlib.Path(save_path)
-        spinner.write(mcpt.print_dict(config, export=True))
+        spinner.write(mcpt.pprint(config, export=True))
 
     with mcpt.running('Loading the dataset', hvd=hvd, timer=True):
         train_loader = mcpt.records.load(

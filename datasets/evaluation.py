@@ -42,7 +42,7 @@ def main(
             'special_tokens': special_tokens,
         }, mcpt.load_config(dataset_config, key=dataset))
         tokenizer = mcpt.Tokenizer(vocab)
-        spinner.write(mcpt.print_dict(config, export=True))
+        spinner.write(mcpt.pprint(config, export=True))
 
     with mcpt.running(f'Loading {dataset} dataset', spinner=use_cache):
         x, y_true, candidates = mcpt.evaluation.load_dataset(config)
@@ -76,7 +76,7 @@ def main(
             example['y_true'] = None
         output['examples'].append(example)
     output['candidates'] = candidates
-    mcpt.print_dict(output)
+    mcpt.pprint(output)
 
 
 if __name__ == '__main__':
