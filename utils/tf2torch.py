@@ -9,12 +9,18 @@ import mcpt_tf
 import mcpt
 
 
-def set_weight(torch_key: str, tf_key: str, torch_weights: Dict[str, torch.Tensor], tf_weights: Dict[str, tf.Variable]):
+def set_weight(
+        torch_key: str,
+        tf_key: str,
+        torch_weights: Dict[str, torch.Tensor],
+        tf_weights: Dict[str, tf.Variable],
+):
     tf_weight = tf_weights[tf_key].numpy()
-    if list(torch_weights[torch_key].size()) != list(tf_weight.shape):
+    torch_weight = torch_weights[torch_key]
+    if list(torch_weight.size()) != list(tf_weight.shape):
         tf_weight = tf_weight[0]
-    assert list(torch_weights[torch_key].size()) == list(tf_weight.shape)
-    print(f'{torch_key}: {torch_weights[torch_key].size()} <- {tf_key}: {tf_weight.shape}')
+    assert list(torch_weight.size()) == list(tf_weight.shape)
+    print(f'{torch_key}: {list(torch_weight.size())} <- {tf_key}: {list(tf_weight.shape)}')
     torch_weights[torch_key] = torch.from_numpy(tf_weight)
 
 
