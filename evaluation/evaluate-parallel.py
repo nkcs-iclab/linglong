@@ -40,6 +40,7 @@ def work(
         load_model=config['model'],
         device=device,
     )
+    model.eval()
     y_pred = eval_fn(
         x=x,
         model=model,
