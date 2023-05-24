@@ -220,7 +220,7 @@ def main(
             output_path=output_path,
             special_token_ids=special_token_ids,
         )
-        print(f'{config["evaluation_metric"]}: {mcpt.pprint(result)}')
+        print(f'{config["evaluation_metric"]}: {mcpt.pprint(result, export=True)}')
     else:
         print(mcpt.text('No evaluation metric is specified.', style=mcpt.WARNING))
 
