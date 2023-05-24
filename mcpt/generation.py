@@ -120,7 +120,7 @@ class Sampler:
         else:
             target_logits = logits[:, candidates]
             arg_preds = torch.argmax(target_logits, dim=-1)
-            prev = torch.tensor(candidates)[arg_preds].unsqueeze(-1).to(self._device)
+            prev = torch.tensor(candidates).to(self._device)[arg_preds].unsqueeze(-1)
         if self._use_pinyin:
             generated_tokens = self._tokenizer.convert_ids_to_tokens(prev.view((-1,)))
             pinyin_ids = self._pinyin_tokenizer.convert_tokenizer_tokens_to_ids(generated_tokens)
