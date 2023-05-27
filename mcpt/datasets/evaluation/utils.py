@@ -14,12 +14,23 @@ def load(config: Dict[str, Any]):
     datasets = {
         'generation': {
             'SIGHAN15': mcpt.datasets.evaluation.generation.SIGHANDataset,
+            'Math23K': mcpt.datasets.evaluation.generation.Math23KDataset,
+            'KBQA': mcpt.datasets.evaluation.generation.KBQADataset,
+            'LCSTS': mcpt.datasets.evaluation.generation.LCSTSDataset,
+            'AdGen': mcpt.datasets.evaluation.generation.AdGenDataset,
+            'LCQMC': mcpt.datasets.evaluation.generation.LCQMCDataset,
+            'WordSeg-Weibo': mcpt.datasets.evaluation.generation.CUGEStyleSegmentationDataset,
+            'CEPSUM2-cases-bags': mcpt.datasets.evaluation.generation.CEPSUM2Dataset,
+            'CEPSUM2-clothing': mcpt.datasets.evaluation.generation.CEPSUM2Dataset,
+            'CEPSUM2-home-appliances': mcpt.datasets.evaluation.generation.CEPSUM2Dataset,
         },
         'perplexity': {
         }
     }
     experimental_datasets = {
-        'basic': {
+        'generation': {
+            'Math23KBackward': mcpt.experimental.datasets.evaluation.generation.Math23KBackwardDataset,
+            'KBQABackward': mcpt.experimental.datasets.evaluation.generation.KBQABackwardDataset,
         }
     }
     datasets = mcpt.merge_configs(datasets, experimental_datasets)

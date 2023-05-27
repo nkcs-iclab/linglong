@@ -63,6 +63,12 @@ The required packages are not listed in `setup.py` yet, so you need to install t
     pip install -r requirements.txt
     pip install -r requirements-torch.txt
     ```
+   
+    *Optional:* If you want to perform evaluation on public datasets, you need to install the evaluation dependencies.
+   
+    ```
+    pip install -r requirements-evaluation.txt
+    ```
 
 2. Install Horovod (optional, for data parallel training).
 

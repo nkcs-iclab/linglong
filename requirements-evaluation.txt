@@ -1,0 +1,4 @@
+nltk
+rouge
+simstring-pure
+thefuzz[speedup]

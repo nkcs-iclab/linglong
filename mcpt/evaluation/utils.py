@@ -65,6 +65,17 @@ def get_eval_metric(name: Optional[str]) -> Optional[Callable]:
     if name is None:
         return None
     return {
+        'dataset_math23k_metric': mcpt.evaluation.metrics.dataset_math23k_metric,
+        'dataset_kbqa_metric': mcpt.evaluation.metrics.dataset_kbqa_metric,
+        'generation_metric': mcpt.evaluation.metrics.generation_metric,
+        'accuracy_metric': mcpt.evaluation.metrics.accuracy_metric,
+        'segmentation_metric': mcpt.evaluation.metrics.segmentation_metric(),
+        'cuge_segmentation_metric': mcpt.evaluation.metrics.segmentation_metric(mode='cuge'),
+        'segmentation_adjust_edit_distance_metric': mcpt.evaluation.metrics.segmentation_metric(adjust='edit_distance'),
+        'cuge_segmentation_adjust_edit_distance_metric': mcpt.evaluation.metrics.segmentation_metric(
+            mode='cuge',
+            adjust='edit_distance',
+        ),
     }[name]
 
 
