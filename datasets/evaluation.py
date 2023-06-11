@@ -11,7 +11,6 @@ def main(
         dataset: str,
         input_path: str,
         cache_path: str,
-        model_config: str,
         dataset_config: str = '../evaluation/configs/local.yaml',
         vocab: str = '../common/vocab/char-13312.txt',
         pinyin_vocab: Optional[str] = '../common/vocab/pinyin-1354.txt',
@@ -27,13 +26,9 @@ def main(
             'segment_separator': '[unused2]',
             **(special_tokens or {}),
         }
-        model_config_path = model_config
-        model_config = mcpt.load_config(model_config_path)
         config = mcpt.merge_configs({
             'dataset': dataset,
             'dataset_config_path': dataset_config,
-            'model_config_path': model_config_path,
-            'model_config': model_config,
             'input_path': input_path,
             'cache_path': cache_path,
             'vocab': vocab,
@@ -41,6 +36,7 @@ def main(
             'use_cache': use_cache,
             'special_tokens': special_tokens,
         }, mcpt.load_config(dataset_config, key=dataset))
+        config['model_config'] = mcpt.load_config(config['model']['config'])
         tokenizer = mcpt.Tokenizer(vocab)
         spinner.write(mcpt.pprint(config, export=True))
 
@@ -60,8 +56,9 @@ def main(
         if isinstance(x[i], np.ndarray):
             x[i] = [x[i]]
         x_ids = [str(_.tolist()) for _ in x[i]]
-        x_str = [tokenizer.convert_ids_to_string(list(_[0][0] if model_config.get('use_pinyin', False) else _[0])) for
-                 _ in x[i]]
+        x_str = [
+            tokenizer.convert_ids_to_string(list(_[0][0] if config['model_config'].get('use_pinyin', False) else _[0]))
+            for _ in x[i]]
         example['x'] = x_ids if len(x_ids) > 1 else x_ids[0]
         example['x_str'] = x_str if len(x_str) > 1 else x_str[0]
         if y_true[i] is not None:
