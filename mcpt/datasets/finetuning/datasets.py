@@ -21,9 +21,9 @@ class KBQADataset(BaseDataset):
             f'问题：{obj["question"]}',
             [self._special_tokens['part_separator']],
             '答案：',
-            relation.strip(),
-            [self._special_tokens['segment_separator']],
             a.strip(),
+            [self._special_tokens['segment_separator']],
+            relation.strip(),
         ]
 
 
