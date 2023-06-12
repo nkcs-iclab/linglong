@@ -186,7 +186,11 @@ def dataset_kbqa_metric(
     correct = 0
     for idx, (label, pred) in enumerate(mcpt.tqdm(list(zip(y_true, y_pred)))):
         label = label[np.where(label == kwargs['special_token_ids']['segment_separator'])[0][-1] + 1:]
-        separator_idx = np.where(pred == kwargs['special_token_ids']['segment_separator'])[0][0]
+        try:
+            separator_idx = np.where(pred == kwargs['special_token_ids']['segment_separator'])[0][0]
+        except Exception as e:
+            print('ERROR:', e)
+            continue
         a = pred[:separator_idx]
         relation = pred[separator_idx + 1:]
         if kwargs['config']['model_config'].get('backward', False):
