@@ -1,6 +1,6 @@
 # LingLong (玲珑): A Mini-Scale Chinese PreTrained Language Model
 
-![version 0.6.1](https://img.shields.io/badge/version-0.6.1-blue)
+![version 0.6.2](https://img.shields.io/badge/version-0.6.2-blue)
 ![Python >=3.6,<3.12](https://img.shields.io/badge/Python->=3.6,<3.12-blue?logo=python&logoColor=white)
 ![PyTorch 2.0](https://img.shields.io/badge/PyTorch-2.0-EE4C2C?logo=pytorch&logoColor=white)
 ![TensorFlow 2.12](https://img.shields.io/badge/TensorFlow-2.12-FF6F00?logo=tensorflow&logoColor=white)
@@ -120,6 +120,7 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 ### 0.7 (pre-release)
 
 - *Experimental:* Added a word-based tokenizer and a word-based vocabulary file (from CPM-2).
+- *Evaluation:* Added more evaluation dataset and metrics.
 - *Evaluation:* Updated the evaluation config schema.
 - *Evaluation:* Various bug fixes.
 - Renamed `mcpt.print_dict` to `mcpt.pprint`.
