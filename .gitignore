@@ -7,5 +7,7 @@ hostfile
 *.pt
 *local.yaml
 *.sh
+exp-*
+exp_*
 
 generation/plugins/

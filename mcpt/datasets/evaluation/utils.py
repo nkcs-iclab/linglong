@@ -31,6 +31,13 @@ def load(config: Dict[str, Any]):
         'generation': {
             'Math23KBackward': mcpt.experimental.datasets.evaluation.generation.Math23KBackwardDataset,
             'KBQABackward': mcpt.experimental.datasets.evaluation.generation.KBQABackwardDataset,
+            'LCSTSBackward': mcpt.experimental.datasets.evaluation.generation.LCSTSBackwardDataset,
+            'AdGenBackward': mcpt.experimental.datasets.evaluation.generation.AdGenBackwardDataset,
+            'LCQMCBackward': mcpt.experimental.datasets.evaluation.generation.LCQMCBackwardDataset,
+            'WordSeg-WeiboBackward': mcpt.experimental.datasets.evaluation.generation.CUGEStyleSegmentationBackwardDataset,
+            'CEPSUM2Backward-cases-bags': mcpt.experimental.datasets.evaluation.generation.CEPSUM2BackwardDataset,
+            'CEPSUM2Backward-clothing': mcpt.experimental.datasets.evaluation.generation.CEPSUM2BackwardDataset,
+            'CEPSUM2Backward-home-appliances': mcpt.experimental.datasets.evaluation.generation.CEPSUM2BackwardDataset,
         }
     }
     datasets = mcpt.merge_configs(datasets, experimental_datasets)
