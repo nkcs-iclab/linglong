@@ -124,8 +124,6 @@ def dataset_math23k_metric(
         try:
             label = list(label)
             label = label[label.index(kwargs['special_token_ids']['part_separator']) + 1:]
-            if kwargs['config']['model_config'].get('backward', False):
-                label, pred = label[::-1], pred[::-1]
             pred = kwargs['tokenizer'].convert_ids_to_string(pred)
             label = kwargs['tokenizer'].convert_ids_to_string(label)
             line = f'{pred}={label}'
@@ -193,8 +191,6 @@ def dataset_kbqa_metric(
             continue
         a = pred[:separator_idx]
         relation = pred[separator_idx + 1:]
-        if kwargs['config']['model_config'].get('backward', False):
-            label, a, relation = label[::-1], a[::-1], relation[::-1]
         label = kwargs['tokenizer'].convert_ids_to_string(label)
         a = kwargs['tokenizer'].convert_ids_to_string(a)
         relation = kwargs['tokenizer'].convert_ids_to_string(relation)
