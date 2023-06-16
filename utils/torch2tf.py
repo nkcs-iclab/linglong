@@ -1,6 +1,7 @@
 import fire
 import torch
 import pathlib
+import collections
 import tensorflow as tf
 
 from typing import *
@@ -15,13 +16,13 @@ def set_weight(
         torch_weights: Dict[str, torch.Tensor],
         tf_weights: Dict[str, tf.Variable],
 ):
-    tf_weight = tf_weights[tf_key].numpy()
+    tf_weight = tf_weights[tf_key]
     torch_weight = torch_weights[torch_key]
     if list(torch_weight.size()) != list(tf_weight.shape):
-        tf_weight = tf_weight[0]
+        torch_weight = torch.unsqueeze(torch_weight, dim=0)
     assert list(torch_weight.size()) == list(tf_weight.shape)
-    print(f'{torch_key}: {list(torch_weight.size())} <- {tf_key}: {list(tf_weight.shape)}')
-    torch_weights[torch_key] = torch.from_numpy(tf_weight)
+    print(f'{torch_key}: {list(torch_weight.size())} -> {tf_key}: {list(tf_weight.shape)}')
+    tf_weight.assign(tf.Variable(torch_weight.numpy(), dtype=tf.float32))
 
 
 def tf_idx(idx: int) -> str:
@@ -30,14 +31,15 @@ def tf_idx(idx: int) -> str:
 
 def main(
         model_config: str,
-        tf_model_path: str,
-        torch_model_path: Optional[str] = None,
+        torch_model_path: str,
+        tf_model_path: Optional[str] = None,
 ):
-    tf_model = mcpt_tf.Model.from_config_(model_config, load_model=tf_model_path)
-    torch_model = mcpt.Model.from_config(model_config)
+    tf_model = mcpt_tf.Model.from_config_(model_config)
+    torch_model = mcpt.Model.from_config(model_config, load_model=torch_model_path, device='cpu')
 
-    tf_weights = tf_model.weights
-    tf_weights = {tf_weight.name: tf_weight for tf_weight in tf_weights}
+    tf_weights = collections.OrderedDict()
+    for tf_weight in tf_model.weights:
+        tf_weights[tf_weight.name] = tf_weight
     print(f'Loaded {len(tf_weights)} weights from the TensorFlow model: '
           f'{mcpt.pprint(list(tf_weights.keys()), export=True)}')
 
@@ -160,10 +162,10 @@ def main(
         torch_weights,
         tf_weights,
     )
-    torch_model.load_state_dict(torch_weights)
-    if torch_model_path is None:
-        torch_model_path = pathlib.Path(tf_model_path).with_suffix('.pt')
-    torch.save(torch_weights, torch_model_path)
+    tf_model.set_weights(tf.keras.backend.batch_get_value(tf_weights.values()))
+    if tf_model_path is None:
+        tf_model_path = pathlib.Path(torch_model_path).with_suffix('.h5')
+    tf_model.save_weights(tf_model_path)
 
 
 if __name__ == '__main__':
