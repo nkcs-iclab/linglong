@@ -13,16 +13,17 @@ def load(config: Dict[str, Any]):
 
     datasets = {
         'generation': {
-            'SIGHAN15': mcpt.datasets.evaluation.generation.SIGHANDataset,
-            'Math23K': mcpt.datasets.evaluation.generation.Math23KDataset,
-            'KBQA': mcpt.datasets.evaluation.generation.KBQADataset,
-            'LCSTS': mcpt.datasets.evaluation.generation.LCSTSDataset,
-            'AdGen': mcpt.datasets.evaluation.generation.AdGenDataset,
-            'LCQMC': mcpt.datasets.evaluation.generation.LCQMCDataset,
-            'WordSeg-Weibo': mcpt.datasets.evaluation.generation.CUGEStyleSegmentationDataset,
             'CEPSUM2-cases-bags': mcpt.datasets.evaluation.generation.CEPSUM2Dataset,
             'CEPSUM2-clothing': mcpt.datasets.evaluation.generation.CEPSUM2Dataset,
             'CEPSUM2-home-appliances': mcpt.datasets.evaluation.generation.CEPSUM2Dataset,
+            'LCSTS': mcpt.datasets.evaluation.generation.LCSTSDataset,
+            'AdGen': mcpt.datasets.evaluation.generation.AdGenDataset,
+            'KBQA': mcpt.datasets.evaluation.generation.KBQADataset,
+            'WordSeg-Weibo': mcpt.datasets.evaluation.generation.CUGESegmentationDataset,
+            'ICWB-MSR': mcpt.datasets.evaluation.generation.ICWBSegmentationDataset,
+            'LCQMC': mcpt.datasets.evaluation.generation.LCQMCDataset,
+            'Math23K': mcpt.datasets.evaluation.generation.Math23KDataset,
+            'SIGHAN15': mcpt.datasets.evaluation.generation.SIGHANDataset,
         },
         'perplexity': {
         }

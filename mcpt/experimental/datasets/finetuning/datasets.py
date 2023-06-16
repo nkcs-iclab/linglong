@@ -137,6 +137,17 @@ class CUGEStyleSegmentationBackwardDataset(BaseSegmentationBackwardDataset):
         return obj['ans'].split()
 
 
+class ICWBSegmentationBackwardDataset(BaseSegmentationBackwardDataset):
+
+    @staticmethod
+    def _get_text(obj) -> str:
+        return obj.replace("  ", "")
+
+    @staticmethod
+    def _get_segments(obj) -> List[str]:
+        return obj.split()
+
+
 class CEPSUM2BackwardDataset(BaseDataset):
 
     def _load_file(self, path: str) -> Union[List, Dict]:

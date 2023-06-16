@@ -1,71 +1,3 @@
-SIGHAN15:
-  model:
-    checkpoint:
-    config:
-  evaluation_method: generation
-  template_id: 1
-  split: test
-
-Math23K:
-  model:
-    checkpoint:
-    config:
-  evaluation_method: generation
-  evaluation_metric: dataset_math23k_metric
-  template_id: 1
-  split: valid
-
-KBQA:
-  model:
-    checkpoint:
-    config:
-  evaluation_method: generation
-  evaluation_metric: dataset_kbqa_metric
-  template_id: 0
-  split: valid
-  extra_config:
-    kg_cache:
-    kg_path:
-    kg_search_cache:
-
-LCSTS:
-  model:
-    checkpoint:
-    config:
-  evaluation_method: generation
-  evaluation_metric: generation_metric
-  template_id: 1
-  split: valid
-
-AdGen:
-  model:
-    checkpoint:
-    config:
-  evaluation_method: generation
-  evaluation_metric: generation_metric
-  template_id: 1
-  split: valid
-
-LCQMC:
-  model:
-    checkpoint:
-    config:
-  evaluation_method: generation
-  evaluation_metric: accuracy_metric
-  template_id: 1
-  split: valid
-
-WordSeg-Weibo:
-  model:
-    checkpoint:
-    config:
-  evaluation_method: generation
-  evaluation_metric: dataset_cuge_segmentation_adjust_edit_distance_metric
-  template_id: 0
-  split: valid
-  extra_config:
-    max_length: 1024
-
 CEPSUM2-cases-bags:
   model:
     checkpoint:
@@ -92,3 +24,82 @@ CEPSUM2-home-appliances:
   evaluation_metric: generation_metric
   template_id: 1
   split: valid
+
+LCSTS:
+  model:
+    checkpoint:
+    config:
+  evaluation_method: generation
+  evaluation_metric: generation_metric
+  template_id: 1
+  split: valid
+
+AdGen:
+  model:
+    checkpoint:
+    config:
+  evaluation_method: generation
+  evaluation_metric: generation_metric
+  template_id: 1
+  split: valid
+
+KBQA:
+  model:
+    checkpoint:
+    config:
+  evaluation_method: generation
+  evaluation_metric: dataset_kbqa_metric
+  template_id: 0
+  split: valid
+  extra_config:
+    kg_cache:
+    kg_path:
+    kg_search_cache:
+
+WordSeg-Weibo:
+  model:
+    checkpoint:
+    config:
+  evaluation_method: generation
+  evaluation_metric: dataset_cuge_segmentation_adjust_edit_distance_metric
+  template_id: 0
+  split: valid
+  extra_config:
+    max_length: 1024
+
+ICWB-MSR:
+  model:
+    checkpoint:
+    config:
+  evaluation_method: generation
+  evaluation_metric: dataset_cuge_segmentation_adjust_edit_distance_metric
+  template_id: 0
+  split: test
+  extra_config:
+    max_length: 1024
+
+LCQMC:
+  model:
+    checkpoint:
+    config:
+  evaluation_method: generation
+  evaluation_metric: accuracy_metric
+  template_id: 1
+  split: valid
+
+Math23K:
+  model:
+    checkpoint:
+    config:
+  evaluation_method: generation
+  evaluation_metric: dataset_math23k_metric
+  template_id: 1
+  split: valid
+
+SIGHAN15:
+  model:
+    checkpoint:
+    config:
+  evaluation_method: generation
+  template_id: 1
+  split: test

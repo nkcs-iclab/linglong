@@ -3,27 +3,35 @@ from typing import *
 from mcpt.datasets.finetuning.base import BaseDataset
 
 
-class Math23KDataset(BaseDataset):
+class CEPSUM2Dataset(BaseDataset):
+
+    def _load_file(self, path: str) -> Union[List, Dict]:
+        objs = super()._load_file(path)
+        data = []
+        for obj in objs:
+            for target in obj['tgt']:
+                data.append({
+                    'feature': obj['kb'],
+                    'type': obj['type'],
+                    'target': target,
+                    'source': obj['src'],
+                })
+        return data
 
     def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
+        obj_type = {
+            'bc': '箱包',
+            'cl': '衣服',
+            'homea': '家具',
+        }[obj['type']]
+
+        features = '；'.join(
+            [f'{"".join(k.split())}：{"".join(v.split())}' for k, v in obj['feature'].items()]
+        )
         return [
-            f'问题：{obj["text"]}',
+            f'商品种类：{obj_type}；特征信息：{features}；商品描述：{"".join(obj["source"].split())}',
             [self._special_tokens['part_separator']],
-            f'答案：{obj["equation"][2:]}',
-        ]
-
-
-class KBQADataset(BaseDataset):
-
-    def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
-        a, relation, _ = obj['triple'].strip().split('|||')
-        return [
-            f'问题：{obj["question"]}',
-            [self._special_tokens['part_separator']],
-            '答案：',
-            a.strip(),
-            [self._special_tokens['segment_separator']],
-            relation.strip(),
+            f'商品简介：{"".join(obj["target"].split())}',
         ]
 
 
@@ -57,25 +65,17 @@ class AdGenDataset(BaseDataset):
         ]
 
 
-class LCQMCDataset(BaseDataset):
-
-    def _load_file(self, path: str) -> Union[List, Dict]:
-        objs = super()._load_file(path)
-        data = []
-        for obj in objs:
-            parts = obj.strip().split('\t')
-            data.append({
-                'sentence1': parts[0],
-                'sentence2': parts[1],
-                'label': int(parts[2]),
-            })
-        return data
+class KBQADataset(BaseDataset):
 
     def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
+        a, relation, _ = obj['triple'].strip().split('|||')
         return [
-            f'句子一“{obj["sentence1"]}”与句子二“{obj["sentence2"]}”的意思是否相似？',
+            f'问题：{obj["question"]}',
             [self._special_tokens['part_separator']],
-            ['否', '是'][obj['label']],
+            '答案：',
+            a.strip(),
+            [self._special_tokens['segment_separator']],
+            relation.strip(),
         ]
 
 
@@ -104,7 +104,7 @@ class BaseSegmentationDataset(BaseDataset):
         return parts
 
 
-class CUGEStyleSegmentationDataset(BaseSegmentationDataset):
+class CUGESegmentationDataset(BaseSegmentationDataset):
 
     @staticmethod
     def _get_text(obj) -> str:
@@ -115,33 +115,44 @@ class CUGEStyleSegmentationDataset(BaseSegmentationDataset):
         return obj['ans'].split()
 
 
-class CEPSUM2Dataset(BaseDataset):
+class ICWBSegmentationDataset(BaseSegmentationDataset):
+
+    @staticmethod
+    def _get_text(obj) -> str:
+        return obj.replace("  ", "")
+
+    @staticmethod
+    def _get_segments(obj) -> List[str]:
+        return obj.split()
+
+
+class LCQMCDataset(BaseDataset):
 
     def _load_file(self, path: str) -> Union[List, Dict]:
         objs = super()._load_file(path)
         data = []
         for obj in objs:
-            for target in obj['tgt']:
-                data.append({
-                    'feature': obj['kb'],
-                    'type': obj['type'],
-                    'target': target,
-                    'source': obj['src'],
-                })
+            parts = obj.strip().split('\t')
+            data.append({
+                'sentence1': parts[0],
+                'sentence2': parts[1],
+                'label': int(parts[2]),
+            })
         return data
 
     def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
-        obj_type = {
-            'bc': '箱包',
-            'cl': '衣服',
-            'homea': '家具',
-        }[obj['type']]
-
-        features = '；'.join(
-            [f'{"".join(k.split())}：{"".join(v.split())}' for k, v in obj['feature'].items()]
-        )
         return [
-            f'商品种类：{obj_type}；特征信息：{features}；商品描述：{"".join(obj["source"].split())}',
+            f'句子一“{obj["sentence1"]}”与句子二“{obj["sentence2"]}”的意思是否相似？',
             [self._special_tokens['part_separator']],
-            f'商品简介：{"".join(obj["target"].split())}',
+            ['否', '是'][obj['label']],
+        ]
+
+
+class Math23KDataset(BaseDataset):
+
+    def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
+        return [
+            f'问题：{obj["text"]}',
+            [self._special_tokens['part_separator']],
+            f'答案：{obj["equation"][2:]}',
         ]

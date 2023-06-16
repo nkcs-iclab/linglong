@@ -7,15 +7,16 @@ import mcpt
 
 def load(config: Dict[str, Any]):
     datasets = {
-        'Math23K': mcpt.datasets.finetuning.datasets.Math23KDataset,
-        'KBQA': mcpt.datasets.finetuning.datasets.KBQADataset,
-        'LCSTS': mcpt.datasets.finetuning.datasets.LCSTSDataset,
-        'AdGen': mcpt.datasets.finetuning.datasets.AdGenDataset,
-        'LCQMC': mcpt.datasets.finetuning.datasets.LCQMCDataset,
-        'WordSeg-Weibo': mcpt.datasets.finetuning.datasets.CUGEStyleSegmentationDataset,
         'CEPSUM2-cases-bags': mcpt.datasets.finetuning.datasets.CEPSUM2Dataset,
         'CEPSUM2-clothing': mcpt.datasets.finetuning.datasets.CEPSUM2Dataset,
         'CEPSUM2-home-appliances': mcpt.datasets.finetuning.datasets.CEPSUM2Dataset,
+        'LCSTS': mcpt.datasets.finetuning.datasets.LCSTSDataset,
+        'AdGen': mcpt.datasets.finetuning.datasets.AdGenDataset,
+        'KBQA': mcpt.datasets.finetuning.datasets.KBQADataset,
+        'WordSeg-Weibo': mcpt.datasets.finetuning.datasets.CUGESegmentationDataset,
+        'ICWB-MSR': mcpt.datasets.finetuning.datasets.ICWBSegmentationDataset,
+        'LCQMC': mcpt.datasets.finetuning.datasets.LCQMCDataset,
+        'Math23K': mcpt.datasets.finetuning.datasets.Math23KDataset,
     }
     experimental_datasets = {
         'CustomQA': mcpt.experimental.datasets.finetuning.datasets.CustomQADataset,
@@ -29,6 +30,7 @@ def load(config: Dict[str, Any]):
         'CEPSUM2Backward-cases-bags': mcpt.experimental.datasets.finetuning.datasets.CEPSUM2BackwardDataset,
         'CEPSUM2Backward-clothing': mcpt.experimental.datasets.finetuning.datasets.CEPSUM2BackwardDataset,
         'CEPSUM2Backward-home-appliances': mcpt.experimental.datasets.finetuning.datasets.CEPSUM2BackwardDataset,
+        'ICWB-MSRBackward': mcpt.experimental.datasets.finetuning.datasets.ICWBSegmentationBackwardDataset,
     }
     datasets = mcpt.merge_configs(datasets, experimental_datasets)
     input_path = pathlib.Path(config['input_path']) / config.get('base', config['dataset'])

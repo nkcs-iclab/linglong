@@ -3,11 +3,34 @@ from typing import *
 from mcpt.datasets.evaluation.base import BaseDataset
 
 
-class SIGHANDataset(BaseDataset):
+class CEPSUM2Dataset(BaseDataset):
 
-    def _load_file(self, path: str) -> List[Dict[str, Any]]:
+    def _load_file(self, path: str) -> Union[List, Dict]:
         objs = super()._load_file(path)
-        return list(objs.values())
+        data = []
+        for obj in objs:
+            if obj['tgt'] == '':
+                obj['tgt'] = ['']
+            for target in obj['tgt']:
+                data.append({
+                    'feature': obj['kb'],
+                    'type': obj['type'],
+                    'target': target,
+                    'source': obj['src'],
+                    'id': obj['idx'],
+                })
+        return data
+
+    def _postprocess(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        groups = {}
+        for obj in data:
+            if f'{obj["type"]}-{obj["id"]}' in groups:
+                if groups[f'{obj["type"]}-{obj["id"]}']['label'] is not None:
+                    groups[f'{obj["type"]}-{obj["id"]}']['label'].append(obj['label'])
+            else:
+                obj['label'] = [obj['label']] if obj['label'] is not None else None
+                groups[f'{obj["type"]}-{obj["id"]}'] = obj
+        return list(groups.values())
 
     def _template_0(self, obj) -> \
             Tuple[
@@ -15,134 +38,23 @@ class SIGHANDataset(BaseDataset):
                 Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
                 Dict[str, Any],
             ]:
-        source = obj['text']
-        target = list(source)
-        for error in obj['errors']:
-            error_index = int(error[0]) - 1
-            correct_char = error[1]
-            target[error_index] = correct_char
+        obj_type = {
+            'bc': '箱包',
+            'cl': '衣服',
+            'homea': '家具',
+        }[obj['type']]
+        features = '；'.join(
+            [f'{"".join(k.split())}：{"".join(v.split())}' for k, v in obj['feature'].items()]
+        )
         parts = [
-            f'原始文本：{source}',
+            f'商品种类：{obj_type}；特征信息：{features}；商品描述：{"".join(obj["source"].split())}',
             [self._special_tokens['part_separator']],
-            '纠错后文本：',
+            '商品简介：',
         ]
         label = [
-            ''.join(target),
-        ] if len(obj['errors']) > 0 else None
-        return parts, label, {}
-
-    def _template_1(self, obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
-        source = obj['text']
-        target = list(source)
-        corrections = []
-        for error in obj['errors']:
-            error_index = int(error[0]) - 1
-            corrections.append(f'{error_index}:-{target[error_index]}+{error[1]}')
-        parts = [
-            f'原始文本：{source}',
-            [self._special_tokens['part_separator']],
-            '纠错：',
-        ]
-        label = [
-            ';'.join(corrections),
-        ] if len(obj['errors']) > 0 else None
-        return parts, label, {}
-
-    def _template_2(self, obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
-        target = list(obj['text'])
-        for error in obj['errors']:
-            error_index = int(error[0]) - 1
-            correct_char = error[1]
-            target[error_index] = correct_char
-        parts = [
-            obj['text'],
-            [self._special_tokens['end_token']],
-        ]
-        label = [
-            [self._special_tokens['start_token']],
-            ''.join(target),
-            [self._special_tokens['end_token']],
-        ]
-        return parts, label, {}
-
-
-class Math23KDataset(BaseDataset):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._candidates = [
-            '%', '(', ')', '*', '+', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '[', ']', '^',
-        ]
-
-    @staticmethod
-    def _template_0(obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
-        parts = [
-            f'问题：{obj["text"]}答案：',
-        ]
-        label = [
-            obj['label'],
-        ] if 'label' in obj else None
-        return parts, label, {}
-
-    def _template_1(self, obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
-        parts = [
-            f'问题：{obj["text"]}',
-            [self._special_tokens['part_separator']],
-            '答案：',
-        ]
-        label = [
-            obj['equation'][2:],
-            [self._special_tokens['part_separator']],
-            obj['label'],
-        ] if 'label' in obj else None
-        return parts, label, {}
-
-
-class KBQADataset(BaseDataset):
-
-    def _template_0(self, obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
-        parts = [
-            f'问题：{obj["question"]}',
-            [self._special_tokens['part_separator']],
-            '答案：',
-        ]
-        if obj['answer']:
-            a, relation, b = obj['triple'].strip().split('|||')
-            label = [
-                a.strip(),
-                [self._special_tokens['segment_separator']],
-                relation.strip(),
-                [self._special_tokens['segment_separator']],
-                b.strip(),
-            ]
-        else:
-            label = None
-        return parts, label, {}
+            "".join(obj["target"].split()),
+        ] if obj['target'] else None
+        return parts, label, {'id': obj['id'], 'type': obj['type']}
 
 
 class LCSTSDataset(BaseDataset):
@@ -233,6 +145,84 @@ class AdGenDataset(BaseDataset):
         return parts, label, {}
 
 
+class KBQADataset(BaseDataset):
+
+    def _template_0(self, obj) -> \
+            Tuple[
+                List[Union[str, List[str], Dict[str, List[str]]]],
+                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
+                Dict[str, Any],
+            ]:
+        parts = [
+            f'问题：{obj["question"]}',
+            [self._special_tokens['part_separator']],
+            '答案：',
+        ]
+        if obj['answer']:
+            a, relation, b = obj['triple'].strip().split('|||')
+            label = [
+                a.strip(),
+                [self._special_tokens['segment_separator']],
+                relation.strip(),
+                [self._special_tokens['segment_separator']],
+                b.strip(),
+            ]
+        else:
+            label = None
+        return parts, label, {}
+
+
+class BaseSegmentationDataset(BaseDataset):
+
+    @staticmethod
+    def _get_text(obj) -> str:
+        raise NotImplementedError
+
+    @staticmethod
+    def _get_segments(obj) -> List[str]:
+        raise NotImplementedError
+
+    def _template_0(self, obj) -> \
+            Tuple[
+                List[Union[str, List[str], Dict[str, List[str]]]],
+                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
+                Dict[str, Any],
+            ]:
+        parts = [
+            f'原始文本：{self._get_text(obj)}',
+            [self._special_tokens['part_separator']],
+            '分词结果：',
+        ]
+        label = []
+        for segment in self._get_segments(obj):
+            label.append(segment)
+            label.append([self._special_tokens['segment_separator']])
+        label = label[:-1]
+        return parts, label, {}
+
+
+class CUGESegmentationDataset(BaseSegmentationDataset):
+
+    @staticmethod
+    def _get_text(obj) -> str:
+        return obj['text']
+
+    @staticmethod
+    def _get_segments(obj) -> List[str]:
+        return obj['ans'].split()
+
+
+class ICWBSegmentationDataset(BaseSegmentationDataset):
+
+    @staticmethod
+    def _get_text(obj) -> str:
+        return obj.replace("  ", "")
+
+    @staticmethod
+    def _get_segments(obj) -> List[str]:
+        return obj.split()
+
+
 class LCQMCDataset(BaseDataset):
 
     def __init__(self, **kwargs):
@@ -281,74 +271,53 @@ class LCQMCDataset(BaseDataset):
         return parts, label, {}
 
 
-class BaseSegmentationDataset(BaseDataset):
+class Math23KDataset(BaseDataset):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._candidates = [
+            '%', '(', ')', '*', '+', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '[', ']', '^',
+        ]
 
     @staticmethod
-    def _get_text(obj) -> str:
-        raise NotImplementedError
-
-    @staticmethod
-    def _get_segments(obj) -> List[str]:
-        raise NotImplementedError
-
-    def _template_0(self, obj) -> \
+    def _template_0(obj) -> \
             Tuple[
                 List[Union[str, List[str], Dict[str, List[str]]]],
                 Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
                 Dict[str, Any],
             ]:
         parts = [
-            f'原始文本：{self._get_text(obj)}',
-            [self._special_tokens['part_separator']],
-            '分词结果：',
+            f'问题：{obj["text"]}答案：',
         ]
-        label = []
-        for segment in self._get_segments(obj):
-            label.append(segment)
-            label.append([self._special_tokens['segment_separator']])
-        label = label[:-1]
+        label = [
+            obj['label'],
+        ] if 'label' in obj else None
+        return parts, label, {}
+
+    def _template_1(self, obj) -> \
+            Tuple[
+                List[Union[str, List[str], Dict[str, List[str]]]],
+                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
+                Dict[str, Any],
+            ]:
+        parts = [
+            f'问题：{obj["text"]}',
+            [self._special_tokens['part_separator']],
+            '答案：',
+        ]
+        label = [
+            obj['equation'][2:],
+            [self._special_tokens['part_separator']],
+            obj['label'],
+        ] if 'label' in obj else None
         return parts, label, {}
 
 
-class CUGEStyleSegmentationDataset(BaseSegmentationDataset):
+class SIGHANDataset(BaseDataset):
 
-    @staticmethod
-    def _get_text(obj) -> str:
-        return obj['text']
-
-    @staticmethod
-    def _get_segments(obj) -> List[str]:
-        return obj['ans'].split()
-
-
-class CEPSUM2Dataset(BaseDataset):
-
-    def _load_file(self, path: str) -> Union[List, Dict]:
+    def _load_file(self, path: str) -> List[Dict[str, Any]]:
         objs = super()._load_file(path)
-        data = []
-        for obj in objs:
-            if obj['tgt'] == '':
-                obj['tgt'] = ['']
-            for target in obj['tgt']:
-                data.append({
-                    'feature': obj['kb'],
-                    'type': obj['type'],
-                    'target': target,
-                    'source': obj['src'],
-                    'id': obj['idx'],
-                })
-        return data
-
-    def _postprocess(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        groups = {}
-        for obj in data:
-            if f'{obj["type"]}-{obj["id"]}' in groups:
-                if groups[f'{obj["type"]}-{obj["id"]}']['label'] is not None:
-                    groups[f'{obj["type"]}-{obj["id"]}']['label'].append(obj['label'])
-            else:
-                obj['label'] = [obj['label']] if obj['label'] is not None else None
-                groups[f'{obj["type"]}-{obj["id"]}'] = obj
-        return list(groups.values())
+        return list(objs.values())
 
     def _template_0(self, obj) -> \
             Tuple[
@@ -356,20 +325,62 @@ class CEPSUM2Dataset(BaseDataset):
                 Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
                 Dict[str, Any],
             ]:
-        obj_type = {
-            'bc': '箱包',
-            'cl': '衣服',
-            'homea': '家具',
-        }[obj['type']]
-        features = '；'.join(
-            [f'{"".join(k.split())}：{"".join(v.split())}' for k, v in obj['feature'].items()]
-        )
+        source = obj['text']
+        target = list(source)
+        for error in obj['errors']:
+            error_index = int(error[0]) - 1
+            correct_char = error[1]
+            target[error_index] = correct_char
         parts = [
-            f'商品种类：{obj_type}；特征信息：{features}；商品描述：{"".join(obj["source"].split())}',
+            f'原始文本：{source}',
             [self._special_tokens['part_separator']],
-            '商品简介：',
+            '纠错后文本：',
         ]
         label = [
-            "".join(obj["target"].split()),
-        ] if obj['target'] else None
-        return parts, label, {'id': obj['id'], 'type': obj['type']}
+            ''.join(target),
+        ] if len(obj['errors']) > 0 else None
+        return parts, label, {}
+
+    def _template_1(self, obj) -> \
+            Tuple[
+                List[Union[str, List[str], Dict[str, List[str]]]],
+                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
+                Dict[str, Any],
+            ]:
+        source = obj['text']
+        target = list(source)
+        corrections = []
+        for error in obj['errors']:
+            error_index = int(error[0]) - 1
+            corrections.append(f'{error_index}:-{target[error_index]}+{error[1]}')
+        parts = [
+            f'原始文本：{source}',
+            [self._special_tokens['part_separator']],
+            '纠错：',
+        ]
+        label = [
+            ';'.join(corrections),
+        ] if len(obj['errors']) > 0 else None
+        return parts, label, {}
+
+    def _template_2(self, obj) -> \
+            Tuple[
+                List[Union[str, List[str], Dict[str, List[str]]]],
+                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
+                Dict[str, Any],
+            ]:
+        target = list(obj['text'])
+        for error in obj['errors']:
+            error_index = int(error[0]) - 1
+            correct_char = error[1]
+            target[error_index] = correct_char
+        parts = [
+            obj['text'],
+            [self._special_tokens['end_token']],
+        ]
+        label = [
+            [self._special_tokens['start_token']],
+            ''.join(target),
+            [self._special_tokens['end_token']],
+        ]
+        return parts, label, {}
