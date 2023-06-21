@@ -93,10 +93,11 @@ class BaseDataset:
                 file_idx = new_file_idx
                 filename = f'{self._split}-{file_idx + 1:0{len(str(n_file))}d}-of-{n_file}.tfrecord'
                 meta['files'].append(filename)
-                writer = tf.io.TFRecordWriter(str(self._output_path / filename))
+                writer = tf.io.TFRecordWriter(str(self._output_path / filename), options='GZIP')
             writer.write(mcpt.records.serialize_example(text, pinyin if self._use_pinyin else None))
             meta['count'] += 1
             meta['padding_shape'] = max(len(text), meta['padding_shape'])
+        meta['compression_type'] = 'GZIP'
         if writer is not None:
             writer.close()
         return meta, discarded

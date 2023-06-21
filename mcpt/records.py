@@ -65,7 +65,10 @@ class TFRecordDataset(IterableDataset):
             meta = pickle.load(f)
         padding_shape = meta['padding_shape']
         self.samples_per_rank = math.ceil(meta['count'] / dp_size)
-        dataset = tf.data.TFRecordDataset(list(map(lambda x: str(path / x), meta['files'])))
+        dataset = tf.data.TFRecordDataset(
+            list(map(lambda x: str(path / x), meta['files'])),
+            compression_type=meta.get('compression_type', None),
+        )
 
         if dp_size > 1:
             dataset = dataset.shard(dp_size, dp_rank)
