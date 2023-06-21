@@ -2,7 +2,6 @@ import math
 import pickle
 import pathlib
 import warnings
-import numpy as np
 
 from typing import *
 
@@ -95,14 +94,7 @@ class BaseDataset:
                 filename = f'{self._split}-{file_idx + 1:0{len(str(n_file))}d}-of-{n_file}.tfrecord'
                 meta['files'].append(filename)
                 writer = tf.io.TFRecordWriter(str(self._output_path / filename))
-            writer.write(
-                mcpt.records.serialize_example(
-                    text,
-                    text[1:],
-                    np.ones_like(text[1:]),
-                    pinyin if self._use_pinyin else None,
-                )
-            )
+            writer.write(mcpt.records.serialize_example(text, pinyin if self._use_pinyin else None))
             meta['count'] += 1
             meta['padding_shape'] = max(len(text), meta['padding_shape'])
         if writer is not None:
