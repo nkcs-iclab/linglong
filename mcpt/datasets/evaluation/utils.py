@@ -46,7 +46,7 @@ def load(config: Dict[str, Any]):
     input_path = pathlib.Path(config['input_path']) / config.get('base', config['dataset'])
     output_path = pathlib.Path(config['cache_path']) / config['dataset']
 
-    dataset = datasets[method].get(config['dataset'], None)
+    dataset = datasets[method].get(config['dataset'])
     if dataset is None:
         raise ValueError(f'The {method} method is not supported for this dataset.')
     return dataset(
@@ -59,5 +59,5 @@ def load(config: Dict[str, Any]):
         model_config=config['model_config'],
         special_tokens=config['special_tokens'],
         use_cache=config['use_cache'],
-        extra_config=config.get('extra_config', None),
+        extra_config=config.get('extra_config'),
     )

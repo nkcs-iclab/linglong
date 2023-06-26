@@ -46,5 +46,5 @@ def load(config: Dict[str, Any]):
         split=config['split'],
         use_cache=config['use_cache'],
         items_per_file=config['items_per_file'],
-        extra_config=config.get('extra_config', None),
+        extra_config=config.get('extra_config'),
     )

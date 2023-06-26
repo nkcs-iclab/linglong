@@ -75,7 +75,7 @@ def main(
 
     dataset = tf.data.TFRecordDataset(
         list(map(lambda x: str(dataset_path / x), meta['files'])),
-        compression_type=meta.get('compression_type', None),
+        compression_type=meta.get('compression_type'),
     )
     dataset = dataset.map(decode_fn)
     dataset = dataset.padded_batch(n_example, padded_shapes=padded_shapes)

@@ -67,7 +67,7 @@ class TFRecordDataset(IterableDataset):
         self.samples_per_rank = math.ceil(meta['count'] / dp_size)
         dataset = tf.data.TFRecordDataset(
             list(map(lambda x: str(path / x), meta['files'])),
-            compression_type=meta.get('compression_type', None),
+            compression_type=meta.get('compression_type'),
         )
 
         if dp_size > 1:
