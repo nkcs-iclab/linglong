@@ -36,7 +36,9 @@ This package requires Python 3.6 or later, with a few exceptions:
 - PyTorch 2.0 requires Python 3.8 or later. PyTorch with a lower version number may work, but it is not tested.
 - TensorFlow 2.12 requires Python 3.8 or later. TensorFlow with a lower version number may work, but it is not tested.
 
-## Installation
+## Environment Setup
+
+The required packages are not listed in `setup.py` yet, so you need to install them manually.
 
 1. Clone the repository.
 
@@ -45,17 +47,7 @@ This package requires Python 3.6 or later, with a few exceptions:
     cd linglong-mcpt
     ```
 
-2. Install the package.
-
-    ```
-    pip install -e .
-    ```
-
-## Environment Setup
-
-The required packages are not listed in `setup.py` yet, so you need to install them manually.
-
-1. Create new conda environment with `environment.yaml`.
+2. Create new conda environment with `environment.yaml`.
 
     ```
     conda env create -f environment.yaml
@@ -70,7 +62,13 @@ The required packages are not listed in `setup.py` yet, so you need to install t
     pip install -r requirements-evaluation.txt
     ```
 
-2. Install Horovod (optional, for data parallel training).
+3. Install the package.
+
+    ```
+    pip install -e .
+    ```
+
+4. Install Horovod (optional, for data parallel training).
 
     ```
     export NCCL_HOME=$(python -c "import sysconfig; print(sysconfig.get_path('purelib'))")/nvidia/nccl
@@ -88,7 +86,7 @@ The required packages are not listed in `setup.py` yet, so you need to install t
 
     Every feature that was successfully enabled will be marked with an "X".
    
-3. Install DeepSpeed (optional, experimental, for DeepSpeed enabled training).
+5. Install DeepSpeed (optional, experimental, for DeepSpeed enabled training).
 
     ```
     pip install deepspeed
