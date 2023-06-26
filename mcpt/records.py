@@ -1,10 +1,11 @@
 import math
-import pickle
 import pathlib
 import tensorflow as tf
 
 from typing import *
 from torch.utils.data import IterableDataset, DataLoader
+
+import mcpt
 
 tf.config.set_visible_devices([], 'GPU')
 
@@ -13,36 +14,40 @@ def _int64_feature(value: Sequence) -> tf.train.Feature:
     return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
 
 
-def serialize_example(data: Sequence, pinyin: Optional[Sequence] = None) -> bytes:
+def serialize_example(data: Sequence, label: Sequence, pinyin: Optional[Sequence] = None) -> bytes:
     feature = {
         'data': _int64_feature(data),
+        'label': _int64_feature(label),
     }
     if pinyin is not None:
         feature['pinyin'] = _int64_feature(pinyin)
-    tf_example = tf.train.Example(features=tf.train.Features(feature=feature))
-    return tf_example.SerializeToString()
+    example = tf.train.Example(features=tf.train.Features(feature=feature))
+    return example.SerializeToString()
 
 
-def decode(record_bytes: bytes) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
-    feature = {'data': tf.io.VarLenFeature(dtype=tf.int64)}
-    record = tf.io.parse_single_example(record_bytes, feature)
-    data = tf.sparse.to_dense(record['data'])
-    label = data[1:]
+def decode(serialized_example: bytes) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+    feature = {
+        'data': tf.io.VarLenFeature(dtype=tf.int64),
+        'label': tf.io.VarLenFeature(dtype=tf.int64),
+    }
+    example = tf.io.parse_single_example(serialized_example, feature)
+    data = tf.sparse.to_dense(example['data'])
+    label = tf.sparse.to_dense(example['label'])
     mask = tf.ones_like(label, dtype=tf.int64)
     return data, label, mask
 
 
-def decode_pinyin(record_bytes: bytes) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+def decode_pinyin(serialized_example: bytes) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
     feature = {
         'data': tf.io.VarLenFeature(dtype=tf.int64),
+        'label': tf.io.VarLenFeature(dtype=tf.int64),
         'pinyin': tf.io.VarLenFeature(dtype=tf.int64),
     }
-    record = tf.io.parse_single_example(record_bytes, feature)
-
-    data = tf.sparse.to_dense(record['data'])
-    label = data[1:]
+    example = tf.io.parse_single_example(serialized_example, feature)
+    data = tf.sparse.to_dense(example['data'])
+    label = tf.sparse.to_dense(example['label'])
     mask = tf.ones_like(label, dtype=tf.int64)
-    pinyin = tf.sparse.to_dense(record['pinyin'])
+    pinyin = tf.sparse.to_dense(example['pinyin'])
     data = tf.expand_dims(data, axis=-2)
     pinyin = tf.expand_dims(pinyin, axis=-2)
     data = tf.concat((data, pinyin), axis=-2)
@@ -61,8 +66,7 @@ class TFRecordDataset(IterableDataset):
     ):
         super().__init__()
         path = pathlib.Path(path)
-        with open(path / meta, 'rb') as f:
-            meta = pickle.load(f)
+        meta = mcpt.load_config(meta)
         padding_shape = meta['padding_shape']
         self.samples_per_rank = math.ceil(meta['count'] / dp_size)
         dataset = tf.data.TFRecordDataset(

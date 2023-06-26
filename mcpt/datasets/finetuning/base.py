@@ -1,5 +1,5 @@
+import json
 import math
-import pickle
 import pathlib
 import warnings
 
@@ -91,10 +91,10 @@ class BaseDataset:
                 if writer is not None:
                     writer.close()
                 file_idx = new_file_idx
-                filename = f'{self._split}-{file_idx + 1:0{len(str(n_file))}d}-of-{n_file}.tfrecord'
+                filename = f'{self._split}-{file_idx + 1:0{len(str(n_file))}d}-of-{n_file}.tfrecord.gz'
                 meta['files'].append(filename)
                 writer = tf.io.TFRecordWriter(str(self._output_path / filename), options='GZIP')
-            writer.write(mcpt.records.serialize_example(text, pinyin if self._use_pinyin else None))
+            writer.write(mcpt.records.serialize_example(text, text[1:], pinyin if self._use_pinyin else None))
             meta['count'] += 1
             meta['padding_shape'] = max(len(text), meta['padding_shape'])
         meta['compression_type'] = 'GZIP'
@@ -131,8 +131,8 @@ class BaseDataset:
         meta_path = self._output_path / f'{self._split}-meta.pkl'
         if not (self._use_cache and meta_path.is_file()):
             meta, discarded = self._process()
-            with open(meta_path, 'wb') as f:
-                pickle.dump(meta, f)
+            with open(meta_path, 'w') as f:
+                json.dump(meta, f, indent=2)
             if len(discarded) > 0:
                 print(f'\n{len(discarded)} items are discarded.')
         return str(meta_path.absolute()), str(self._output_path.absolute())

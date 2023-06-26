@@ -159,6 +159,7 @@ def print_training_records(records, tokenizer: mcpt.Tokenizer):
         else:
             example['data'] = tokenizer.convert_ids_to_string(data[i])
         example['label'] = tokenizer.convert_ids_to_string(label[i])
+        example['data[data != 0].shape'] = data[i][data[i] != 0].shape.as_list()[0]
         example['label[label != 0].shape'] = label[i][label[i] != 0].shape.as_list()[0]
         example['mask[mask != 0].shape'] = mask[i][mask[i] != 0].shape.as_list()[0]
         output['examples'].append(example)

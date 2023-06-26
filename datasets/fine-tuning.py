@@ -1,5 +1,4 @@
 import fire
-import pickle
 import pathlib
 
 from typing import *
@@ -53,8 +52,7 @@ def main(
     with mcpt.running(f'Processing {dataset} dataset', spinner=use_cache) as spinner:
         dataset = mcpt.datasets.finetuning.load(config)
         meta_path, records_path = dataset.prepare()
-        with open(meta_path, 'rb') as f:
-            meta = pickle.load(f)
+        meta = mcpt.load_config(meta_path)
         padding_shape = meta['padding_shape']
         spinner.write(mcpt.pprint({
             'meta': meta_path,
