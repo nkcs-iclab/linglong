@@ -124,6 +124,8 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 - *Evaluation:* Updated the evaluation config schema.
 - *Evaluation:* Various bug fixes.
 - Renamed `mcpt.print_dict` to `mcpt.pprint`.
+- Compressed tfrecord files with gzip to save disk space.
+- Converted meta files from pickle to json.
 
 ### 0.6
 
