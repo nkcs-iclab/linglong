@@ -100,7 +100,7 @@ We provide an interactive text generation script `generation/generate.py` for ge
 
 ```
 python generate.py \
-  --model=/path/to/linglong-mcpt/models/PT-01-GENERIC-WSZ1024-DP20-317M/V12.pt \
+  --model=/path/to/linglong-mcpt/models/V12.pt \
   --model-config=/path/to/linglong-mcpt/common/model-configs/317M-WSZ1024L24.yaml
 ```
 
