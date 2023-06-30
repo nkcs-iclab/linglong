@@ -67,7 +67,7 @@ def main(
         model_config: str,
         training_config: str,
         override_config: Optional[Dict] = None,
-        training_meta: str = 'train-meta.pkl',
+        training_meta: str = 'train-meta.json',
         epochs: int = 5,
         load_model: Optional[str] = None,
         save_path: str = './ckpt',
