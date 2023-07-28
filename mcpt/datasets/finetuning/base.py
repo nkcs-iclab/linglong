@@ -46,7 +46,7 @@ class BaseDataset:
         return mcpt.load_file(path, format=self._file_format)
 
     @staticmethod
-    def _discard_obj(obj, discarded: List, reason: str = ''):
+    def _discard_obj(obj, discarded: List, reason: Optional[str] = None):
         warnings.warn(f'{mcpt.pprint(obj, export=True)} is discarded. Reason: {reason}')
         warnings.warn(f'{len(discarded)} items are discarded.')
         discarded.append(obj)
@@ -128,7 +128,7 @@ class BaseDataset:
         return ids
 
     def prepare(self) -> Tuple[str, str]:
-        meta_path = self._output_path / f'{self._split}-meta.pkl'
+        meta_path = self._output_path / f'{self._split}-meta.json'
         if not (self._use_cache and meta_path.is_file()):
             meta, discarded = self._process()
             with open(meta_path, 'w') as f:
