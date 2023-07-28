@@ -142,12 +142,11 @@ def pprint(
 
 
 def print_training_records(records, tokenizer: mcpt.Tokenizer):
-    data, label, mask = records
+    data, label = records
     output = {
         'shape': {
             'data': data.shape.as_list(),
             'label': label.shape.as_list(),
-            'mask': mask.shape.as_list(),
         },
         'examples': [],
     }
@@ -161,7 +160,6 @@ def print_training_records(records, tokenizer: mcpt.Tokenizer):
         example['label'] = tokenizer.convert_ids_to_string(label[i])
         example['data[data != 0].shape'] = data[i][data[i] != 0].shape.as_list()[0]
         example['label[label != 0].shape'] = label[i][label[i] != 0].shape.as_list()[0]
-        example['mask[mask != 0].shape'] = mask[i][mask[i] != 0].shape.as_list()[0]
         output['examples'].append(example)
     pprint(output)
 

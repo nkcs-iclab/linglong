@@ -25,7 +25,7 @@ def serialize_example(data: Sequence, label: Sequence, pinyin: Optional[Sequence
     return example.SerializeToString()
 
 
-def decode(serialized_example: bytes) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+def decode(serialized_example: bytes) -> Tuple[tf.Tensor, tf.Tensor]:
     feature = {
         'data': tf.io.VarLenFeature(dtype=tf.int64),
         'label': tf.io.VarLenFeature(dtype=tf.int64),
@@ -33,11 +33,10 @@ def decode(serialized_example: bytes) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
     example = tf.io.parse_single_example(serialized_example, feature)
     data = tf.sparse.to_dense(example['data'])
     label = tf.sparse.to_dense(example['label'])
-    mask = tf.ones_like(label, dtype=tf.int64)
-    return data, label, mask
+    return data, label
 
 
-def decode_pinyin(serialized_example: bytes) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+def decode_pinyin(serialized_example: bytes) -> Tuple[tf.Tensor, tf.Tensor]:
     feature = {
         'data': tf.io.VarLenFeature(dtype=tf.int64),
         'label': tf.io.VarLenFeature(dtype=tf.int64),
@@ -46,12 +45,11 @@ def decode_pinyin(serialized_example: bytes) -> Tuple[tf.Tensor, tf.Tensor, tf.T
     example = tf.io.parse_single_example(serialized_example, feature)
     data = tf.sparse.to_dense(example['data'])
     label = tf.sparse.to_dense(example['label'])
-    mask = tf.ones_like(label, dtype=tf.int64)
     pinyin = tf.sparse.to_dense(example['pinyin'])
     data = tf.expand_dims(data, axis=-2)
     pinyin = tf.expand_dims(pinyin, axis=-2)
     data = tf.concat((data, pinyin), axis=-2)
-    return data, label, mask
+    return data, label
 
 
 class TFRecordDataset(IterableDataset):
@@ -78,10 +76,10 @@ class TFRecordDataset(IterableDataset):
             dataset = dataset.shard(dp_size, dp_rank)
         if use_pinyin:
             decode_fn = decode_pinyin
-            padded_shapes = ((2, padding_shape), padding_shape, padding_shape)
+            padded_shapes = ((2, padding_shape), padding_shape)
         else:
             decode_fn = decode
-            padded_shapes = (padding_shape, padding_shape, padding_shape)
+            padded_shapes = (padding_shape, padding_shape)
 
         dataset = dataset \
             .repeat() \
@@ -106,7 +104,7 @@ class TFRecordDataset(IterableDataset):
         if self.index >= self.samples_per_rank:
             raise StopIteration
         self.index += 1
-        data, label, mask = next(self.tfds_iter)
+        data, label = next(self.tfds_iter)
         return data.numpy()[0], label.numpy()[0]
 
 

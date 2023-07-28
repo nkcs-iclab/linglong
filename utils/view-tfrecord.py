@@ -22,10 +22,10 @@ def main(
     })
     if use_pinyin:
         decode_fn = mcpt.records.decode_pinyin
-        padded_shapes = ((2, padding_shape), padding_shape, padding_shape)
+        padded_shapes = ((2, padding_shape), padding_shape)
     else:
         decode_fn = mcpt.records.decode
-        padded_shapes = (padding_shape, padding_shape, padding_shape)
+        padded_shapes = (padding_shape, padding_shape)
     path = pathlib.Path(path)
     if path.is_dir():
         files = list(map(lambda x: str(path / x), meta['files']))

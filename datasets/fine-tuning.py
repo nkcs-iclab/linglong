@@ -65,11 +65,11 @@ def main(
     if model_config.get('use_pinyin', False):
         dataset_path = dataset_path / f'template-{config["template_id"]}-pinyin'
         decode_fn = mcpt.records.decode_pinyin
-        padded_shapes = ((2, padding_shape), padding_shape, padding_shape)
+        padded_shapes = ((2, padding_shape), padding_shape)
     else:
         dataset_path = dataset_path / f'template-{config["template_id"]}'
         decode_fn = mcpt.records.decode
-        padded_shapes = (padding_shape, padding_shape, padding_shape)
+        padded_shapes = (padding_shape, padding_shape)
 
     dataset = tf.data.TFRecordDataset(
         list(map(lambda x: str(dataset_path / x), meta['files'])),
