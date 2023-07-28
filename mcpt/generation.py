@@ -148,10 +148,11 @@ class Sampler:
         end_status = [False] * batch_size
         for i in range(max_length):
             with torch.no_grad():
-                logits, presents = self._model(prev, past=past)
-            presents = presents.view(self._past_shape(batch_size=batch_size))
+                lm_output = self._model(prev, past=past)
+                logits, present = lm_output['logits'], lm_output['present']
+            present = present.view(self._past_shape(batch_size=batch_size))
             prev = self._process_logits(logits[:, -1], config, candidates)
-            past = presents if past is None else torch.cat((past, presents), dim=-2)
+            past = present if past is None else torch.cat((past, present), dim=-2)
             for batch_idx in range(batch_size):
                 if not end_status[batch_idx] and \
                         (prev[batch_idx][0].item() if self._use_pinyin else prev[batch_idx].item()) == self._end_id:
@@ -169,15 +170,16 @@ class Sampler:
         prev = context
         for i in range(max_length):
             with torch.no_grad():
-                logits, presents = self._model(prev, past=past)
-            presents = presents.view(self._past_shape(batch_size=1))
+                lm_output = self._model(prev, past=past)
+                logits, present = lm_output['logits'], lm_output['present']
+            present = present.view(self._past_shape(batch_size=1))
             prev = self._process_logits(logits[:, -1], config, candidates)
             token_id = prev[0][0].item() if self._use_pinyin else prev.item()
             if token_id == self._end_id:
                 break
             else:
                 yield token_id
-            past = presents if past is None else torch.cat((past, presents), dim=-2)
+            past = present if past is None else torch.cat((past, present), dim=-2)
 
 
 def generate(

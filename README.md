@@ -115,6 +115,10 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 
 ## Changelog
 
+### 0.8 (pre-release)
+
+- Updated the format of the model output from `tuple` to `dict`.
+
 ### 0.7
 
 - *Experimental:* Added a word-based tokenizer and a word-based vocabulary file (from CPM-2).

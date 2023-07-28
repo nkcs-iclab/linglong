@@ -191,7 +191,10 @@ class MCPTModel(nn.Module):
         for blk_idx, past in enumerate(pasts):
             h, present = self.blocks[blk_idx](h, past)
             presents.append(present)
-        presents = torch.stack(presents, dim=1)
+        present = torch.stack(presents, dim=1)
         h = self.ln_f(h)
         logits = torch.matmul(h, self.wte.weight.t())
-        return logits, presents
+        return {
+            'logits': logits,
+            'present': present,
+        }

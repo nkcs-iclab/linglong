@@ -126,7 +126,7 @@ def main(
             data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
             with (torch.cuda.amp.autocast() if training_config['fp16']['enabled'] else contextlib.suppress()):
-                logits, present = model(data)
+                logits = model(data)['logits']
                 loss = torch.nn.functional.cross_entropy(logits.permute(0, 2, 1), target, ignore_index=0)
             if training_config['fp16']['enabled']:
                 scaler.scale(loss).backward()
@@ -157,7 +157,7 @@ def main(
             with torch.no_grad():
                 for batch_idx, (data, target) in enumerate(validation_loader):
                     data, target = data.to(device), target.to(device)
-                    logits, present = model(data)
+                    logits = model(data)['logits']
                     val_loss = torch.nn.functional.cross_entropy(logits.permute(0, 2, 1), target, ignore_index=0)
                     if hvd.rank() == 0:
                         print(f'Valid Epoch: [{batch_idx + 1}/{len(validation_loader)}] Loss: {val_loss.item()}')
