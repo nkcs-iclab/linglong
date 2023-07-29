@@ -117,6 +117,7 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 
 ### 0.8 (pre-release)
 
+- *Training:* Fixed a bug that caused the training not able to find meta files.
 - Updated the format of the model output from `tuple` to `dict`.
 
 ### 0.7

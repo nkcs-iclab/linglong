@@ -64,7 +64,7 @@ class TFRecordDataset(IterableDataset):
     ):
         super().__init__()
         path = pathlib.Path(path)
-        meta = mcpt.load_config(meta)
+        meta = mcpt.load_config(str(path / meta))
         padding_shape = meta['padding_shape']
         self.samples_per_rank = math.ceil(meta['count'] / dp_size)
         dataset = tf.data.TFRecordDataset(
