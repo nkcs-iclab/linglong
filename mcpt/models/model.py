@@ -20,6 +20,7 @@ class Model(nn.Module):
             config: Union[str, Dict[str, Any]],
             load_model: Optional[str] = None,
             device: Optional = None,
+            strict: bool = True,
     ) -> 'Self':
         import mcpt
         if isinstance(config, str):
@@ -29,7 +30,7 @@ class Model(nn.Module):
         else:
             model = cls(mcpt.models.MCPTModel(config))
         if load_model is not None:
-            model.load_state_dict(torch.load(load_model, map_location=device))
+            model.load_state_dict(torch.load(load_model, map_location=device), strict=strict)
         if device is not None:
             model.to(device)
         return model
