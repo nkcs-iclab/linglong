@@ -34,3 +34,15 @@ class Model(nn.Module):
         if device is not None:
             model.to(device)
         return model
+
+
+class RewardModel(Model):
+
+    def __init__(self, transformer):
+        super().__init__(transformer)
+        self.reward_head = nn.Linear(self.config['n_vocab'], 1, bias=False)
+
+    def forward(self, inputs, past=None):
+        logits = super().forward(inputs, past=past)['logits']
+        rewards = self.reward_head(logits).squeeze(-1)
+        return rewards

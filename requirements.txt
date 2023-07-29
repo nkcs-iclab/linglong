@@ -1,5 +1,6 @@
 colorama
 cmake
+datasets
 fire
 jieba
 mergedeep
@@ -9,3 +10,4 @@ PyYAML
 tensorflow
 transformers
 yaspin
+zhconv

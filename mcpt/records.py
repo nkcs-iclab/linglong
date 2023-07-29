@@ -60,6 +60,7 @@ class TFRecordDataset(IterableDataset):
             meta: str,
             dp_size: int = 1,
             dp_rank: int = 0,
+            files_key: str = 'files',
             use_pinyin: bool = False,
     ):
         super().__init__()
@@ -68,7 +69,7 @@ class TFRecordDataset(IterableDataset):
         padding_shape = meta['padding_shape']
         self.samples_per_rank = math.ceil(meta['count'] / dp_size)
         dataset = tf.data.TFRecordDataset(
-            list(map(lambda x: str(path / x), meta['files'])),
+            list(map(lambda x: str(path / x), meta[files_key])),
             compression_type=meta.get('compression_type'),
         )
 
@@ -118,6 +119,29 @@ def load(
 ):
     if path is None:
         return
-    dataset = TFRecordDataset(path, meta, dp_size, dp_rank, use_pinyin)
+    dataset = TFRecordDataset(path, meta, dp_size, dp_rank, use_pinyin=use_pinyin)
     dataloader = DataLoader(dataset, batch_size=batch_size)
     return dataloader
+
+
+def load_rlhf(
+        path: Optional[str],
+        meta: str,
+        batch_size: int,
+        stage: int,
+        dp_size: int = 1,
+        dp_rank: int = 0,
+):
+    if path is None:
+        return
+    if stage == 1:
+        dataset = TFRecordDataset(path, meta, dp_size, dp_rank, 'chosen_files')
+        dataloader = DataLoader(dataset, batch_size=batch_size)
+        return dataloader
+    if stage == 2:
+        assert batch_size % 2 == 0
+        chosen_dataset = TFRecordDataset(path, meta, dp_size, dp_rank, 'chosen_files')
+        rejected_dataset = TFRecordDataset(path, meta, dp_size, dp_rank, 'rejected_files')
+        chosen_dataloader = DataLoader(chosen_dataset, batch_size=batch_size // 2)
+        rejected_dataloader = DataLoader(rejected_dataset, batch_size=batch_size // 2)
+        return chosen_dataloader, rejected_dataloader

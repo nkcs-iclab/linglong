@@ -120,6 +120,7 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 - *Training:* Fixed a bug that caused the training not able to find meta files.
 - *Training:* Allow users to disable the strict mode when loading the model.
 - Updated the format of the model output from `tuple` to `dict`.
+- Added RLHF (stage 1 & stage 2) support.
 
 ### 0.7
 
