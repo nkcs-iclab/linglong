@@ -50,10 +50,10 @@ def main(
             'load_model': load_model,
             'save_path': save_path,
             'save_frequency': save_frequency,
-            'model_config': model_config,
-            'training_config': training_config,
             'log_frequency': log_frequency,
             'device': device,
+            'model_config': model_config,
+            'training_config': training_config,
         }
         save_path = pathlib.Path(save_path)
         spinner.write(mcpt.pprint(config, export=True))
