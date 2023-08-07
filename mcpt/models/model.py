@@ -36,10 +36,12 @@ class Model(nn.Module):
             config = mcpt.load_config(config)
         if config.get('use_pinyin', False):
             model = cls(mcpt.models.MCPTPinyinModel(config))
+        elif config.get('use_prompt', False):
+            model = cls(mcpt.models.MCPTPromptModel(config))
         else:
             model = cls(mcpt.models.MCPTModel(config))
         if load_model is not None:
-            model.load_state_dict(torch.load(load_model, map_location=device), strict=strict)
+            model.load_state_dict(torch.load(load_model, map_location=device), strict=False)
         if device is not None:
             model.to(device)
         return model
