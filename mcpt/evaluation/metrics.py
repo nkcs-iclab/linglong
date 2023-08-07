@@ -112,6 +112,63 @@ def segmentation_metric(mode: str = 'basic', adjust: Optional[str] = None) -> Ca
     return segmentation_metric_
 
 
+def ner_metric(
+        y_true: List[Optional[np.ndarray]],
+        y_pred: List[np.ndarray],
+        **kwargs,
+) -> Optional[Dict[str, Any]]:
+    tokenizer = kwargs['tokenizer']
+    entity_prefix_id = kwargs['special_token_ids']['entity_prefix']
+    entity_postfix_id = kwargs['special_token_ids']['entity_postfix']
+    sep_id = tokenizer.convert_tokens_to_ids('：')
+    p_counts, r_counts, tp_correct_counts = 0, 0, 0
+    for true, pred in zip(y_true, y_pred):
+        labels = []
+        preds = []
+        count = 0
+        flag = False
+        pre_index = 0
+        pre_count = 0
+        for index, c in enumerate(true):
+            count += 1
+            if c == entity_prefix_id:
+                pre_index = index
+                count -= 1
+                flag = True
+            elif c == sep_id and flag:
+                count -= (index - pre_index)
+                pre_count = count
+            elif c == entity_postfix_id and flag:
+                count -= 1
+                flag = False
+                labels.append(f"{pre_count}:{count}:{' '.join([str(i) for i in true[pre_index + 1:index]])}")
+        count = 0
+        for index, c in enumerate(pred):
+            count += 1
+            if c == entity_prefix_id:
+                pre_index = index
+                count -= 1
+                flag = True
+            elif c == sep_id and flag:
+                count -= (index - pre_index)
+                pre_count = count
+            elif c == entity_postfix_id and flag:
+                count -= 1
+                flag = False
+                preds.append(f"{pre_count}:{count}:{' '.join({' '.join([str(i) for i in pred[pre_index + 1:index]])})}")
+        p_counts += len(preds)
+        r_counts += len(labels)
+        tp_correct_counts += len(set(labels) & set(preds))
+    p = tp_correct_counts / p_counts if p_counts > 0 else 0.0
+    r = tp_correct_counts / r_counts if r_counts > 0 else 0.0
+    f = 2 * p * r / (p + r) if p + r > 0 else 0.0
+    return {
+        'precision': p,
+        'recall': r,
+        'f1': f,
+    }
+
+
 def dataset_math23k_metric(
         y_true: List[Optional[np.ndarray]],
         y_pred: List[np.ndarray],

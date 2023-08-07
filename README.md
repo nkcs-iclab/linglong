@@ -115,6 +115,10 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 
 ## Changelog
 
+### 0.9 (pre-release)
+
+- *Evaluation:* Added NER datasets and metrics.
+
 ### 0.8
 
 - *Dataset:* Added processing scripts for plain text pre-training data.

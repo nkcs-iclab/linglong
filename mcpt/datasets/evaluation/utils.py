@@ -24,6 +24,7 @@ def load(config: Dict[str, Any]):
             'LCQMC': mcpt.datasets.evaluation.generation.LCQMCDataset,
             'Math23K': mcpt.datasets.evaluation.generation.Math23KDataset,
             'SIGHAN15': mcpt.datasets.evaluation.generation.SIGHANDataset,
+            'CMeEE': mcpt.datasets.evaluation.generation.CMeEEDataset,
         },
         'perplexity': {
         }
