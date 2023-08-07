@@ -1,3 +1,5 @@
+import re
+
 from typing import *
 
 from mcpt.datasets.evaluation.base import BaseDataset
@@ -315,7 +317,7 @@ class Math23KDataset(BaseDataset):
 
 class SIGHANDataset(BaseDataset):
 
-    def _load_file(self, path: str) -> List[Dict[str, Any]]:
+    def _load_file(self, path: str) -> Union[List, Dict]:
         objs = super()._load_file(path)
         return list(objs.values())
 
@@ -384,3 +386,108 @@ class SIGHANDataset(BaseDataset):
             [self._special_tokens['end_token']],
         ]
         return parts, label, {}
+
+
+class BaseNERDataset(BaseDataset):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._entity_types = {}
+
+    def entity_type(self, entity_type: str) -> str:
+        return self._entity_types[entity_type]
+
+    @staticmethod
+    def _get_text(obj) -> str:
+        raise NotImplementedError
+
+    @staticmethod
+    def _get_entities(obj) -> List[Dict[str, Any]]:
+        raise NotImplementedError
+
+    @staticmethod
+    def _has_label(obj) -> bool:
+        raise NotImplementedError
+
+    def _template_0(self, obj) -> \
+            Tuple[
+                List[Union[str, List[str], Dict[str, List[str]]]],
+                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
+                Dict[str, Any],
+            ]:
+        parts = [
+            f'原始文本：{self._get_text(obj)}',
+            [self._special_tokens['part_separator']],
+            '实体：',
+        ]
+        label = None
+        if self._has_label(obj):
+            label = []
+            for entity in self._get_entities(obj):
+                label.append(f'{self.entity_type(entity["type"])}：{entity["entity"]}')
+                label.append([self._special_tokens['segment_separator']])
+            label = label[:-1]
+        return parts, label, {}
+
+    def _template_1(self, obj) -> \
+            Tuple[
+                List[Union[str, List[str], Dict[str, List[str]]]],
+                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
+                Dict[str, Any],
+            ]:
+        parts = [
+            f'原始文本：{self._get_text(obj)}',
+            [self._special_tokens['part_separator']],
+            '实体：',
+        ]
+        label = None
+        if self._has_label(obj):
+            label = []
+            entities = {
+                entity['entity']: self.entity_type(entity['type'])
+                for entity in self._get_entities(obj)
+            }
+            pattern = rf'({"|".join([re.escape(_) for _ in entities.keys()])})'
+            text_splits = re.split(pattern, self._get_text(obj))
+            for text_split in text_splits:
+                if text_split in entities:
+                    label.extend([
+                        [self._special_tokens['entity_prefix']],
+                        f'{entities[text_split]}：{text_split}',
+                        [self._special_tokens['entity_postfix']],
+                    ])
+                else:
+                    label.append(text_split)
+        return parts, label, {}
+
+
+class CUGENERDataset(BaseNERDataset):
+
+    @staticmethod
+    def _get_text(obj) -> str:
+        return obj['text']
+
+    @staticmethod
+    def _get_entities(obj) -> List[Dict[str, Any]]:
+        return obj['entities']
+
+    @staticmethod
+    def _has_label(obj) -> bool:
+        return 'entities' in obj
+
+
+class CMeEEDataset(CUGENERDataset):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._entity_types = {
+            'dis': '疾病',
+            'sym': '临床表现',
+            'dru': '药物',
+            'equ': '医疗设备',
+            'pro': '医疗程序',
+            'bod': '身体',
+            'ite': '医学检验项目',
+            'mic': '微生物类',
+            'dep': '科室',
+        }

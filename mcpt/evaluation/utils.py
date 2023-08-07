@@ -76,6 +76,7 @@ def get_eval_metric(name: Optional[str]) -> Optional[Callable]:
             mode='cuge',
             adjust='edit_distance',
         ),
+        'ner_metric': mcpt.evaluation.metrics.ner_metric,
     }[name]
 
 

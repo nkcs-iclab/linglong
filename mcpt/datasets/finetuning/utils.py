@@ -17,6 +17,7 @@ def load(config: Dict[str, Any]):
         'ICWB-MSR': mcpt.datasets.finetuning.datasets.ICWBSegmentationDataset,
         'LCQMC': mcpt.datasets.finetuning.datasets.LCQMCDataset,
         'Math23K': mcpt.datasets.finetuning.datasets.Math23KDataset,
+        'CMeEE': mcpt.datasets.finetuning.datasets.CMeEEDataset,
     }
     experimental_datasets = {
         'CustomQA': mcpt.experimental.datasets.finetuning.datasets.CustomQADataset,

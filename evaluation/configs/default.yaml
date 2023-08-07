@@ -103,3 +103,15 @@ SIGHAN15:
   evaluation_method: generation
   template_id: 1
   split: test
+
+CMeEE:
+  model:
+    checkpoint:
+    config:
+  evaluation_method: generation
+  evaluation_metric: ner_metric
+  template_id: 1
+  split: test
+  special-tokens:
+    entity-prefix: '[unused2]'
+    entity-postfix: '[unused3]'
