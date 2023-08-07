@@ -41,6 +41,9 @@ class BaseDataset:
         self._extra_config = extra_config
         self._file_format = None
         self._special_tokens = special_tokens
+        self._use_prompt = model_config.get('use_prompt', False)
+        self._prompt_length = model_config.get('prompt_length', 0)
+        self._prompt_token = self._special_tokens['prompt_token']
 
     def _load_file(self, path: str) -> Union[List, Dict]:
         return mcpt.load_file(path, format=self._file_format)
@@ -51,8 +54,8 @@ class BaseDataset:
         warnings.warn(f'{len(discarded)} items are discarded.')
         discarded.append(obj)
 
-    def _templatize(self, objs, i: int) -> List[Union[str, List[str], Dict[str, List[str]]]]:
-        return getattr(self, f'_template_{self._template_id}')(objs[i])
+    def _templatize(self, objs, i: int, **kwargs) -> List[Union[str, List[str], Dict[str, List[str]]]]:
+        return getattr(self, f'_template_{self._template_id}')(objs[i], **kwargs)
 
     def _process(self) -> Tuple[Dict[str, Any], List]:
         objs = self._load_file(str(self._input_path))
@@ -68,7 +71,10 @@ class BaseDataset:
         import mcpt.records
         import tensorflow as tf
         for i in mcpt.trange(len(objs)):
-            parts = self._templatize(objs, i)
+            if self._use_prompt:
+                parts = self._templatize(objs, i, prompt_length=self._prompt_length, prompt_token=self._prompt_token)
+            else:
+                parts = self._templatize(objs, i)
             text, pinyin = self._assemble(parts)
             text = self._tokenizer.convert_tokens_to_ids([self._special_tokens['start_token']]) + text
             text += self._tokenizer.convert_tokens_to_ids([self._special_tokens['end_token']])
