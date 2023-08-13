@@ -10,7 +10,7 @@ optimizer:
     eps: 1.0e-08
     weight_decay: 0.1
 fp16:
-  enabled: true
+  enabled: false
   autocast: true
 gradient_clipping: 1.0
 zero_optimization:
