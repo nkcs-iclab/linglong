@@ -1,9 +1,9 @@
 # LingLong (玲珑): A Small-Scale Chinese PreTrained Language Model
 
-![version 0.7.1](https://img.shields.io/badge/version-0.7.1-blue)
+![version 0.7.2](https://img.shields.io/badge/version-0.7.2-blue)
 ![Python >=3.6,<3.12](https://img.shields.io/badge/Python->=3.6,<3.12-blue?logo=python&logoColor=white)
 ![PyTorch 2.0](https://img.shields.io/badge/PyTorch-2.0-EE4C2C?logo=pytorch&logoColor=white)
-![TensorFlow 2.12](https://img.shields.io/badge/TensorFlow-2.12-FF6F00?logo=tensorflow&logoColor=white)
+![TensorFlow 2.13](https://img.shields.io/badge/TensorFlow-2.13-FF6F00?logo=tensorflow&logoColor=white)
 ![License GNU GPL v3](https://img.shields.io/badge/License-GNU%20GPL%20v3-blue?logo=gnu&logoColor=white)
 
 This is LingLong (玲珑), a Chinese pretrained language model trained by the College of Software at Nankai University.
