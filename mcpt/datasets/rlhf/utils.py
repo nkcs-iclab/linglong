@@ -10,6 +10,7 @@ def load(config: Dict[str, Any]):
         'MIRACLZHQueries': mcpt.datasets.rlhf.datasets.MIRACLZHQueriesDataset,
     }
     experimental_datasets = {
+        'CustomQA': mcpt.datasets.rlhf.datasets.CustomQADataset,
     }
     datasets = mcpt.merge_configs(datasets, experimental_datasets)
     name = config.get('name')

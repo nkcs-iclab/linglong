@@ -93,6 +93,15 @@ def main(
             files_key='rejected_files',
             n_example=n_example,
         )
+    if stage == 3:
+        print(mcpt.text('Prompt examples:', style=mcpt.INFO))
+        print_examples_from_dataset(
+            path=pathlib.Path(records_path),
+            meta=meta,
+            vocab=vocab,
+            files_key='prompt_files',
+            n_example=n_example,
+        )
 
 
 if __name__ == '__main__':

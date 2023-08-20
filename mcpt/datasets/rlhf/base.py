@@ -47,6 +47,9 @@ class BaseDataset:
     def _rejected_template(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
         raise NotImplementedError('This dataset does not contain rejected parts.')
 
+    def _prompt_template(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
+        raise NotImplementedError('This dataset does not contain prompt parts.')
+
     @staticmethod
     def _discard_obj(obj, discarded: List, reason: Optional[str] = None):
         warnings.warn(f'{mcpt.pprint(obj, export=True)} is discarded. Reason: {reason}')
@@ -56,7 +59,7 @@ class BaseDataset:
     def _process(self) -> Tuple[Dict[str, Any], List]:
         objs = self._load_dataset(self._name)
         discarded = []
-        chosen_writer, rejected_writer = None, None
+        chosen_writer, rejected_writer, prompt_writer = None, None, None
         file_idx = None
         n_file = math.ceil(len(objs) / self._items_per_file)
 
@@ -68,6 +71,8 @@ class BaseDataset:
             meta['chosen_files'] = []
         if self._stage == 2:
             meta['rejected_files'] = []
+        if self._stage == 3:
+            meta['prompt_files'] = []
 
         import mcpt.records
         import tensorflow as tf
@@ -98,6 +103,17 @@ class BaseDataset:
                         f'`rejected_ids` has size {len(rejected_ids)}, exceeding `n_ctx`: {self._n_ctx}.',
                     )
                     continue
+            if self._stage == 3:
+                prompt_parts = self._prompt_template(objs[i])
+                prompt_ids = self._convert_parts_to_ids(prompt_parts)
+                prompt_ids = self._tokenizer.convert_tokens_to_ids([self._special_tokens['start_token']]) + prompt_ids
+                if len(prompt_ids) > self._n_ctx:
+                    self._discard_obj(
+                        objs[i],
+                        discarded,
+                        f'`prompt_ids` has size {len(prompt_ids)}, exceeding `n_ctx`: {self._n_ctx}.',
+                    )
+                    continue
 
             new_file_idx = i // self._items_per_file
             if new_file_idx != file_idx:
@@ -105,15 +121,21 @@ class BaseDataset:
                     chosen_writer.close()
                 if rejected_writer is not None:
                     rejected_writer.close()
+                if prompt_writer is not None:
+                    prompt_writer.close()
                 file_idx = new_file_idx
                 chosen_filename = f'{self._split}-chosen-{file_idx + 1:0{len(str(n_file))}d}-of-{n_file}.tfrecord.gz'
                 rejected_filename = f'{self._split}-rejected-{file_idx + 1:0{len(str(n_file))}d}-of-{n_file}.tfrecord.gz'
+                prompt_filename = f'{self._split}-prompt-{file_idx + 1:0{len(str(n_file))}d}-of-{n_file}.tfrecord.gz'
                 if self._stage == 1 or self._stage == 2:
                     meta['chosen_files'].append(chosen_filename)
                     chosen_writer = tf.io.TFRecordWriter(str(self._output_path / chosen_filename), options='GZIP')
                 if self._stage == 2:
                     meta['rejected_files'].append(rejected_filename)
                     rejected_writer = tf.io.TFRecordWriter(str(self._output_path / rejected_filename), options='GZIP')
+                if self._stage == 3:
+                    meta['prompt_files'].append(prompt_filename)
+                    prompt_writer = tf.io.TFRecordWriter(str(self._output_path / prompt_filename), options='GZIP')
 
             if self._stage == 1 or self._stage == 2:
                 chosen_writer.write(mcpt.records.serialize_example(chosen_ids, chosen_ids[1:], None))
@@ -121,12 +143,17 @@ class BaseDataset:
             if self._stage == 2:
                 rejected_writer.write(mcpt.records.serialize_example(rejected_ids, rejected_ids[1:], None))
                 meta['padding_shape'] = max(len(chosen_ids), len(rejected_ids), meta['padding_shape'])
+            if self._stage == 3:
+                prompt_writer.write(mcpt.records.serialize_example(prompt_ids, prompt_ids[1:], None))
+                meta['padding_shape'] = max(len(prompt_ids), meta['padding_shape'])
             meta['count'] += 1
         meta['compression_type'] = 'GZIP'
         if chosen_writer is not None:
             chosen_writer.close()
         if rejected_writer is not None:
             rejected_writer.close()
+        if prompt_writer is not None:
+            prompt_writer.close()
         return meta, discarded
 
     def _convert_parts_to_ids(
