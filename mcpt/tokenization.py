@@ -87,8 +87,12 @@ class Tokenizer(PreTrainedTokenizer):
     def get_vocab(self) -> Dict[str, int]:
         return self.vocab
 
-    def save_vocabulary(self, save_directory: str, filename_prefix: Optional[str] = None) -> Tuple[str]:
-        raise NotImplementedError
+    def save_vocabulary(
+            self,
+            save_directory: str,
+            filename_prefix: Optional[str] = None,
+    ) -> Tuple[Optional[str], Optional[str]]:
+        return None, None
 
     def _tokenize(self, text: str, **kwargs) -> List[str]:
         text = text.split('\n')
