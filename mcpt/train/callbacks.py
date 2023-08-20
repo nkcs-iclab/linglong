@@ -35,8 +35,11 @@ class ModelCheckpointCallback:
             batch: Optional[int] = None,
             val_loss: Optional[float] = None,
             end_of_epoch: bool = False,
+            prefix: Optional[str] = None,
     ):
         save_name = self._get_save_name(batch=batch, val_loss=val_loss)
+        if prefix is not None:
+            save_name = prefix + save_name
         save_name = save_name.format(epoch=epoch, batch=batch, loss=loss, val_loss=val_loss)
         if self.save_frequency == 'epoch' and not end_of_epoch:
             return
