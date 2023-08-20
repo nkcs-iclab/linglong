@@ -75,15 +75,15 @@ def main(
             'record_count': meta['count'],
             'padding_shape': meta['padding_shape'],
         }, export=True))
-
-    print(mcpt.text('Chosen examples:', style=mcpt.INFO))
-    print_examples_from_dataset(
-        path=pathlib.Path(records_path),
-        meta=meta,
-        vocab=vocab,
-        files_key='chosen_files',
-        n_example=n_example,
-    )
+    if stage == 1 or stage == 2:
+        print(mcpt.text('Chosen examples:', style=mcpt.INFO))
+        print_examples_from_dataset(
+            path=pathlib.Path(records_path),
+            meta=meta,
+            vocab=vocab,
+            files_key='chosen_files',
+            n_example=n_example,
+        )
     if stage == 2:
         print(mcpt.text('Rejected examples:', style=mcpt.INFO))
         print_examples_from_dataset(

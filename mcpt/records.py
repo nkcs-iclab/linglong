@@ -138,7 +138,7 @@ def load_rlhf(
         dataset = TFRecordDataset(path, meta, dp_size, dp_rank, 'chosen_files')
         dataloader = DataLoader(dataset, batch_size=batch_size)
         return dataloader
-    if stage == 2:
+    elif stage == 2:
         assert batch_size % 2 == 0
         chosen_dataset = TFRecordDataset(path, meta, dp_size, dp_rank, 'chosen_files')
         rejected_dataset = TFRecordDataset(path, meta, dp_size, dp_rank, 'rejected_files')

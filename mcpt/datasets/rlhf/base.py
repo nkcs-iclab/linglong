@@ -42,10 +42,10 @@ class BaseDataset:
         raise NotImplementedError
 
     def _chosen_template(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
-        raise NotImplementedError
+        raise NotImplementedError('This dataset does not contain chosen parts.')
 
     def _rejected_template(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
-        raise NotImplementedError
+        raise NotImplementedError('This dataset does not contain rejected parts.')
 
     @staticmethod
     def _discard_obj(obj, discarded: List, reason: Optional[str] = None):
@@ -63,26 +63,28 @@ class BaseDataset:
         meta = {
             'padding_shape': 0,
             'count': 0,
-            'chosen_files': [],
         }
+        if self._stage == 1 or self._stage == 2:
+            meta['chosen_files'] = []
         if self._stage == 2:
             meta['rejected_files'] = []
 
         import mcpt.records
         import tensorflow as tf
         for i in mcpt.trange(len(objs)):
-            chosen_parts = self._chosen_template(objs[i])
-            chosen_ids = self._convert_parts_to_ids(chosen_parts)
-            chosen_ids = self._tokenizer.convert_tokens_to_ids([self._special_tokens['start_token']]) + chosen_ids
-            chosen_ids += self._tokenizer.convert_tokens_to_ids([self._special_tokens['end_token']])
-            if len(chosen_ids) > self._n_ctx:
-                self._discard_obj(
-                    objs[i],
-                    discarded,
-                    f'`chosen_ids` has size {len(chosen_ids)}, exceeding `n_ctx`: {self._n_ctx}.',
-                )
-                continue
-            rejected_ids = []
+            if self._stage == 1 or self._stage == 2:
+                chosen_parts = self._chosen_template(objs[i])
+                chosen_ids = self._convert_parts_to_ids(chosen_parts)
+                chosen_ids = self._tokenizer.convert_tokens_to_ids([self._special_tokens['start_token']]) + chosen_ids
+                chosen_ids += self._tokenizer.convert_tokens_to_ids([self._special_tokens['end_token']])
+                if len(chosen_ids) > self._n_ctx:
+                    self._discard_obj(
+                        objs[i],
+                        discarded,
+                        f'`chosen_ids` has size {len(chosen_ids)}, exceeding `n_ctx`: {self._n_ctx}.',
+                    )
+                    continue
+                rejected_ids = []
             if self._stage == 2:
                 rejected_parts = self._rejected_template(objs[i])
                 rejected_ids = self._convert_parts_to_ids(rejected_parts)
@@ -106,17 +108,20 @@ class BaseDataset:
                 file_idx = new_file_idx
                 chosen_filename = f'{self._split}-chosen-{file_idx + 1:0{len(str(n_file))}d}-of-{n_file}.tfrecord.gz'
                 rejected_filename = f'{self._split}-rejected-{file_idx + 1:0{len(str(n_file))}d}-of-{n_file}.tfrecord.gz'
-                meta['chosen_files'].append(chosen_filename)
-                chosen_writer = tf.io.TFRecordWriter(str(self._output_path / chosen_filename), options='GZIP')
+                if self._stage == 1 or self._stage == 2:
+                    meta['chosen_files'].append(chosen_filename)
+                    chosen_writer = tf.io.TFRecordWriter(str(self._output_path / chosen_filename), options='GZIP')
                 if self._stage == 2:
                     meta['rejected_files'].append(rejected_filename)
                     rejected_writer = tf.io.TFRecordWriter(str(self._output_path / rejected_filename), options='GZIP')
 
-            chosen_writer.write(mcpt.records.serialize_example(chosen_ids, chosen_ids[1:], None))
+            if self._stage == 1 or self._stage == 2:
+                chosen_writer.write(mcpt.records.serialize_example(chosen_ids, chosen_ids[1:], None))
+                meta['padding_shape'] = max(len(chosen_ids), meta['padding_shape'])
             if self._stage == 2:
                 rejected_writer.write(mcpt.records.serialize_example(rejected_ids, rejected_ids[1:], None))
+                meta['padding_shape'] = max(len(chosen_ids), len(rejected_ids), meta['padding_shape'])
             meta['count'] += 1
-            meta['padding_shape'] = max(len(chosen_ids), len(rejected_ids), meta['padding_shape'])
         meta['compression_type'] = 'GZIP'
         if chosen_writer is not None:
             chosen_writer.close()
