@@ -141,7 +141,7 @@ def pprint(
     print(formatted)
 
 
-def print_training_records(records, tokenizer: mcpt.Tokenizer):
+def print_training_records(records, tokenizer: 'mcpt.Tokenizer'):
     data, label = records
     output = {
         'shape': {
