@@ -119,6 +119,7 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 
 - *Training:* Fixed a bug that caused the training not able to find meta files.
 - *Training:* Allow users to disable the strict mode when loading the model.
+- *Training:* It is now possible to add a prefix to the name of the saved model.
 - Updated the format of the model output from `tuple` to `dict`.
 - Added RLHF (stage 1 & stage 2) support.
 - Moved the LM head from the basic model to the model wrapper `mcpt.Model`. You can now retrieve the hidden states from the model wrapper using `mcpt.Model.hidden_states`.
