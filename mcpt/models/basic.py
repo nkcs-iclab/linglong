@@ -193,8 +193,7 @@ class MCPTModel(nn.Module):
             presents.append(present)
         present = torch.stack(presents, dim=1)
         h = self.ln_f(h)
-        logits = torch.matmul(h, self.wte.weight.t())
         return {
-            'logits': logits,
+            'hidden_states': h,
             'present': present,
         }

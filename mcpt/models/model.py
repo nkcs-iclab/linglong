@@ -12,7 +12,16 @@ class Model(nn.Module):
         self.config = self.transformer.config
 
     def forward(self, inputs, past=None):
-        return self.transformer(inputs, past=past)
+        h = self.transformer(inputs, past=past)
+        h, present = h['hidden_states'], h['present']
+        logits = torch.matmul(h, self.transformer.wte.weight.t())
+        return {
+            'logits': logits,
+            'present': present,
+        }
+
+    def hidden_states(self, inputs, past=None):
+        return self.transformer(inputs, past=past)['hidden_states']
 
     @classmethod
     def from_config(
@@ -40,9 +49,9 @@ class RewardModel(Model):
 
     def __init__(self, transformer):
         super().__init__(transformer)
-        self.reward_head = nn.Linear(self.config['n_vocab'], 1, bias=False)
+        self.reward_head = nn.Linear(self.config['n_embd'], 1, bias=False)
 
     def forward(self, inputs, past=None):
-        logits = super().forward(inputs, past=past)['logits']
-        rewards = self.reward_head(logits).squeeze(-1)
+        h = self.hidden_states(inputs, past=past)
+        rewards = self.reward_head(h).squeeze(-1)
         return rewards
