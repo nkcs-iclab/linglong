@@ -5,7 +5,7 @@ with open('README.md', 'r') as f:
 
 setuptools.setup(
     name='linglong-mcpt',
-    version='0.7.2',
+    version='0.7.3',
     author='NKCS Intelligent Computing Lab',
     author_email='zyzhong@mail.nankai.edu.cn',
     description='A small-scale Chinese pretrained language model.',
