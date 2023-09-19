@@ -117,6 +117,7 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 
 ### 0.8 (pre-release)
 
+- *Dataset:* Added processing scripts for plain text pre-training data.
 - *Training:* Fixed a bug that caused the training not able to find meta files.
 - *Training:* Allow users to disable the strict mode when loading the model.
 - *Training:* It is now possible to add a prefix to the name of the saved model.
