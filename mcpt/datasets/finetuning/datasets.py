@@ -159,6 +159,16 @@ class Math23KDataset(BaseDataset):
             f'答案：{obj["equation"][2:]}',
         ]
 
+    def _template_10(self, obj, **kwargs) -> List[Union[str, List[str], Dict[str, List[str]]]]:
+        prompt_token = kwargs["prompt_token"]
+        prompt_length = kwargs["prompt_length"]
+        return [
+            f'问题：{obj["text"]}',
+            [self._special_tokens['part_separator']],
+            [prompt_token] * prompt_length,
+            f'答案：{obj["equation"][2:]}',
+        ]
+
 
 class BaseNERDataset(BaseDataset):
 
