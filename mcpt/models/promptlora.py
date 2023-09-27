@@ -37,8 +37,8 @@ class MLP(nn.Module):
         #     n_input=config['n_embd'] * 4,
         #     init_std=0.02 * (1.0 / math.sqrt(2 * config['n_layer'])),
         # )
-        self.c_fc = lora.Linear(in_features=config['n_embd'], out_features=config['n_embd'] * 4, r=config['rank'], fan_in_fan_out=True)
-        self.c_proj = lora.Linear(in_features=config['n_embd'] * 4, out_features=config['n_embd'], r=config['rank'], fan_in_fan_out=True)
+        self.c_fc = lora.Linear(in_features=config['n_embd'], out_features=config['n_embd'] * 4, r=config['lora_attn_dim'], fan_in_fan_out=True)
+        self.c_proj = lora.Linear(in_features=config['n_embd'] * 4, out_features=config['n_embd'], r=config['lora_attn_dim'], fan_in_fan_out=True)
         self.act = nn.GELU()
         self.dropout = nn.Dropout(config['resid_dropout'])
 
@@ -73,7 +73,7 @@ class Attention(nn.Module):
             fan_in_fan_out=True,
             merge_weights=False
         )
-        self.c_proj = lora.Linear(self.n_embd, self.n_embd, r=config['rank'], fan_in_fan_out=True)
+        self.c_proj = lora.Linear(self.n_embd, self.n_embd, r=config['lora_attn_dim'], fan_in_fan_out=True)
         # self.c_proj = Conv1D(
         #     units=self.n_embd,
         #     n_input=self.n_embd,
@@ -181,11 +181,11 @@ class MCPTPromptLoRAModel(nn.Module):
         super().__init__()
         self.config = config
         self.n_embd = config['n_embd']
-        self.rank = config['rank']
+        self.lora_attn_dim = config['lora_attn_dim']
         # self.wte = nn.Embedding(config['n_vocab'], self.n_embd)
         # self.wpe = nn.Embedding(config['n_ctx'], self.n_embd)
-        self.wte = lora.Embedding(num_embeddings=config['n_vocab'], embedding_dim=self.n_embd, r=self.rank)
-        self.wpe = lora.Embedding(num_embeddings=config['n_ctx'], embedding_dim=self.n_embd, r=self.rank)
+        self.wte = lora.Embedding(num_embeddings=config['n_vocab'], embedding_dim=self.n_embd, r=self.lora_attn_dim)
+        self.wpe = lora.Embedding(num_embeddings=config['n_ctx'], embedding_dim=self.n_embd, r=self.lora_attn_dim)
         self.drop = nn.Dropout(config['embd_dropout'])
         self.blocks = nn.ModuleList([Block(config, blk_idx=i) for i in range(config['n_layer'])])
         self.ln_f = nn.LayerNorm(self.n_embd, eps=config['epsilon'])
