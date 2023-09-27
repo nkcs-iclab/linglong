@@ -49,16 +49,16 @@ class MCPTPromptModel(nn.Module):
         inputs_embd = self.wte(inputs)
         position_embd = self.wpe(position_ids)
         replace_embeds = self.prompt_emb(torch.IntTensor([i for i in range(self.prompt_length)]).cuda()).unsqueeze(0)
-
         if self.prompt_encoder_type == "lstm":
             replace_embeds = self.lstm_head(replace_embeds)[0]
             replace_embeds = self.mlp_head(replace_embeds).squeeze()
         else:
             replace_embeds = self.mlp(replace_embeds).squeeze()
-        blocked_indices = (inputs == self.pseudo_token_id).nonzero().reshape((bz, self.prompt_length, 2))[:, :, 1]  # bz
-        for bidx in range(bz):
-            for i in range(self.prompt_length):
-                inputs_embd[bidx, blocked_indices[bidx, i], :] = replace_embeds[i, :]
+        if self.pseudo_token_id in inputs:
+            blocked_indices = (inputs == self.pseudo_token_id).nonzero().reshape((bz, self.prompt_length, 2))[:, :, 1]  # bz
+            for bidx in range(bz):
+                for i in range(self.prompt_length):
+                    inputs_embd[bidx, blocked_indices[bidx, i], :] = replace_embeds[i, :]
         h = inputs_embd + position_embd
         h = self.drop(h)
         presents = []
@@ -67,9 +67,8 @@ class MCPTPromptModel(nn.Module):
             presents.append(present)
         present = torch.stack(presents, dim=1)
         h = self.ln_f(h)
-        logits = torch.matmul(h, self.wte.weight.t())
         # TODO: 需要适配最新版本的 Model 输出！
         return {
-            'logits': logits,
+            'hidden_states': h,
             'present': present,
         }

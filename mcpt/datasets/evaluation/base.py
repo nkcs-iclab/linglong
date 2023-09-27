@@ -43,6 +43,9 @@ class BaseDataset(metaclass=abc.ABCMeta):
         self._candidates = None
         self._file_format = None
         self._special_tokens = special_tokens
+        self._use_prompt = model_config.get('use_prompt', False)
+        self._prompt_length = model_config.get('prompt_length', 0)
+        self._prompt_token = self._special_tokens['prompt_token']
 
     def _load_file(self, path: str) -> Union[List, Dict]:
         return mcpt.load_file(path, format=self._file_format)
@@ -56,20 +59,25 @@ class BaseDataset(metaclass=abc.ABCMeta):
     def _postprocess(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         return data
 
-    def _templatize(self, objs, i: int) \
+    def _templatize(self, objs, i: int, **kwargs) \
             -> Tuple[
                 List[Union[str, List[str], Dict[str, List[str]]]],
                 Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
                 Dict[str, Any],
             ]:
-        return getattr(self, f'_template_{self._template_id}')(objs[i])
+        return getattr(self, f'_template_{self._template_id}')(objs[i], **kwargs)
 
     def _process(self) -> List[Dict[str, Any]]:
         data, discarded = [], []
         objs = self._load_file(str(self._input_path))
 
         for i in mcpt.trange(len(objs)):
-            parts, label, extra = self._templatize(objs, i)
+            if self._use_prompt:
+                parts, label, extra = self._templatize(objs, i, prompt_length=self._prompt_length, prompt_token=self._prompt_token)
+            else:
+                parts, label, extra = self._templatize(objs, i)
+
+
             text, pinyin, label = self._assemble(parts, label)
             text = self._tokenizer.convert_tokens_to_ids([self._special_tokens['start_token']]) + text
             if self._use_pinyin:

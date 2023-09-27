@@ -314,6 +314,27 @@ class Math23KDataset(BaseDataset):
         ] if 'label' in obj else None
         return parts, label, {}
 
+    def _template_10(self, obj, **kwargs) -> \
+            Tuple[
+                List[Union[str, List[str], Dict[str, List[str]]]],
+                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
+                Dict[str, Any],
+            ]:
+        prompt_token = kwargs["prompt_token"]
+        prompt_length = kwargs["prompt_length"]
+        parts = [
+            f'问题：{obj["text"]}',
+            [self._special_tokens['part_separator']],
+            [prompt_token] * prompt_length,
+            '答案：',
+        ]
+        label = [
+            obj['equation'][2:],
+            [self._special_tokens['part_separator']],
+            obj['label'],
+        ] if 'label' in obj else None
+        return parts, label, {}
+
 
 class SIGHANDataset(BaseDataset):
 

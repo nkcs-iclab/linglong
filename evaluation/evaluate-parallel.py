@@ -80,6 +80,7 @@ def main(
             'end_token': '[CLS]',
             'part_separator': '[unused1]',
             'segment_separator': '[unused2]',
+            'prompt_token': '[unused88]',
             **(special_tokens or {}),
         }
         config = mcpt.merge_configs(

@@ -1,0 +1,17 @@
+rank: 8
+prompt_length: 5
+prompt_encoder_type: lstm
+use_prompt: True
+pseudo_token_id: 13311
+n_ctx: 1024
+n_layer: 24
+n_vocab: 13312
+n_embd: 1024
+n_head: 16
+epsilon: 1.0e-08
+embd_dropout: 0.1
+attn_dropout: 0.1
+resid_dropout: 0.1
+mode: sparse
+stride: 128
+c: 8
