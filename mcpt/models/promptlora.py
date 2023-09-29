@@ -37,8 +37,10 @@ class MLP(nn.Module):
         #     n_input=config['n_embd'] * 4,
         #     init_std=0.02 * (1.0 / math.sqrt(2 * config['n_layer'])),
         # )
-        self.c_fc = lora.Linear(in_features=config['n_embd'], out_features=config['n_embd'] * 4, r=config['lora_attn_dim'], fan_in_fan_out=True)
-        self.c_proj = lora.Linear(in_features=config['n_embd'] * 4, out_features=config['n_embd'], r=config['lora_attn_dim'], fan_in_fan_out=True)
+        self.c_fc = lora.Linear(in_features=config['n_embd'], out_features=config['n_embd'] * 4,
+                                r=config['lora_attn_dim'], fan_in_fan_out=True)
+        self.c_proj = lora.Linear(in_features=config['n_embd'] * 4, out_features=config['n_embd'],
+                                  r=config['lora_attn_dim'], fan_in_fan_out=True)
         self.act = nn.GELU()
         self.dropout = nn.Dropout(config['resid_dropout'])
 
@@ -172,8 +174,6 @@ class Block(nn.Module):
         return h, present
 
 
-
-
 class MCPTPromptLoRAModel(nn.Module):
     supports_gradient_checkpointing = True
 
@@ -181,11 +181,11 @@ class MCPTPromptLoRAModel(nn.Module):
         super().__init__()
         self.config = config
         self.n_embd = config['n_embd']
-        self.lora_attn_dim = config['lora_attn_dim']
         # self.wte = nn.Embedding(config['n_vocab'], self.n_embd)
         # self.wpe = nn.Embedding(config['n_ctx'], self.n_embd)
-        self.wte = lora.Embedding(num_embeddings=config['n_vocab'], embedding_dim=self.n_embd, r=self.lora_attn_dim)
-        self.wpe = lora.Embedding(num_embeddings=config['n_ctx'], embedding_dim=self.n_embd, r=self.lora_attn_dim)
+        self.wte = lora.Embedding(num_embeddings=config['n_vocab'], embedding_dim=self.n_embd,
+                                  r=config['lora_attn_dim'])
+        self.wpe = lora.Embedding(num_embeddings=config['n_ctx'], embedding_dim=self.n_embd, r=config['lora_attn_dim'])
         self.drop = nn.Dropout(config['embd_dropout'])
         self.blocks = nn.ModuleList([Block(config, blk_idx=i) for i in range(config['n_layer'])])
         self.ln_f = nn.LayerNorm(self.n_embd, eps=config['epsilon'])
@@ -222,14 +222,16 @@ class MCPTPromptLoRAModel(nn.Module):
         position_ids = position_ids.unsqueeze(0).view(-1, inputs.size(-1))
         inputs_embd = self.wte(inputs)
         position_embd = self.wpe(position_ids)
-        replace_embeds = self.prompt_emb(torch.IntTensor([i for i in range(self.prompt_length)]).cuda()).unsqueeze(0)
-        if self.prompt_encoder_type == "lstm":
-            replace_embeds = self.lstm_head(replace_embeds)[0]
-            replace_embeds = self.mlp_head(replace_embeds).squeeze()
-        else:
-            replace_embeds = self.mlp(replace_embeds).squeeze()
         if self.pseudo_token_id in inputs:
-            blocked_indices = (inputs == self.pseudo_token_id).nonzero().reshape((bz, self.prompt_length, 2))[:, :, 1]  # bz
+            replace_embeds = self.prompt_emb(torch.IntTensor([i for i in range(self.prompt_length)]).cuda()).unsqueeze(
+                0)
+            if self.prompt_encoder_type == "lstm":
+                replace_embeds = self.lstm_head(replace_embeds)[0]
+                replace_embeds = self.mlp_head(replace_embeds).squeeze()
+            else:
+                replace_embeds = self.mlp(replace_embeds).squeeze()
+            blocked_indices = (inputs == self.pseudo_token_id).nonzero().reshape((bz, self.prompt_length, 2))[:, :,
+                              1]  # bz
             for bidx in range(bz):
                 for i in range(self.prompt_length):
                     inputs_embd[bidx, blocked_indices[bidx, i], :] = replace_embeds[i, :]
