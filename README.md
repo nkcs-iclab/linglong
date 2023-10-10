@@ -127,6 +127,7 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 
 - *Evaluation:* Added NER datasets and metrics.
 - Various bug fixes for the latest dependencies.
+- Migrated from `setup.py` to `pyproject.toml`.
 
 ### 0.8
 
