@@ -58,7 +58,7 @@ class BaseDataset:
         self._use_pinyin = model_config.get('use_pinyin', False)
         self._n_ctx = model_config['n_ctx']
         self._input_file_list = pathlib.Path(input_path).glob(f'**/*.txt')
-        self._output_path = pathlib.Path(output_path)
+        self._output_path = pathlib.Path(output_path) / f'template-0{"-pinyin" if self._use_pinyin else ""}'
         self._output_path.mkdir(parents=True, exist_ok=True)
         self._tokenizer = mcpt.Tokenizer(vocab_path)
         self._pinyin_tokenizer = mcpt.PinyinTokenizer(
@@ -127,7 +127,7 @@ class BaseDataset:
         return meta, discarded
 
     def prepare(self) -> Tuple[str, str]:
-        meta_path = self._output_path / f'meta.json'
+        meta_path = self._output_path / f'train-meta.json'
         if not (self._use_cache and meta_path.is_file()):
             meta, discarded = self._process()
             with open(meta_path, 'w') as f:
