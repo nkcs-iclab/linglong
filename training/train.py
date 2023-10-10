@@ -28,6 +28,8 @@ def main(
         save_frequency: Union[int, str, List[Union[int, str]]] = 'epoch',
         log_frequency: int = 10,
         device: str = 'cuda',
+        save_initial: bool = False,
+        save_final: bool = False,
 ):
     hvd.init()
     mcpt.bind_gpu(hvd)
@@ -52,6 +54,8 @@ def main(
             'save_frequency': save_frequency,
             'log_frequency': log_frequency,
             'device': device,
+            'save_initial': save_initial,
+            'save_final': save_final,
             'model_config': model_config,
             'training_config': training_config,
         }
@@ -115,6 +119,8 @@ def main(
 
     if hvd.rank() == 0:
         print(model)
+        if save_initial:
+            torch.save(model.state_dict(), save_path / 'initial.pt')
 
     scaler = torch.cuda.amp.GradScaler() if training_config['fp16']['enabled'] else mcpt.stubs.Noop()
     for epoch in range(1, epochs + 1):
@@ -170,6 +176,8 @@ def main(
                 val_loss=val_loss.item() if validation_data is not None else None,
                 end_of_epoch=True,
             )
+    if hvd.rank() == 0 and save_final:
+        torch.save(model.state_dict(), save_path / 'final.pt')
 
 
 if __name__ == '__main__':
