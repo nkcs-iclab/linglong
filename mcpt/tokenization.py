@@ -56,15 +56,6 @@ class Tokenizer(PreTrainedTokenizer):
             strip_accents: Optional[bool] = None,
             **kwargs,
     ):
-        super().__init__(
-            unk_token=unk_token,
-            sep_token=sep_token,
-            pad_token=pad_token,
-            cls_token=cls_token,
-            mask_token=mask_token,
-            strip_accents=strip_accents,
-            **kwargs,
-        )
         if not pathlib.Path(vocab_file).is_file():
             raise FileNotFoundError(f"Can't find a vocabulary file at path '{vocab_file}'.")
         else:
@@ -78,6 +69,15 @@ class Tokenizer(PreTrainedTokenizer):
                 tokenize_chinese_chars=tokenize_chinese_chars,
                 strip_accents=strip_accents,
             )
+        super().__init__(
+            unk_token=unk_token,
+            sep_token=sep_token,
+            pad_token=pad_token,
+            cls_token=cls_token,
+            mask_token=mask_token,
+            strip_accents=strip_accents,
+            **kwargs,
+        )
         self.wordpiece_tokenizer = WordpieceTokenizer(vocab=self.vocab, unk_token=self.unk_token)
 
     @property
@@ -150,6 +150,12 @@ class PinyinTokenizer(PreTrainedTokenizer):
             mask_token: str = '[MASK]',
             **kwargs,
     ):
+        if not pathlib.Path(vocab_file).is_file():
+            raise FileNotFoundError(f"Can't find a vocabulary file at path '{vocab_file}'.")
+        self.vocab = _load_pinyin_vocab(vocab_file)
+        self._fallback = fallback
+        self.convert_id_to_token = None
+        self.convert_tokens_to_string = None
         super().__init__(
             unk_token=unk_token,
             sep_token=sep_token,
@@ -158,12 +164,6 @@ class PinyinTokenizer(PreTrainedTokenizer):
             mask_token=mask_token,
             **kwargs,
         )
-        if not pathlib.Path(vocab_file).is_file():
-            raise FileNotFoundError(f"Can't find a vocabulary file at path '{vocab_file}'.")
-        self.vocab = _load_pinyin_vocab(vocab_file)
-        self._fallback = fallback
-        self.convert_id_to_token = None
-        self.convert_tokens_to_string = None
 
     @property
     def vocab_size(self) -> int:
