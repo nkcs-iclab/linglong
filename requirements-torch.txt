@@ -1,2 +1,2 @@
---index-url https://download.pytorch.org/whl/cu118
+--index-url https://download.pytorch.org/whl/cu121
 torch

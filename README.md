@@ -1,9 +1,9 @@
 # LingLong (玲珑): A Small-Scale Chinese PreTrained Language Model
 
-![version 0.8.0](https://img.shields.io/badge/version-0.8.0-blue)
+![version 0.8.1](https://img.shields.io/badge/version-0.8.1-blue)
 ![Python >=3.6,<3.12](https://img.shields.io/badge/Python->=3.6,<3.12-blue?logo=python&logoColor=white)
-![PyTorch 2.0](https://img.shields.io/badge/PyTorch-2.0-EE4C2C?logo=pytorch&logoColor=white)
-![TensorFlow 2.13](https://img.shields.io/badge/TensorFlow-2.13-FF6F00?logo=tensorflow&logoColor=white)
+![PyTorch 2.1](https://img.shields.io/badge/PyTorch-2.1-EE4C2C?logo=pytorch&logoColor=white)
+![TensorFlow 2.14](https://img.shields.io/badge/TensorFlow-2.14-FF6F00?logo=tensorflow&logoColor=white)
 ![License GNU GPL v3](https://img.shields.io/badge/License-GNU%20GPL%20v3-blue?logo=gnu&logoColor=white)
 
 This is LingLong (玲珑), a Chinese pretrained language model trained by the College of Software at Nankai University.
@@ -33,8 +33,8 @@ The model can also run on CPUs, but the training and inference speed will be sig
 This package requires Python 3.6 or later, with a few exceptions:
 
 - If you want to use the parallel evaluation script, you need Python 3.11 or later.
-- PyTorch 2.0 requires Python 3.8 or later. PyTorch with a lower version number may work, but it is not tested.
-- TensorFlow 2.12 requires Python 3.8 or later. TensorFlow with a lower version number may work, but it is not tested.
+- PyTorch 2.1 requires Python 3.8 or later. PyTorch with a lower version number may work, but it is not tested.
+- TensorFlow 2.14 requires Python 3.9 or later. TensorFlow with a lower version number may work, but it is not tested.
 
 ## Environment Setup
 
@@ -51,7 +51,7 @@ The required packages are not listed in `setup.py` yet, so you need to install t
 
     ```
     conda env create -f environment.yaml
-    conda activate mcpt-torch
+    conda activate mcpt
     pip install -r requirements.txt
     pip install -r requirements-torch.txt
     ```
@@ -73,10 +73,18 @@ The required packages are not listed in `setup.py` yet, so you need to install t
     ```
     export NCCL_HOME=$(python -c "import sysconfig; print(sysconfig.get_path('purelib'))")/nvidia/nccl
     ln -s $NCCL_HOME/lib/libnccl.so.2 $NCCL_HOME/lib/libnccl.so
+    git clone https://github.com/horovod/horovod.git --recursive
+    cd horovod
+    sed -i 's/set(CMAKE_CXX_STANDARD 14)/set(CMAKE_CXX_STANDARD 17)/g' CMakeLists.txt
+    sed -i 's/set(CMAKE_CUDA_STANDARD 11)/set(CMAKE_CUDA_STANDARD 17)/g' horovod/common/ops/cuda/CMakeLists.txt
+    sed -i 's/set(CMAKE_CXX_STANDARD 14)/set(CMAKE_CXX_STANDARD 17)/g' horovod/torch/CMakeLists.txt
     HOROVOD_NCCL_HOME=$NCCL_HOME \
       HOROVOD_GPU_OPERATIONS=NCCL \
       HOROVOD_WITH_PYTORCH=1 \
-      pip install --no-cache-dir horovod[pytorch]
+      python setup.py bdist_wheel
+    pip install dist/horovod-*.whl
+    cd ..
+    rm -rf horovod
     ```
     After successfully installing Horovod, run:
 
@@ -118,6 +126,7 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 ### 0.9 (pre-release)
 
 - *Evaluation:* Added NER datasets and metrics.
+- Various bug fixes for the latest dependencies.
 
 ### 0.8
 

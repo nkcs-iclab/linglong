@@ -1,4 +1,4 @@
-name: mcpt-torch
+name: mcpt
 channels:
   - conda-forge
 dependencies:
