@@ -28,7 +28,7 @@ class Model(nn.Module):
             cls,
             config: Union[str, Dict[str, Any]],
             load_model: Optional[str] = None,
-            device: Optional = None,
+            device: Optional[Any] = None,
             strict: bool = True,
     ) -> 'Self':
         import mcpt
