@@ -1,6 +1,7 @@
 prompt_length: 5
 prompt_encoder_type: lstm
 use_prompt: True
+use_lora: True
 pseudo_token_id: 13311
 n_ctx: 1024
 n_layer: 24

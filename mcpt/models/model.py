@@ -37,7 +37,10 @@ class Model(nn.Module):
         if config.get('use_pinyin', False):
             model = cls(mcpt.models.MCPTPinyinModel(config))
         elif config.get('use_prompt', False):
-            model = cls(mcpt.models.MCPTPromptModel(config))
+            if config.get('use_lora', False):
+                model = cls(mcpt.models.MCPTPromptLoRAModel(config))
+            else:
+                model = cls(mcpt.models.MCPTPromptModel(config))
         else:
             model = cls(mcpt.models.MCPTModel(config))
         if load_model is not None:

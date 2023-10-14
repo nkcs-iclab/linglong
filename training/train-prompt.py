@@ -82,10 +82,13 @@ def main(
             load_model=load_model,
             device=device,
         )
-        for name, param in model.named_parameters():
-            if param.requires_grad:
-                print(name, param.shape)
-        input()
+        # for name, param in model.named_parameters():
+        #     if 'block' in name or 'wte' in name or 'wpe' in name:
+        #         param.requires_grad = False
+        #     if name == 'transformer.ln_f.bias' or name == 'transformer.ln_f.weight':
+        #         param.requires_grad = False
+            # if param.requires_grad:
+            #     print(name, param.shape)
         training_config['optimizer']['params']['lr'] = \
             training_config['optimizer']['params']['lr'] * hvd.size() * training_config['gradient_accumulation_steps']
         optimizer = mcpt.train.optimizers.adamw(model.parameters(), config=training_config['optimizer']['params'])
