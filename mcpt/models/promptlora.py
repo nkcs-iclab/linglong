@@ -38,9 +38,11 @@ class MLP(nn.Module):
         #     init_std=0.02 * (1.0 / math.sqrt(2 * config['n_layer'])),
         # )
         self.c_fc = lora.Linear(in_features=config['n_embd'], out_features=config['n_embd'] * 4,
-                                r=config['lora_attn_dim'], fan_in_fan_out=True)
+                                r=config['lora_attn_dim'],
+                                fan_in_fan_out=True)
         self.c_proj = lora.Linear(in_features=config['n_embd'] * 4, out_features=config['n_embd'],
-                                  r=config['lora_attn_dim'], fan_in_fan_out=True)
+                                  r=config['lora_attn_dim'],
+                                  fan_in_fan_out=True)
         self.act = nn.GELU()
         self.dropout = nn.Dropout(config['resid_dropout'])
 
