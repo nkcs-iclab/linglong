@@ -30,6 +30,7 @@ def main(
         device: str = 'cuda',
         save_initial: bool = False,
         save_final: bool = False,
+        skip_steps: int = 0,
 ):
     hvd.init()
     mcpt.bind_gpu(hvd)
@@ -56,6 +57,7 @@ def main(
             'device': device,
             'save_initial': save_initial,
             'save_final': save_final,
+            'skip_steps': skip_steps,
             'model_config': model_config,
             'training_config': training_config,
         }
@@ -129,6 +131,8 @@ def main(
         train_tqdm = mcpt.tqdm(enumerate(train_loader), total=len(train_loader), hvd=hvd)
         loss = 0
         for batch_idx, (data, target) in train_tqdm:
+            if batch_idx < skip_steps:
+                continue
             data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
             with (torch.cuda.amp.autocast() if training_config['fp16']['enabled'] else contextlib.suppress()):
