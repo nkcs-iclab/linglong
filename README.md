@@ -1,6 +1,6 @@
 # LingLong (玲珑): A Small-Scale Chinese PreTrained Language Model
 
-![version 0.8.1](https://img.shields.io/badge/version-0.8.1-blue)
+![version 0.8.2](https://img.shields.io/badge/version-0.8.2-blue)
 ![Python >=3.6,<3.12](https://img.shields.io/badge/Python->=3.6,<3.12-blue?logo=python&logoColor=white)
 ![PyTorch 2.1](https://img.shields.io/badge/PyTorch-2.1-EE4C2C?logo=pytorch&logoColor=white)
 ![TensorFlow 2.14](https://img.shields.io/badge/TensorFlow-2.14-FF6F00?logo=tensorflow&logoColor=white)
@@ -125,6 +125,7 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 
 ### 0.9 (pre-release)
 
+- *Training:* Allow users to skip steps during training.
 - *Evaluation:* Added NER datasets and metrics.
 - Various bug fixes for the latest dependencies.
 - Migrated from `setup.py` to `pyproject.toml`.
