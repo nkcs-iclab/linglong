@@ -48,7 +48,7 @@ class MCPTPromptModel(nn.Module):
         position_ids = position_ids.unsqueeze(0).view(-1, inputs.size(-1))
         inputs_embd = self.wte(inputs)
         position_embd = self.wpe(position_ids)
-        if self.pseudo_token_id in inputs:
+        if self.pseudo_token_id in inputs and inputs.shape[1] > 1:
             replace_embeds = self.prompt_emb(torch.IntTensor([i for i in range(self.prompt_length)]).cuda()).unsqueeze(
                 0)
             if self.prompt_encoder_type == "lstm":
@@ -56,7 +56,9 @@ class MCPTPromptModel(nn.Module):
                 replace_embeds = self.mlp_head(replace_embeds).squeeze()
             else:
                 replace_embeds = self.mlp(replace_embeds).squeeze()
-            blocked_indices = (inputs == self.pseudo_token_id).nonzero().reshape((bz, self.prompt_length, 2))[:, :, 1]  # bz
+
+            blocked_indices = (inputs == self.pseudo_token_id).nonzero().reshape((bz, self.prompt_length, 2))[:, :,
+                              1]  # bz
             for bidx in range(bz):
                 for i in range(self.prompt_length):
                     inputs_embd[bidx, blocked_indices[bidx, i], :] = replace_embeds[i, :]

@@ -1,4 +1,5 @@
 import torch
+import math
 import torch.nn as nn
 import loralib as lora
 
@@ -64,25 +65,25 @@ class Attention(nn.Module):
         self.blk_idx = blk_idx
         self.stride = config.get('stride')
         self.c = config.get('c')
-        # self.c_attn = Conv1D(
-        #     units=3 * self.n_embd,
-        #     n_input=self.n_embd,
-        # )
-        self.c_attn = lora.MergedLinear(
-            self.n_embd, self.n_embd * 3,
-            r=config['lora_attn_dim'],
-            lora_alpha=config['lora_attn_alpha'],
-            lora_dropout=config['lora_dropout'],
-            enable_lora=[True, True, True],
-            fan_in_fan_out=True,
-            merge_weights=False
+        self.c_attn = Conv1D(
+            units=3 * self.n_embd,
+            n_input=self.n_embd,
         )
-        self.c_proj = lora.Linear(self.n_embd, self.n_embd, r=config['lora_attn_dim'], fan_in_fan_out=True)
-        # self.c_proj = Conv1D(
-        #     units=self.n_embd,
-        #     n_input=self.n_embd,
-        #     init_std=0.02 * (1.0 / math.sqrt(2 * config['n_layer'])),
+        self.c_proj = Conv1D(
+            units=self.n_embd,
+            n_input=self.n_embd,
+            init_std=0.02 * (1.0 / math.sqrt(2 * config['n_layer'])),
+        )
+        # self.c_attn = lora.MergedLinear(
+        #     self.n_embd, self.n_embd * 3,
+        #     r=config['lora_attn_dim'],
+        #     lora_alpha=config['lora_attn_alpha'],
+        #     lora_dropout=config['lora_dropout'],
+        #     enable_lora=[True, True, True],
+        #     fan_in_fan_out=True,
+        #     merge_weights=False
         # )
+        # self.c_proj = lora.Linear(self.n_embd, self.n_embd, r=config['lora_attn_dim'], fan_in_fan_out=True)
         self.attn_mask = None
         self.dropout = nn.Dropout(config['attn_dropout'])
 

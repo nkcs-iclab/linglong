@@ -28,6 +28,7 @@ class Model(nn.Module):
             cls,
             config: Union[str, Dict[str, Any]],
             load_model: Optional[str] = None,
+            load_lora_model: Optional[str] = None,
             device: Optional[Any] = None,
             strict: bool = True,
     ) -> 'Self':
@@ -45,6 +46,8 @@ class Model(nn.Module):
             model = cls(mcpt.models.MCPTModel(config))
         if load_model is not None:
             model.load_state_dict(torch.load(load_model, map_location=device), strict=False)
+        if load_lora_model is not None:
+            model.load_state_dict(torch.load(load_lora_model, map_location=device), strict=False)
         if device is not None:
             model.to(device)
         return model
