@@ -35,10 +35,11 @@ def work(
         callbacks: Optional[List[Callable]] = None,
 ):
     eval_fn = mcpt.evaluation.get_eval_fn(config.get('evaluation_method', 'generation'))
+    load_lora_model = config.get('model_lora', {}).get('checkpoint', None)
     model = mcpt.Model.from_config(
         config=config['model_config'],
         load_model=config['model']['checkpoint'],
-        load_lora_model=config['model_lora']['checkpoint'],
+        load_lora_model=load_lora_model,
         device=device,
     )
     model.eval()
@@ -73,6 +74,7 @@ def main(
         slicer: Optional[str] = None,
         items_per_process: Optional[int] = None,
         device: str = 'cuda',
+        format: Optional[str] = None,
         **kwargs,
 ):
     with mcpt.running('Loading configs') as spinner:
@@ -100,6 +102,7 @@ def main(
                 'workers': workers,
                 'items_per_process': items_per_process,
                 'device': device,
+                'format': format,
             },
             mcpt.load_config(dataset_config, key=dataset),
             kwargs,

@@ -22,6 +22,7 @@ class BaseDataset:
             pinyin_vocab_path: Optional[str] = None,
             split: str = 'train',
             use_cache: bool = False,
+            format: str = None,
             extra_config: Optional[Dict[str, Any]] = None,
     ):
         self._split = split
@@ -39,11 +40,12 @@ class BaseDataset:
         self._use_cache = use_cache
         self._items_per_file = items_per_file
         self._extra_config = extra_config
-        self._file_format = None
+        self._file_format = format
         self._special_tokens = special_tokens
         self._use_prompt = model_config.get('use_prompt', False)
         self._prompt_length = model_config.get('prompt_length', 0)
-        self._prompt_token = self._special_tokens['prompt_token']
+        if self._use_prompt:
+            self._prompt_token = self._special_tokens['prompt_token']
 
     def _load_file(self, path: str) -> Union[List, Dict]:
         return mcpt.load_file(path, format=self._file_format)

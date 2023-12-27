@@ -23,6 +23,7 @@ class BaseDataset(metaclass=abc.ABCMeta):
             pinyin_vocab_path: Optional[str] = None,
             use_cache: bool = False,
             method: str = 'generation',
+            format: str = None,
             extra_config: Optional[Dict[str, Any]] = None,
     ):
         self._input_path = input_path
@@ -41,7 +42,7 @@ class BaseDataset(metaclass=abc.ABCMeta):
         self._output_path.mkdir(parents=True, exist_ok=True)
 
         self._candidates = None
-        self._file_format = None
+        self._file_format = format
         self._special_tokens = special_tokens
         self._use_prompt = model_config.get('use_prompt', False)
         self._prompt_length = model_config.get('prompt_length', 0)
