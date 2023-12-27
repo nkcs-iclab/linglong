@@ -21,6 +21,7 @@ def main(
         items_per_file: int = 200000,
         special_tokens: Optional[Dict[str, str]] = None,
         n_example: int = 3,
+        format: Optional[str] = None,
 ):
     with mcpt.running('Loading configs') as spinner:
         special_tokens = {
@@ -45,6 +46,7 @@ def main(
             'use_cache': use_cache,
             'items_per_file': items_per_file,
             'special_tokens': special_tokens,
+            'format': format,
         }, mcpt.load_config(dataset_config, key=dataset))
         dataset_path = pathlib.Path(output_path) / dataset
         spinner.write(mcpt.pprint(config, export=True))
