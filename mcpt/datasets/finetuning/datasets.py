@@ -262,22 +262,22 @@ class CMeEEDataset(CUGENERDataset):
             'dep': '科室',
         }
 
-class CMRC2018Dataset(BaseDataset):
-
-    def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
-        return [
-            f'标题：{obj["title"]}',
-            f'文本：{obj["context"]}',
-            f'问题：{obj["question"]}',
-            [self._special_tokens['part_separator']],
-            f'答案：{obj["answers"][0]}',
-        ]
-
-    def _template_1(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
-        return [
-            f'标题：{obj["title"][::-1]}',
-            f'文本：{obj["context"][::-1]}',
-            f'问题：{obj["question"][::-1]}',
-            [self._special_tokens['part_separator']],
-            f'答案：{obj["answers"][0][::-1]}',
-        ]
+# class CMRC2018Dataset(BaseDataset):
+#
+#     def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
+#         return [
+#             f'标题：{obj["title"]}',
+#             f'文本：{obj["context"]}',
+#             f'问题：{obj["question"]}',
+#             [self._special_tokens['part_separator']],
+#             f'答案：{obj["answers"][0]}',
+#         ]
+#
+#     def _template_1(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
+#         return [
+#             f'标题：{obj["title"][::-1]}',
+#             f'文本：{obj["context"][::-1]}',
+#             f'问题：{obj["question"][::-1]}',
+#             [self._special_tokens['part_separator']],
+#             f'答案：{obj["answers"][0][::-1]}',
+#         ]
