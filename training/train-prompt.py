@@ -89,6 +89,9 @@ def main(
         #         param.requires_grad = False
             # if param.requires_grad:
             #     print(name, param.shape)
+        for name, param in model.named_parameters():
+            if param.requires_grad:
+                print(name, param.shape)
         training_config['optimizer']['params']['lr'] = \
             training_config['optimizer']['params']['lr'] * hvd.size() * training_config['gradient_accumulation_steps']
         optimizer = mcpt.train.optimizers.adamw(model.parameters(), config=training_config['optimizer']['params'])
