@@ -7,14 +7,20 @@
 ![License GNU GPL v3](https://img.shields.io/badge/License-GNU%20GPL%20v3-blue?logo=gnu&logoColor=white)
 
 This is LingLong (玲珑), a Chinese pretrained language model trained by the College of Software at Nankai University.
-Built on the foundation of the GPT-3 architecture, it has been meticulously trained on a vast collection of private datasets.
-With a modest parameter count of only 317 million, LingLong is significantly smaller than the original GPT-3 model, yet it delivers impressive results across various NLP tasks.
-In Chinese, "玲珑" translates to "exquisite" or "delicate," which perfectly embodies the small yet mighty nature of this model.
+Built on the foundation of the GPT-3 architecture, it has been meticulously trained on a vast collection of private
+datasets.
+With a modest parameter count of only 317 million, LingLong is significantly smaller than the original GPT-3 model, yet
+it delivers impressive results across various NLP tasks.
+In Chinese, "玲珑" translates to "exquisite" or "delicate," which perfectly embodies the small yet mighty nature of this
+model.
 Therefore, we chose to name it "LingLong" in honor of its exceptional precision and finesse.
 
-Although it's true that this model's performance isn't on par with the large pretrained language models boasting hundreds of billions of parameters, its relatively low parameter count makes it accessible to researchers with limited computing resources.
+Although it's true that this model's performance isn't on par with the large pretrained language models boasting
+hundreds of billions of parameters, its relatively low parameter count makes it accessible to researchers with limited
+computing resources.
 As a result, this model serves as an excellent foundation for conducting follow-up research, such as fine-tuning.
-By utilizing this model, researchers can begin to delve into the intricacies of pretrained language models and to unravel the mysteries of language processing without the need for excessive computational resources.
+By utilizing this model, researchers can begin to delve into the intricacies of pretrained language models and to
+unravel the mysteries of language processing without the need for excessive computational resources.
 
 ## Hardware Requirements
 
@@ -55,9 +61,9 @@ The required packages are not listed in `setup.py` yet, so you need to install t
     pip install -r requirements.txt
     pip install -r requirements-torch.txt
     ```
-   
+
     *Optional:* If you want to perform evaluation on public datasets, you need to install the evaluation dependencies.
-   
+
     ```
     pip install -r requirements-evaluation.txt
     ```
@@ -93,14 +99,15 @@ The required packages are not listed in `setup.py` yet, so you need to install t
     ```
 
     Every feature that was successfully enabled will be marked with an "X".
-   
+
 5. Install DeepSpeed (optional, experimental, for DeepSpeed enabled training).
 
     ```
     pip install deepspeed
     ```
-   
-    After installation, you can validate your installation and see which ops your machine is compatible with via the DeepSpeed environment report with `ds_report` or `python -m deepspeed.env_report`.
+
+    After installation, you can validate your installation and see which ops your machine is compatible with via the
+    DeepSpeed environment report with `ds_report` or `python -m deepspeed.env_report`.
 
 ## A Quick Guide to Text Generation
 
@@ -116,10 +123,14 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 
 ## Pretrained Models
 
-| Model Name    | Version | Parameters | Size   | Download                                                                |
-|---------------|---------|------------|--------|-------------------------------------------------------------------------|
-| LingLong      | V12     | 317 M      | 1.2 GB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUj-wymU62HcCOduEZcg?e=bzyCzU) |
-| LingLong-Chat | V4      | 317 M      | 1.2 GB | TBD                                                                     |     
+| Model Name          | Version | Parameters | Size   | Download                                                                |
+|---------------------|---------|------------|--------|-------------------------------------------------------------------------|
+| LingLong            | V12     | 317 M      | 1.2 GB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUj-wymU62HcCOduEZcg?e=bzyCzU) |
+| LingLong-Backward   | V1      | 317M       | 1.2 GB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUkqtni8g7Xkr_JuGuqg?e=AMLWUh) |
+| LingLong-Pinyin     | V1      | 318M       | 1.2 GB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUkqto9guYQ0BZLVTyzw?e=eKh7H4) |
+| LingLong-Small      | V1      | 106M       | 367 MB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUkqtlbLLOx0t03obH1w?e=ikRx63) |
+| LingLong-Small-Word | V1      | 106M       | 404 MB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUkqtmk8xMs-OmBwhtdw?e=mlXZGf) |
+| LingLong-Chat       | V4      | 317 M      | 1.2 GB | TBA                                                                     |     
 
 ## Changelog
 
@@ -138,7 +149,8 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 - *Training:* It is now possible to add a prefix to the name of the saved model.
 - Updated the format of the model output from `tuple` to `dict`.
 - Added RLHF (stage 1 & stage 2) support.
-- Moved the LM head from the basic model to the model wrapper `mcpt.Model`. You can now retrieve the hidden states from the model wrapper using `mcpt.Model.hidden_states`.
+- Moved the LM head from the basic model to the model wrapper `mcpt.Model`. You can now retrieve the hidden states from
+  the model wrapper using `mcpt.Model.hidden_states`.
 
 ### 0.7
 
@@ -170,7 +182,8 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 ### 0.4
 
 - *Dataset:* Added dataset scripts for fine-tuning.
-- *Training:* Fixed the training script by adding if statements to prevent missing object/attribute/reference errors when using mixed precision training or data parallel training.
+- *Training:* Fixed the training script by adding if statements to prevent missing object/attribute/reference errors
+  when using mixed precision training or data parallel training.
 - *Training:* Fixed the model saving callback.
 - *Generation:* Introduced `mcpt.generate` function for generation.
 - *Generation:* Replaced `[SEP]` with `\n` in generation results.
