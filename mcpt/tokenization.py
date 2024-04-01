@@ -1,18 +1,22 @@
+import shutil
 import string
 import pathlib
+
 import pypinyin
 import collections
 
+from transformers.utils import logging
 from transformers.tokenization_utils import PreTrainedTokenizer
 from transformers.models.bert.tokenization_bert import (
     BasicTokenizer as BertBasicTokenizer,
     WordpieceTokenizer,
     load_vocab,
 )
-from typing import *
+
+logger = logging.get_logger(__name__)
 
 
-def _load_pinyin_vocab(vocab_file: str) -> Dict[str, int]:
+def _load_pinyin_vocab(vocab_file: str) -> dict[str, int]:
     vocab = collections.OrderedDict()
     with open(vocab_file, 'r', encoding='utf-8') as reader:
         tokens = reader.readlines()
@@ -40,22 +44,25 @@ def _load_pinyin_vocab(vocab_file: str) -> Dict[str, int]:
 
 
 class Tokenizer(PreTrainedTokenizer):
+    vocab_files_names = {'vocab_file': 'tokenizer.txt'}
+    model_input_names = ['input_ids', 'attention_mask']
 
     def __init__(
             self,
             vocab_file: str,
             do_lower_case: bool = True,
             do_basic_tokenize: bool = True,
-            never_split: Optional[List[str]] = None,
+            never_split: list[str] | None = None,
             unk_token: str = '[UNK]',
             sep_token: str = '[SEP]',
             pad_token: str = '[PAD]',
             cls_token: str = '[CLS]',
             mask_token: str = '[MASK]',
             tokenize_chinese_chars: bool = True,
-            strip_accents: Optional[bool] = None,
+            strip_accents: bool | None = None,
             **kwargs,
     ):
+        self.vocab_file = vocab_file
         if not pathlib.Path(vocab_file).is_file():
             raise FileNotFoundError(f"Can't find a vocabulary file at path '{vocab_file}'.")
         else:
@@ -78,23 +85,39 @@ class Tokenizer(PreTrainedTokenizer):
             strip_accents=strip_accents,
             **kwargs,
         )
+        # noinspection PyTypeChecker
+        self.add_special_tokens({
+            'additional_special_tokens': [
+                '[unused1]',
+                '[unused2]',
+            ]})
         self.wordpiece_tokenizer = WordpieceTokenizer(vocab=self.vocab, unk_token=self.unk_token)
 
     @property
     def vocab_size(self) -> int:
         return len(self.vocab)
 
-    def get_vocab(self) -> Dict[str, int]:
+    def get_vocab(self) -> dict[str, int]:
         return self.vocab
 
     def save_vocabulary(
             self,
             save_directory: str,
-            filename_prefix: Optional[str] = None,
-    ) -> Tuple[Optional[str], Optional[str]]:
-        return None, None
+            filename_prefix: str | None = None,
+    ) -> tuple[str | None, str | None]:
+        if not pathlib.Path(save_directory).is_dir():
+            logger.error(f'Vocabulary path ({save_directory}) should be a directory')
+            return None, None
+        out_vocab_file = pathlib.Path(
+            save_directory,
+            (filename_prefix + '-' if filename_prefix else ''),
+            self.vocab_files_names['vocab_file'],
+        )
+        if pathlib.Path(self.vocab_file).absolute() != out_vocab_file.absolute():
+            shutil.copyfile(self.vocab_file, out_vocab_file)
+        return str(out_vocab_file), None
 
-    def _tokenize(self, text: str, **kwargs) -> List[str]:
+    def _tokenize(self, text: str, **kwargs) -> list[str]:
         text = text.split('\n')
         split_tokens = []
         if self.do_basic_tokenize:
@@ -112,13 +135,10 @@ class Tokenizer(PreTrainedTokenizer):
     def _convert_token_to_id(self, token: str) -> int:
         return self.vocab.get(token, self.vocab.get(self.unk_token))
 
-    def convert_string_to_ids(self, text: str, **kwargs) -> List[int]:
-        return self.convert_tokens_to_ids(self.tokenize(text, **kwargs))
-
     def _convert_id_to_token(self, index: int) -> str:
         return self.ids_to_tokens.get(index, self.unk_token)
 
-    def convert_tokens_to_string(self, tokens: Union[str, List[str]]) -> str:
+    def convert_tokens_to_string(self, tokens: str | list[str]) -> str:
         if isinstance(tokens, str):
             tokens = [tokens]
         whitespace_joined = ' '.join(tokens).replace(' ##', '').strip()
@@ -133,11 +153,10 @@ class Tokenizer(PreTrainedTokenizer):
             result += whitespace_joined[i]
         return result
 
-    def convert_ids_to_string(self, ids: Union[int, List[int]], **kwargs) -> str:
-        return self.convert_tokens_to_string(self.convert_ids_to_tokens(ids, **kwargs))
-
 
 class PinyinTokenizer(PreTrainedTokenizer):
+    vocab_files_names = {'vocab_file': 'pinyin_tokenizer.txt'}
+    model_input_names = ['input_pinyin_ids']
 
     def __init__(
             self,
@@ -150,6 +169,7 @@ class PinyinTokenizer(PreTrainedTokenizer):
             mask_token: str = '[MASK]',
             **kwargs,
     ):
+        self.vocab_file = vocab_file
         if not pathlib.Path(vocab_file).is_file():
             raise FileNotFoundError(f"Can't find a vocabulary file at path '{vocab_file}'.")
         self.vocab = _load_pinyin_vocab(vocab_file)
@@ -169,29 +189,46 @@ class PinyinTokenizer(PreTrainedTokenizer):
     def vocab_size(self) -> int:
         return len(self.vocab)
 
-    def get_vocab(self) -> Dict[str, int]:
+    def get_vocab(self) -> dict[str, int]:
         return self.vocab
 
-    def save_vocabulary(self, save_directory: str, filename_prefix: Optional[str] = None) -> Tuple[str]:
-        raise NotImplementedError
+    def save_vocabulary(
+            self,
+            save_directory: str,
+            filename_prefix: str | None = None,
+    ) -> tuple[str | None, str | None]:
+        if not pathlib.Path(save_directory).is_dir():
+            logger.error(f'Vocabulary path ({save_directory}) should be a directory')
+            return None, None
+        out_vocab_file = pathlib.Path(
+            save_directory,
+            (filename_prefix + '-' if filename_prefix else ''),
+            self.vocab_files_names['pinyin_vocab_file'],
+        )
+        if pathlib.Path(self.vocab_file).absolute() != out_vocab_file.absolute():
+            shutil.copyfile(self.vocab_file, out_vocab_file)
+        return str(out_vocab_file), None
 
-    def tokenize(self, text: Union[str, List[str]], **kwargs) -> List[str]:
+    def tokenize(self, text: str | list[str], **kwargs) -> list[str]:
         return self._tokenize(text, **kwargs)
 
-    def _tokenize(self, text: Union[str, List[str]], **kwargs) -> List[str]:
+    def _tokenize(self, text: str | list[str], **kwargs) -> list[str]:
         return [token[0] for token in pypinyin.pinyin(text, errors=lambda x: self._fallback.tokenize(x))]
 
     def _convert_token_to_id(self, token: str) -> int:
         return self.vocab.get(token, self.vocab.get(self.unk_token))
 
-    def convert_string_to_ids(self, text: Union[str, List[str]], **kwargs) -> List[int]:
-        return self.convert_tokens_to_ids(self.tokenize(text, **kwargs))
+    def convert_ids_to_tokens(self, **kwargs):
+        raise NotImplementedError
 
-    def _convert_id_to_token(self, index: int) -> str:
+    def convert_tokens_to_string(self, **kwargs):
+        raise NotImplementedError
+
+    def decode(self, **kwargs):
         raise NotImplementedError
 
     @staticmethod
-    def convert_tokenizer_tokens_to_tokens(tokens: Union[str, List[str]]) -> Union[str, List[str]]:
+    def convert_tokenizer_tokens_to_tokens(tokens: str | list[str]) -> str | list[str]:
         if isinstance(tokens, str):
             tokens = [tokens]
         pinyin_tokens = [
@@ -203,7 +240,7 @@ class PinyinTokenizer(PreTrainedTokenizer):
             return pinyin_tokens[0]
         return pinyin_tokens
 
-    def convert_tokenizer_tokens_to_ids(self, tokens: Union[str, List[str]]) -> Union[int, List[int]]:
+    def convert_tokenizer_tokens_to_ids(self, tokens: str | list[str]) -> int | list[int]:
         return self.convert_tokens_to_ids(self.convert_tokenizer_tokens_to_tokens(tokens))
 
 
@@ -212,9 +249,9 @@ class BasicTokenizer(BertBasicTokenizer):
     def __init__(
             self,
             do_lower_case: bool = True,
-            never_split: Optional[List[str]] = None,
+            never_split: list[str] | None = None,
             tokenize_chinese_chars: bool = True,
-            strip_accents: Optional[bool] = None,
+            strip_accents: bool | None = None,
     ):
         super().__init__(
             do_lower_case=do_lower_case,
