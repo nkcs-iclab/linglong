@@ -2,17 +2,14 @@ import fire
 import torch
 import pathlib
 
-from typing import *
-from transformers import GPT2Config, GPT2Model
-
 import mcpt
 
 
 def set_weight(
         torch_key: str,
         transformers_key: str,
-        torch_weights: Dict[str, torch.Tensor],
-        transformers_weights: Dict[str, torch.Tensor],
+        torch_weights: dict[str, torch.Tensor],
+        transformers_weights: dict[str, torch.Tensor],
 ):
     transformers_weight = transformers_weights[transformers_key]
     torch_weight = torch_weights[torch_key]
@@ -24,20 +21,10 @@ def set_weight(
 def main(
         model_config: str,
         torch_model_path: str,
-        transformers_model_path: Optional[str] = None,
+        transformers_model_path: str | None = None,
         vocab: str = '../common/vocab/char-13312.txt',
 ):
-    transformers_model = GPT2Model(GPT2Config(
-        vocab_size=13312,
-        n_positions=1024,
-        n_embd=1024,
-        n_layer=24,
-        n_head=16,
-        resid_pdrop=0.1,
-        embd_pdrop=0.1,
-        attn_pdrop=0.1,
-        layer_norm_epsilon=1.0e-08,
-    ))
+    transformers_model = mcpt.LingLongModel(mcpt.LingLongConfig())
     torch_model = mcpt.Model.from_config(model_config, load_model=torch_model_path, device='cpu')
     transformers_weights = transformers_model.state_dict()
     print(f'Loaded {len(transformers_weights)} weights from the Transformers model: '

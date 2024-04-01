@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn as nn
 
-from typing import *
+from typing import Any, Self
 
 
 class Conv1D(nn.Module):
@@ -27,7 +27,7 @@ class Conv1D(nn.Module):
 
 class MLP(nn.Module):
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict):
         super().__init__()
         self.c_fc = Conv1D(
             units=config['n_embd'] * 4,
@@ -51,7 +51,7 @@ class MLP(nn.Module):
 
 class Attention(nn.Module):
 
-    def __init__(self, config: Dict[str, Any], blk_idx: int):
+    def __init__(self, config: dict, blk_idx: int):
         super().__init__()
         self.n_embd = config['n_embd']
         self.n_head = config['n_head']
@@ -143,7 +143,7 @@ class Attention(nn.Module):
 
 class Block(nn.Module):
 
-    def __init__(self, config: Dict[str, Any], blk_idx: int):
+    def __init__(self, config: dict, blk_idx: int):
         super().__init__()
 
         self.ln_1 = nn.LayerNorm(config['n_embd'], eps=config['epsilon'])
@@ -164,7 +164,7 @@ class Block(nn.Module):
 class MCPTModel(nn.Module):
     supports_gradient_checkpointing = True
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict):
         super().__init__()
         self.config = config
         self.n_embd = config['n_embd']
@@ -197,3 +197,56 @@ class MCPTModel(nn.Module):
             'hidden_states': h,
             'present': present,
         }
+
+
+class Model(nn.Module):
+
+    def __init__(self, transformer):
+        super().__init__()
+        self.transformer = transformer
+        self.config = self.transformer.config
+
+    def forward(self, inputs, past=None):
+        h = self.transformer(inputs, past=past)
+        h, present = h['hidden_states'], h['present']
+        logits = torch.matmul(h, self.transformer.wte.weight.t())
+        return {
+            'logits': logits,
+            'present': present,
+        }
+
+    def hidden_states(self, inputs, past=None):
+        return self.transformer(inputs, past=past)['hidden_states']
+
+    @classmethod
+    def from_config(
+            cls,
+            config: str | dict,
+            load_model: str | None = None,
+            device: Any | None = None,
+            strict: bool = True,
+    ) -> 'Self':
+        import mcpt
+        if isinstance(config, str):
+            config = mcpt.load_config(config)
+        if config.get('use_pinyin', False):
+            raise ValueError('Pinyin is not supported in this version of the model.')
+        else:
+            model = cls(MCPTModel(config))
+        if load_model is not None:
+            model.load_state_dict(torch.load(load_model, map_location=device), strict=strict)
+        if device is not None:
+            model.to(device)
+        return model
+
+
+class RewardModel(Model):
+
+    def __init__(self, transformer):
+        super().__init__(transformer)
+        self.reward_head = nn.Linear(self.config['n_embd'], 1, bias=False)
+
+    def forward(self, inputs, past=None):
+        h = self.hidden_states(inputs, past=past)
+        rewards = self.reward_head(h).squeeze(-1)
+        return rewards

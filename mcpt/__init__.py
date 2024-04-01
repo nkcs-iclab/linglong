@@ -1,7 +1,7 @@
 import mcpt.datasets
 import mcpt.experimental
 import mcpt.models
-from mcpt.models import Model, RewardModel
+from mcpt.models import Model, RewardModel, LingLongModel, LingLongLMHeadModel, LingLongConfig
 import mcpt.train
 import mcpt.stubs
 import mcpt.tokenization
