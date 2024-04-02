@@ -65,9 +65,8 @@ class Tokenizer(PreTrainedTokenizer):
         self.vocab_file = vocab_file
         if not pathlib.Path(vocab_file).is_file():
             raise FileNotFoundError(f"Can't find a vocabulary file at path '{vocab_file}'.")
-        else:
-            self.vocab = load_vocab(vocab_file)
-            self.ids_to_tokens = collections.OrderedDict([(ids, tok) for tok, ids in self.vocab.items()])
+        self.vocab = load_vocab(vocab_file)
+        self.ids_to_tokens = collections.OrderedDict([(ids, tok) for tok, ids in self.vocab.items()])
         self.do_basic_tokenize = do_basic_tokenize
         if do_basic_tokenize:
             self.basic_tokenizer = BasicTokenizer(
@@ -125,7 +124,7 @@ class Tokenizer(PreTrainedTokenizer):
                 for token in self.basic_tokenizer.tokenize(text_piece, never_split=self.all_special_tokens):
                     for sub_token in self.wordpiece_tokenizer.tokenize(token):
                         split_tokens.append(sub_token)
-                split_tokens.append('[SEP]')
+                split_tokens.append(self.sep_token)
             split_tokens.pop()
         else:
             split_tokens = self.wordpiece_tokenizer.tokenize(text)
@@ -156,7 +155,7 @@ class Tokenizer(PreTrainedTokenizer):
 
 class PinyinTokenizer(PreTrainedTokenizer):
     vocab_files_names = {'vocab_file': 'pinyin_tokenizer.txt'}
-    model_input_names = ['input_pinyin_ids']
+    model_input_names = ['input_ids']
 
     def __init__(
             self,
@@ -173,9 +172,12 @@ class PinyinTokenizer(PreTrainedTokenizer):
         if not pathlib.Path(vocab_file).is_file():
             raise FileNotFoundError(f"Can't find a vocabulary file at path '{vocab_file}'.")
         self.vocab = _load_pinyin_vocab(vocab_file)
+        self.idx_count = {}
+        for tok, ids in self.vocab.items():
+            self.idx_count.setdefault(ids, 0)
+            self.idx_count[ids] += 1
+        self.ids_to_tokens = collections.OrderedDict([(ids, tok) for tok, ids in self.vocab.items()])
         self._fallback = fallback
-        self.convert_id_to_token = None
-        self.convert_tokens_to_string = None
         super().__init__(
             unk_token=unk_token,
             sep_token=sep_token,
@@ -184,6 +186,12 @@ class PinyinTokenizer(PreTrainedTokenizer):
             mask_token=mask_token,
             **kwargs,
         )
+        # noinspection PyTypeChecker
+        self.add_special_tokens({
+            'additional_special_tokens': [
+                '[unused1]',
+                '[unused2]',
+            ]})
 
     @property
     def vocab_size(self) -> int:
@@ -209,23 +217,26 @@ class PinyinTokenizer(PreTrainedTokenizer):
             shutil.copyfile(self.vocab_file, out_vocab_file)
         return str(out_vocab_file), None
 
-    def tokenize(self, text: str | list[str], **kwargs) -> list[str]:
-        return self._tokenize(text, **kwargs)
-
     def _tokenize(self, text: str | list[str], **kwargs) -> list[str]:
         return [token[0] for token in pypinyin.pinyin(text, errors=lambda x: self._fallback.tokenize(x))]
 
     def _convert_token_to_id(self, token: str) -> int:
         return self.vocab.get(token, self.vocab.get(self.unk_token))
 
-    def convert_ids_to_tokens(self, **kwargs):
-        raise NotImplementedError
+    def _convert_id_to_token(self, index: int) -> str:
+        return self.ids_to_tokens.get(index, self.unk_token)
 
-    def convert_tokens_to_string(self, **kwargs):
-        raise NotImplementedError
-
-    def decode(self, **kwargs):
-        raise NotImplementedError
+    def convert_ids_to_tokens(self, ids: int | list[int], skip_special_tokens: bool = False) -> str | list[str]:
+        tokens = super().convert_ids_to_tokens(ids, skip_special_tokens=skip_special_tokens)
+        if isinstance(tokens, str):
+            tokens = [tokens]
+        tokens = [
+            self.unk_token if (self.idx_count.get(self._convert_token_to_id(token), 0) > 1) else token for token in
+            tokens
+        ]
+        if len(tokens) == 1:
+            return tokens[0]
+        return tokens
 
     @staticmethod
     def convert_tokenizer_tokens_to_tokens(tokens: str | list[str]) -> str | list[str]:
