@@ -238,15 +238,3 @@ class Model(nn.Module):
         if device is not None:
             model.to(device)
         return model
-
-
-class RewardModel(Model):
-
-    def __init__(self, transformer):
-        super().__init__(transformer)
-        self.reward_head = nn.Linear(self.config['n_embd'], 1, bias=False)
-
-    def forward(self, inputs, past=None):
-        h = self.hidden_states(inputs, past=past)
-        rewards = self.reward_head(h).squeeze(-1)
-        return rewards
