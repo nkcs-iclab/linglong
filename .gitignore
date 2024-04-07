@@ -3,7 +3,7 @@ __pycache__/
 
 demo/
 
-hostfile
+old-scripts/training/hostfile
 *.pt
 *local.yaml
 *.sh

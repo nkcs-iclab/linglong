@@ -1,11 +1,7 @@
-import mcpt.datasets
-import mcpt.experimental
-import mcpt.models
-from mcpt.models import Model, RewardModel, LingLongModel, LingLongLMHeadModel, LingLongConfig
-import mcpt.train
-import mcpt.stubs
-import mcpt.tokenization
-from mcpt.tokenization import Tokenizer, PinyinTokenizer
-import mcpt.generation
+import linglong.models
+from linglong.models import Model, LingLongModel, LingLongLMHeadModel, LingLongConfig
+import linglong.tokenization
+from linglong.tokenization import Tokenizer, PinyinTokenizer
+import linglong.generation
 
-from mcpt.utils import *
+from linglong.utils import *

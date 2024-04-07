@@ -1,11 +1,11 @@
-import math
+import torch
 import pathlib
 import tensorflow as tf
 
-from typing import *
-from torch.utils.data import IterableDataset, DataLoader
+from typing import Sequence
+from torch.utils.data import IterableDataset
 
-import mcpt
+import linglong
 
 tf.config.set_visible_devices([], 'GPU')
 
@@ -14,10 +14,11 @@ def _int64_feature(value: Sequence) -> tf.train.Feature:
     return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
 
 
-def serialize_example(data: Sequence, label: Sequence, pinyin: Optional[Sequence] = None) -> bytes:
+def serialize_example(data: Sequence, pinyin: Sequence | None = None, attention_mask: Sequence | None = None) -> bytes:
     feature = {
         'data': _int64_feature(data),
-        'label': _int64_feature(label),
+        'attention_mask': _int64_feature(attention_mask) if attention_mask is not None else _int64_feature(
+            [1] * len(data)),
     }
     if pinyin is not None:
         feature['pinyin'] = _int64_feature(pinyin)
@@ -25,31 +26,32 @@ def serialize_example(data: Sequence, label: Sequence, pinyin: Optional[Sequence
     return example.SerializeToString()
 
 
-def decode(serialized_example: bytes) -> Tuple[tf.Tensor, tf.Tensor]:
-    feature = {
-        'data': tf.io.VarLenFeature(dtype=tf.int64),
-        'label': tf.io.VarLenFeature(dtype=tf.int64),
-    }
-    example = tf.io.parse_single_example(serialized_example, feature)
-    data = tf.sparse.to_dense(example['data'])
-    label = tf.sparse.to_dense(example['label'])
-    return data, label
+def get_decode_fn(use_pinyin: bool = False, load_attention_mask: bool = True):
+    def decode(serialized_example: bytes) -> tuple[tf.Tensor, tf.Tensor]:
+        feature = {
+            'data': tf.io.VarLenFeature(dtype=tf.int64),
+        }
+        if load_attention_mask:
+            feature['attention_mask'] = tf.io.VarLenFeature(dtype=tf.int64)
+        example = tf.io.parse_single_example(serialized_example, feature)
+        data = tf.sparse.to_dense(example['data'])
+        attention_mask = tf.sparse.to_dense(example['attention_mask']) if load_attention_mask else tf.ones_like(data)
+        return data, attention_mask
 
+    def decode_pinyin(serialized_example: bytes) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+        feature = {
+            'data': tf.io.VarLenFeature(dtype=tf.int64),
+            'pinyin': tf.io.VarLenFeature(dtype=tf.int64),
+        }
+        if load_attention_mask:
+            feature['attention_mask'] = tf.io.VarLenFeature(dtype=tf.int64)
+        example = tf.io.parse_single_example(serialized_example, feature)
+        data = tf.sparse.to_dense(example['data'])
+        pinyin = tf.sparse.to_dense(example['pinyin'])
+        attention_mask = tf.sparse.to_dense(example['attention_mask']) if load_attention_mask else tf.ones_like(data)
+        return data, pinyin, attention_mask
 
-def decode_pinyin(serialized_example: bytes) -> Tuple[tf.Tensor, tf.Tensor]:
-    feature = {
-        'data': tf.io.VarLenFeature(dtype=tf.int64),
-        'label': tf.io.VarLenFeature(dtype=tf.int64),
-        'pinyin': tf.io.VarLenFeature(dtype=tf.int64),
-    }
-    example = tf.io.parse_single_example(serialized_example, feature)
-    data = tf.sparse.to_dense(example['data'])
-    label = tf.sparse.to_dense(example['label'])
-    pinyin = tf.sparse.to_dense(example['pinyin'])
-    data = tf.expand_dims(data, axis=-2)
-    pinyin = tf.expand_dims(pinyin, axis=-2)
-    data = tf.concat((data, pinyin), axis=-2)
-    return data, label
+    return decode_pinyin if use_pinyin else decode
 
 
 class TFRecordDataset(IterableDataset):
@@ -58,28 +60,25 @@ class TFRecordDataset(IterableDataset):
             self,
             path: str,
             meta: str,
-            dp_size: int = 1,
-            dp_rank: int = 0,
             files_key: str = 'files',
             use_pinyin: bool = False,
+            load_attention_mask: bool = True,
     ):
         super().__init__()
         path = pathlib.Path(path)
-        meta = mcpt.load_config(str(path / meta))
+        meta = linglong.load_config(str(path / meta))
         padding_shape = meta['padding_shape']
-        self.samples_per_rank = math.ceil(meta['count'] / dp_size)
+        self.count = meta['count']
         dataset = tf.data.TFRecordDataset(
-            list(map(lambda x: str(path / x), meta[files_key])),
+            list(map(lambda x: str(path / x), meta[files_key])) if path.is_dir() else str(path),
             compression_type=meta.get('compression_type'),
         )
 
-        if dp_size > 1:
-            dataset = dataset.shard(dp_size, dp_rank)
+        self.use_pinyin = use_pinyin
+        decode_fn = get_decode_fn(use_pinyin, load_attention_mask)
         if use_pinyin:
-            decode_fn = decode_pinyin
-            padded_shapes = ((2, padding_shape), padding_shape)
+            padded_shapes = (padding_shape, padding_shape, padding_shape)
         else:
-            decode_fn = decode
             padded_shapes = (padding_shape, padding_shape)
 
         dataset = dataset \
@@ -94,7 +93,7 @@ class TFRecordDataset(IterableDataset):
         self.tfds_iter = iter(self.tfds)
 
     def __len__(self):
-        return self.samples_per_rank
+        return self.count
 
     def __iter__(self):
         self.index = 0
@@ -102,23 +101,34 @@ class TFRecordDataset(IterableDataset):
         return self
 
     def __next__(self):
-        if self.index >= self.samples_per_rank:
+        if self.index >= self.count:
             raise StopIteration
         self.index += 1
-        data, label = next(self.tfds_iter)
-        return data.numpy()[0], label.numpy()[0]
+        if self.use_pinyin:
+            data, pinyin, attention_mask = next(self.tfds_iter)
+            label = tf.where(data == 0, tf.constant(-100, dtype=tf.int64), data)
+            return {
+                'input_ids': torch.from_numpy(data.numpy()[0]).long(),
+                'pinyin_input_ids': torch.from_numpy(pinyin.numpy()[0]).long(),
+                'attention_mask': torch.from_numpy(attention_mask.numpy()[0]).long(),
+                'label_ids': torch.from_numpy(label.numpy()[0]).long(),
+            }
+        # noinspection PyTupleAssignmentBalance
+        data, attention_mask = next(self.tfds_iter)
+        label = tf.where(data == 0, tf.constant(-100, dtype=tf.int64), data)
+        return {
+            'input_ids': torch.from_numpy(data.numpy()[0]).long(),
+            'attention_mask': torch.from_numpy(attention_mask.numpy()[0]).long(),
+            'label_ids': torch.from_numpy(label.numpy()[0]).long(),
+        }
 
 
 def load(
-        path: Optional[str],
+        path: str | None,
         meta: str,
-        batch_size: int,
-        dp_size: int = 1,
-        dp_rank: int = 0,
         use_pinyin: bool = False,
-):
+        load_attention_mask: bool = True,
+) -> TFRecordDataset | None:
     if path is None:
         return
-    dataset = TFRecordDataset(path, meta, dp_size, dp_rank, use_pinyin=use_pinyin)
-    dataloader = DataLoader(dataset, batch_size=batch_size)
-    return dataloader
+    return TFRecordDataset(path, meta, use_pinyin=use_pinyin, load_attention_mask=load_attention_mask)

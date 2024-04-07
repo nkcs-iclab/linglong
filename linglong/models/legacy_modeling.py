@@ -161,7 +161,7 @@ class Block(nn.Module):
         return h, present
 
 
-class MCPTModel(nn.Module):
+class LingLongModel(nn.Module):
     supports_gradient_checkpointing = True
 
     def __init__(self, config: dict):
@@ -226,13 +226,13 @@ class Model(nn.Module):
             device: Any | None = None,
             strict: bool = True,
     ) -> 'Self':
-        import mcpt
+        import linglong
         if isinstance(config, str):
-            config = mcpt.load_config(config)
+            config = linglong.load_config(config)
         if config.get('use_pinyin', False):
             raise ValueError('Pinyin is not supported in this version of the model.')
         else:
-            model = cls(MCPTModel(config))
+            model = cls(LingLongModel(config))
         if load_model is not None:
             model.load_state_dict(torch.load(load_model, map_location=device), strict=strict)
         if device is not None:

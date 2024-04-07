@@ -8,17 +8,17 @@ import importlib
 from typing import Callable
 from transformers import TextStreamer
 
-import mcpt
+import linglong
 
 
-class MCPTGenerate(cmd.Cmd):
+class LingLongGenerate(cmd.Cmd):
 
     def __init__(
             self,
             generation_config: dict,
-            tokenizer: mcpt.Tokenizer,
-            pinyin_tokenizer: mcpt.PinyinTokenizer | None,
-            model: mcpt.Model,
+            tokenizer: linglong.Tokenizer,
+            pinyin_tokenizer: linglong.PinyinTokenizer | None,
+            model: linglong.Model,
             special_tokens: dict[str, str],
             prompt: str,
             prefix: str,
@@ -45,12 +45,12 @@ class MCPTGenerate(cmd.Cmd):
 
     def _renew_cmd_prompt(self):
         prompt = f'{self._prompt[:10]}...' if len(self._prompt) > 10 else self._prompt
-        self.prompt = mcpt.text(f'({prompt})', style=mcpt.ERROR)
-        self.prompt += f' [max length: {mcpt.text(self._generation_config["max_length"], style=mcpt.STRUCTURE)}'
+        self.prompt = linglong.text(f'({prompt})', style=linglong.ERROR)
+        self.prompt += f' [max length: {linglong.text(self._generation_config["max_length"], style=linglong.STRUCTURE)}'
         if self._prefix:
-            self.prompt += f', prefix: {mcpt.text(self._prefix, style=mcpt.STRUCTURE)}'
+            self.prompt += f', prefix: {linglong.text(self._prefix, style=linglong.STRUCTURE)}'
         if self._suffix:
-            self.prompt += f', suffix: {mcpt.text(self._suffix, style=mcpt.STRUCTURE)}'
+            self.prompt += f', suffix: {linglong.text(self._suffix, style=linglong.STRUCTURE)}'
         self.prompt += '] -> '
 
     def _print_samples(self, samples: list[str]):
@@ -58,14 +58,14 @@ class MCPTGenerate(cmd.Cmd):
             sample = sample.split(self._special_tokens['new_line'] + self._special_tokens['end_token'])[0]
             sample = sample.split(self._special_tokens['new_line'])[0]
             sample = sample.replace(self._special_tokens['new_line'], '\\n')
-            print(mcpt.text(f'GENERATED [{idx + 1}]', style=mcpt.WARNING), end=' ')
+            print(linglong.text(f'GENERATED [{idx + 1}]', style=linglong.WARNING), end=' ')
             print(sample)
 
     def _generate(self):
         backward = self._model.config.backward
         step_by_step = self._generation_config['batch_size'] == 1 and not backward
 
-        print(mcpt.text('QUERY', style=mcpt.WARNING), self._prompt)
+        print(linglong.text('QUERY', style=linglong.WARNING), self._prompt)
 
         prefix = self._prefix
         for plugin in self._plugins:
@@ -75,13 +75,13 @@ class MCPTGenerate(cmd.Cmd):
                     plugin_output, debug_output = plugin_output['text'], plugin_output['debug']
                     print(debug_output)
                     for k, v in debug_output.items():
-                        print(mcpt.text(f'PLUGIN {plugin.placeholder} - {k}', style=mcpt.WARNING), v)
-                print(mcpt.text(f'PLUGIN {plugin.placeholder}', style=mcpt.WARNING), plugin_output)
+                        print(linglong.text(f'PLUGIN {plugin.placeholder} - {k}', style=linglong.WARNING), v)
+                print(linglong.text(f'PLUGIN {plugin.placeholder}', style=linglong.WARNING), plugin_output)
                 prefix = prefix.replace('{' + plugin.placeholder + '}', plugin_output)
         prompt = self._special_tokens['start_token'] + prefix + (
             self._prompt[::-1] if backward else self._prompt) + self._suffix
         if self._debug:
-            print(mcpt.text('PROMPT', style=mcpt.WARNING), prompt)
+            print(linglong.text('PROMPT', style=linglong.WARNING), prompt)
         model_inputs = self._tokenizer([prompt], return_tensors='pt', padding=True).to(self._model.device)
         if self._use_pinyin:
             model_inputs['pinyin_input_ids'] = self._pinyin_tokenizer(
@@ -91,7 +91,7 @@ class MCPTGenerate(cmd.Cmd):
             ).to(self._model.device)['input_ids']
         try:
             if step_by_step:
-                print(mcpt.text(f'GENERATED', style=mcpt.WARNING), end=' ')
+                print(linglong.text(f'GENERATED', style=linglong.WARNING), end=' ')
                 _ = self._model.generate(
                     **model_inputs,
                     max_length=self._generation_config['max_length'],
@@ -102,7 +102,7 @@ class MCPTGenerate(cmd.Cmd):
                     streamer=self._streamer,
                 )
             else:
-                with mcpt.running(f'Generating {self._generation_config["batch_size"]} sample(s)', timer=True):
+                with linglong.running(f'Generating {self._generation_config["batch_size"]} sample(s)', timer=True):
                     generated_ids = self._model.generate(
                         **model_inputs,
                         max_length=self._generation_config['max_length'],
@@ -125,7 +125,7 @@ class MCPTGenerate(cmd.Cmd):
         allowed_keys = {*self._generation_config.keys(), 'prefix', 'suffix'}
         k, v = arg.split()
         if k not in allowed_keys:
-            print(mcpt.text(f'`{k}` is not a valid key. Valid keys are: {allowed_keys}', style=mcpt.ERROR))
+            print(linglong.text(f'`{k}` is not a valid key. Valid keys are: {allowed_keys}', style=linglong.ERROR))
             return
         if k in ('max_length', 'batch_size', 'top_k'):
             v = int(v)
@@ -141,7 +141,7 @@ class MCPTGenerate(cmd.Cmd):
                           f'Clipping the length to {self._model.config.n_positions}.')
         if k in self._generation_config:
             self._generation_config[k] = v
-        print(mcpt.text(f'`{k}` is set to {v}', style=mcpt.INFO))
+        print(linglong.text(f'`{k}` is set to {v}', style=linglong.INFO))
         self._renew_cmd_prompt()
 
     def do_clear(self, arg):
@@ -156,7 +156,7 @@ class MCPTGenerate(cmd.Cmd):
 
     @staticmethod
     def do_exit(_):
-        print(mcpt.text('Goodbye', style=mcpt.INFO))
+        print(linglong.text('Goodbye', style=linglong.INFO))
         return True
 
     def emptyline(self):
@@ -200,10 +200,10 @@ def main(
     }
     try:
         model_path = model
-        with mcpt.running('Loading the model', timer=True):
-            model = mcpt.LingLongLMHeadModel.from_pretrained(model_path, device_map=device_map)
-        tokenizer = mcpt.Tokenizer.from_pretrained(model_path, padding_side='left')
-        pinyin_tokenizer = mcpt.PinyinTokenizer.from_pretrained(
+        with linglong.running('Loading the model', timer=True):
+            model = linglong.LingLongLMHeadModel.from_pretrained(model_path, device_map=device_map)
+        tokenizer = linglong.Tokenizer.from_pretrained(model_path, padding_side='left')
+        pinyin_tokenizer = linglong.PinyinTokenizer.from_pretrained(
             model_path,
             fallback=tokenizer,
             padding_side='left',
@@ -214,14 +214,14 @@ def main(
                           f'Clipping the length to {model.config.n_positions}.')
         if plugins is not None:
             plugins = [importlib.import_module(plugin).Plugin() for plugin in plugins]
-        print(mcpt.text('Model Info', style=mcpt.INFO))
-        mcpt.pprint({
+        print(linglong.text('Model Info', style=linglong.INFO))
+        linglong.pprint({
             'model': model_path,
             'use_pinyin': model.config.use_pinyin,
             'backward': model.config.backward,
         })
 
-        MCPTGenerate(
+        LingLongGenerate(
             generation_config=generation_config,
             tokenizer=tokenizer,
             pinyin_tokenizer=pinyin_tokenizer,
@@ -234,9 +234,9 @@ def main(
             debug=debug,
         ).cmdloop()
     except KeyboardInterrupt:
-        print(mcpt.text('\nGoodbye', style=mcpt.INFO))
+        print(linglong.text('\nGoodbye', style=linglong.INFO))
 
 
 if __name__ == '__main__':
-    mcpt.init()
+    linglong.init()
     fire.Fire(main)

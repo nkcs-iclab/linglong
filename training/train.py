@@ -1,189 +1,91 @@
-import fire
-import torch
-import pathlib
-import contextlib
+import deepspeed
 
-from typing import *
+from dataclasses import dataclass, field
+from transformers import (
+    Trainer,
+    HfArgumentParser,
+    TrainingArguments,
+)
+from transformers.utils import check_min_version
 
-import mcpt
-import mcpt.records
+import linglong
+import linglong.records
 
-try:
-    import horovod.torch as hvd
-except ModuleNotFoundError:
-    hvd = mcpt.stubs.Horovod()
+check_min_version('4.39.3')
 
 
-def main(
-        training_data: str,
-        model_config: str,
-        training_config: str,
-        override_config: Optional[Dict] = None,
-        training_meta: str = 'train-meta.json',
-        validation_data: Optional[str] = None,
-        validation_meta: str = 'valid-meta.json',
-        epochs: int = 5,
-        load_model: Optional[str] = None,
-        save_path: str = './ckpt',
-        save_frequency: Union[int, str, List[Union[int, str]]] = 'epoch',
-        log_frequency: int = 10,
-        device: str = 'cuda',
-        save_initial: bool = False,
-        save_final: bool = False,
-        skip_steps: int = 0,
-):
-    hvd.init()
-    mcpt.bind_gpu(hvd)
+@dataclass
+class ModelArguments:
+    pretrained_model: str | None = field(
+        default=None,
+        metadata={'help': 'Pretrained model path'},
+    )
 
-    with mcpt.running('Loading configs', hvd=hvd) as spinner:
-        model_config_path, training_config_path = model_config, training_config
-        model_config = mcpt.load_config(model_config_path)
-        model_config = mcpt.merge_configs(model_config, (override_config or {}).get('model_config', {}))
-        training_config = mcpt.load_config(training_config_path)
-        training_config = mcpt.merge_configs(training_config, (override_config or {}).get('training_config', {}))
-        config = {
-            'training_data': training_data,
-            'model_config_path': model_config_path,
-            'training_config_path': training_config_path,
-            'override_config': override_config,
-            'training_meta': training_meta,
-            'validation_data': validation_data,
-            'validation_meta': validation_meta,
-            'epochs': epochs,
-            'load_model': load_model,
-            'save_path': save_path,
-            'save_frequency': save_frequency,
-            'log_frequency': log_frequency,
-            'device': device,
-            'save_initial': save_initial,
-            'save_final': save_final,
-            'skip_steps': skip_steps,
-            'model_config': model_config,
-            'training_config': training_config,
-        }
-        save_path = pathlib.Path(save_path)
-        spinner.write(mcpt.pprint(config, export=True))
+    model_config: str | None = field(
+        default=None,
+        metadata={'help': 'Model config path'},
+    )
 
-    with mcpt.running('Loading the dataset', hvd=hvd, timer=True):
-        train_loader = mcpt.records.load(
-            path=training_data,
-            meta=training_meta,
-            batch_size=training_config['train_micro_batch_size_per_gpu'],
-            dp_size=hvd.size(),
-            dp_rank=hvd.rank(),
-            use_pinyin=model_config.get('use_pinyin', False),
-        )
-        validation_loader = mcpt.records.load(
-            path=validation_data,
-            meta=validation_meta,
-            batch_size=training_config['train_micro_batch_size_per_gpu'],
-            dp_size=hvd.size(),
-            dp_rank=hvd.rank(),
-            use_pinyin=model_config.get('use_pinyin', False),
+
+@dataclass
+class DataArguments:
+    training_data: str = field(
+        metadata={'help': 'Training data path'},
+    )
+
+    training_meta: str = field(
+        default='train-meta.json',
+        metadata={'help': 'The meta file\'s filename of the training data'},
+    )
+
+    load_attention_mask: bool = field(
+        default=True,
+        metadata={'help': 'Whether to load the attention mask'},
+    )
+
+
+def main():
+    parser = HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
+    model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+    comm = linglong.Comm(
+        size=deepspeed.comm.get_world_size(),
+        rank=deepspeed.comm.get_rank(),
+        local_rank=training_args.local_rank,
+    )
+
+    with linglong.running('Loading configs', comm=comm) as spinner:
+        spinner.write(model_args)
+        spinner.write(data_args)
+        spinner.write(training_args)
+
+    with linglong.running('Loading the model', comm=comm, timer=True) as spinner:
+        if model_args.pretrained_model is not None:
+            model = linglong.LingLongLMHeadModel.from_pretrained(model_args.pretrained_model)
+        elif model_args.model_config is not None:
+            model = linglong.LingLongLMHeadModel(linglong.LingLongConfig.from_pretrained(model_args.model_config))
+        else:
+            raise ValueError('Either pretrained_model or model_config must be provided.')
+        model_config = model.config
+        linglong.print_trainable_parameters(model, comm=comm, print_fn=spinner.write)
+        spinner.write(model)
+
+    with linglong.running('Loading the dataset', comm=comm, timer=True):
+        train_dataset = linglong.records.load(
+            path=data_args.training_data,
+            meta=data_args.training_meta,
+            use_pinyin=model_config.use_pinyin,
+            load_attention_mask=data_args.load_attention_mask,
         )
 
-    with mcpt.running('Loading the model', hvd=hvd, timer=True):
-        model = mcpt.Model.from_config(
-            config=model_config,
-            load_model=load_model,
-            device=device,
+    with linglong.running('Training', comm=comm, spinner=False):
+        trainer = Trainer(
+            model=model,
+            args=training_args,
+            train_dataset=train_dataset,
         )
-        training_config['optimizer']['params']['lr'] = \
-            training_config['optimizer']['params']['lr'] * hvd.size() * training_config['gradient_accumulation_steps']
-        optimizer = mcpt.train.optimizers.adamw(model.parameters(), config=training_config['optimizer']['params'])
-        optimizer = hvd.DistributedOptimizer(
-            optimizer,
-            named_parameters=model.named_parameters(),
-            sparse_as_dense=True,
-            backward_passes_per_step=training_config['gradient_accumulation_steps'],
-        )
-        lr_scheduler = mcpt.train.schedulers.cosine_annealing_warmup(
-            optimizer,
-            config=training_config,
-            n_ctx=model.config['n_ctx'],
-            dp_size=hvd.size(),
-        )
-        hvd.broadcast_parameters(model.state_dict(), root_rank=0)
-        hvd.broadcast_optimizer_state(optimizer, root_rank=0)
-        callbacks = []
-        if hvd.rank() == 0:
-            if not isinstance(save_frequency, Union[Tuple, List]):
-                save_frequency = (save_frequency,)
-            for freq in save_frequency:
-                if isinstance(freq, str):
-                    assert freq in ('epoch', 'step')
-                callbacks.append(
-                    mcpt.train.callbacks.ModelCheckpointCallback(
-                        save_path=save_path,
-                        save_frequency=freq,
-                    ),
-                )
-
-    if hvd.rank() == 0:
-        print(model)
-        if save_initial:
-            torch.save(model.state_dict(), save_path / 'initial.pt')
-
-    scaler = torch.cuda.amp.GradScaler() if training_config['fp16']['enabled'] else mcpt.stubs.Noop()
-    for epoch in range(1, epochs + 1):
-        if hvd.rank() == 0:
-            print(f'Epoch {epoch}/{epochs}')
-        train_tqdm = mcpt.tqdm(enumerate(train_loader), total=len(train_loader), hvd=hvd)
-        loss = 0
-        for batch_idx, (data, target) in train_tqdm:
-            if batch_idx < skip_steps:
-                continue
-            data, target = data.to(device), target.to(device)
-            optimizer.zero_grad()
-            with (torch.cuda.amp.autocast() if training_config['fp16']['enabled'] else contextlib.suppress()):
-                logits = model(data)['logits']
-                loss = torch.nn.functional.cross_entropy(logits.permute(0, 2, 1), target, ignore_index=0)
-            if training_config['fp16']['enabled']:
-                scaler.scale(loss).backward()
-            else:
-                loss.backward()
-            if not isinstance(hvd, mcpt.stubs.Horovod):
-                optimizer.synchronize()
-            scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=training_config['gradient_clipping'])
-            with (contextlib.suppress() if isinstance(hvd, mcpt.stubs.Horovod) else optimizer.skip_synchronize()):
-                if training_config['fp16']['enabled']:
-                    scaler.step(optimizer)
-                else:
-                    optimizer.step()
-            scaler.update()
-            lr_scheduler.step()
-            loss = loss.item()
-            if hvd.rank() == 0 and (batch_idx + 1) % log_frequency == 0:
-                train_tqdm.write(
-                    f'Train Epoch: {epoch}/{epochs} [{batch_idx + 1}/{len(train_loader)}] '
-                    f'Loss: {loss}' +
-                    (f' Loss Scale: {scaler.get_scale()}' if training_config['fp16']['enabled'] else ''),
-                )
-            for callback in callbacks:
-                callback(model=model, epoch=epoch, batch=batch_idx + 1, loss=loss)
-        if validation_data is not None:
-            model.eval()
-            with torch.no_grad():
-                for batch_idx, (data, target) in enumerate(validation_loader):
-                    data, target = data.to(device), target.to(device)
-                    logits = model(data)['logits']
-                    val_loss = torch.nn.functional.cross_entropy(logits.permute(0, 2, 1), target, ignore_index=0)
-                    if hvd.rank() == 0:
-                        print(f'Valid Epoch: [{batch_idx + 1}/{len(validation_loader)}] Loss: {val_loss.item()}')
-            model.train()
-        for callback in callbacks:
-            callback(
-                model=model,
-                epoch=epoch,
-                loss=loss,
-                val_loss=val_loss.item() if validation_data is not None else None,
-                end_of_epoch=True,
-            )
-    if hvd.rank() == 0 and save_final:
-        torch.save(model.state_dict(), save_path / 'final.pt')
+        trainer.train(resume_from_checkpoint=training_args.resume_from_checkpoint)
 
 
 if __name__ == '__main__':
-    mcpt.init()
-    fire.Fire(main)
+    linglong.init()
+    main()
