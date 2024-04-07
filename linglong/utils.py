@@ -4,7 +4,7 @@ import yaml
 import torch
 import colorama
 import warnings
-import mergedeep
+import deepmerge
 import contextlib
 
 from tqdm import tqdm as tqdm_tqdm
@@ -12,7 +12,7 @@ from typing import *
 from yaspin import yaspin
 from yaspin.spinners import Spinners
 
-import mcpt
+import linglong
 
 _color_theme = {
     'info': colorama.Fore.CYAN,
@@ -27,6 +27,41 @@ SUCCESS = 'success'
 WARNING = 'warning'
 ERROR = 'error'
 STRUCTURE = 'structure'
+
+
+class Comm:
+
+    def __init__(self, size: int = 1, rank: int = 0, local_rank: int = 0):
+        self._size = size
+        self._rank = rank
+        self._local_rank = local_rank
+
+    def size(self) -> int:
+        return self._size
+
+    def rank(self) -> int:
+        return self._rank
+
+    def local_rank(self) -> int:
+        return self._local_rank
+
+
+class Writable:
+
+    def __init__(self, print_fn: Callable = print):
+        self._print_fn = print_fn
+
+    def write(self, *args, **kwargs):
+        self._print_fn(*args, **kwargs)
+
+
+class Noop:
+
+    def noop(self, *_, **__):
+        return self
+
+    def __getattr__(self, item):
+        return self.noop
 
 
 def _version_str_to_tuple(version_str: str) -> Tuple[int, ...]:
@@ -63,17 +98,10 @@ def init(window_color_fix: bool = True):
         colorama.just_fix_windows_console()
 
 
-def bind_gpu(hvd=None, gpu_id: Optional[int] = None):
-    if hvd is None:
-        hvd = mcpt.stubs.Horovod(local_rank=gpu_id)
-    if torch.cuda.is_available():
-        torch.cuda.set_device(hvd.local_rank())
-
-
 def tqdm(*args, **kwargs) -> tqdm_tqdm:
-    hvd = kwargs.pop('hvd', None)
-    if hvd is not None and hvd.rank() != 0:
-        return args[0] if len(args) > 0 else mcpt.stubs.Noop()
+    comm: Comm | None = kwargs.pop('comm', None)
+    if comm is not None and comm.rank() != 0:
+        return args[0] if len(args) > 0 else Noop()
     return tqdm_tqdm(*args, ncols=80, file=sys.stdout, ascii='.=', **kwargs)
 
 
@@ -107,7 +135,7 @@ def load_config(path: str, key: Optional[str] = None, format: Optional[str] = No
 def merge_configs(*configs: Dict[str, Any]) -> Dict[str, Any]:
     merged = {}
     for config in configs:
-        merged = mergedeep.merge(merged, config)
+        merged = deepmerge.always_merger.merge(merged, config)
     return merged
 
 
@@ -141,39 +169,61 @@ def pprint(
     print(formatted)
 
 
-def print_training_records(records, tokenizer: 'mcpt.Tokenizer'):
-    data, label = records
+def print_training_records(records, tokenizer: 'linglong.Tokenizer'):
+    input_ids = records['input_ids']
+    pinyin_input_ids = records.get('pinyin_input_ids', None)
+    attention_mask = records['attention_mask']
+    label_ids = records['label_ids']
     output = {
         'shape': {
-            'data': data.shape.as_list(),
-            'label': label.shape.as_list(),
+            'input_ids': input_ids.shape,
+            'pinyin_input_ids': pinyin_input_ids.shape if pinyin_input_ids is not None else None,
+            'attention_mask': attention_mask.shape,
+            'label_ids': label_ids.shape,
         },
         'examples': [],
     }
-    for i in range(len(data)):
+    for i in range(len(input_ids)):
         example = {}
-        if len(data.shape) == 3:
-            example['data'] = tokenizer.convert_ids_to_string(data[i][0])
-            example['pinyin_ids'] = str(data[i][1].numpy().tolist())
-        else:
-            example['data'] = tokenizer.convert_ids_to_string(data[i])
-        example['label'] = tokenizer.convert_ids_to_string(label[i])
-        example['data[data != 0].shape'] = data[i][data[i] != 0].shape.as_list()[0]
-        example['label[label != 0].shape'] = label[i][label[i] != 0].shape.as_list()[0]
+        example['data'] = tokenizer.decode(input_ids[i])
+        if pinyin_input_ids is not None:
+            example['pinyin_input_ids'] = str(pinyin_input_ids[i].numpy().tolist())
+        example['attention_mask'] = str(attention_mask[i].numpy().tolist())
+        example['label_ids'] = tokenizer.decode(label_ids[i])
+        example['data[data != 0].shape'] = input_ids[i][input_ids[i] != 0].shape[0]
+        example['attention_mask[attention_mask != 0].shape'] = attention_mask[i][attention_mask[i] != 0].shape[0]
+        example['label_ids[label_ids != -100].shape'] = label_ids[i][label_ids[i] != -100].shape[0]
         output['examples'].append(example)
     pprint(output)
 
 
+def print_trainable_parameters(model, comm=None, print_fn: Callable = print):
+    if comm is None or comm.rank() <= 0:
+        trainable_params = 0
+        all_param = 0
+        for _, param in model.named_parameters():
+            numel = param.ds_numel if hasattr(param, 'ds_tensor') else param.numel()
+            all_param += numel
+            if param.requires_grad:
+                trainable_params += numel
+        print_fn(
+            f'trainable params: {trainable_params} || '
+            f'all params: {all_param} || '
+            f'trainable%: {100 * trainable_params / all_param}',
+        )
+
+
 @contextlib.contextmanager
-def running(text_: str, spinner: bool = True, hvd=None, **kwargs):
+def running(text_: str, spinner: bool = True, comm=None, **kwargs):
     if spinner:
-        if hvd is not None:
-            if hvd.rank() != 0:
-                yield mcpt.stubs.Writable(print_fn=lambda *_: None)
+        if comm is not None:
+            if comm.rank() != 0:
+                yield Writable(print_fn=lambda *_: None)
                 return
         with yaspin(Spinners.line, text=text(text_, style=INFO), **kwargs) as spinner:
             yield spinner
         spinner.ok(text('(OK!)', style=SUCCESS))
     else:
-        print(text(text_, style=INFO))
-        yield mcpt.stubs.Writable()
+        if comm is None or comm.rank() <= 0:
+            print(text(text_, style=INFO))
+        yield Writable()

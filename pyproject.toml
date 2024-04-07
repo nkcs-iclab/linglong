@@ -1,13 +1,13 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ['setuptools']
+build-backend = 'setuptools.build_meta'
 
 [project]
-name = 'linglong-mcpt'
-version = '0.8.2'
+name = 'linglong'
+version = '0.9.0'
 description = 'A small-scale Chinese pretrained language model.'
 readme = 'README.md'
-requires-python = '>=3.6,<3.12'
+requires-python = '>=3.11,<3.13'
 license = {file = 'LICENSE'}
 authors = [
     {name = 'NKCS Intelligent Computing Lab', email = 'zyzhong@mail.nankai.edu.cn'},
@@ -16,22 +16,18 @@ classifiers = [
     'Development Status :: 4 - Beta',
     'Intended Audience :: Developers',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.6',
-    'Programming Language :: Python :: 3.7',
-    'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
     'Operating System :: OS Independent',
     'Topic :: Scientific/Engineering :: Artificial Intelligence',
     'Topic :: Software Development :: Libraries :: Python Modules',
 ]
 
 [project.urls]
-Repository = 'https://github.com/NKCSICLab/linglong-mcpt'
+Repository = 'https://github.com/NKCSICLab/linglong'
 
 [tool.setuptools]
 platforms = ['any']
 
 [tool.setuptools.packages.find]
-include = ['mcpt', 'mcpt.*']
+include = ['linglong', 'linglong.*']

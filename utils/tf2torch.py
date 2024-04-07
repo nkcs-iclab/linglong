@@ -3,17 +3,15 @@ import torch
 import pathlib
 import tensorflow as tf
 
-from typing import *
-
 import mcpt_tf
-import mcpt
+import linglong
 
 
 def set_weight(
         torch_key: str,
         tf_key: str,
-        torch_weights: Dict[str, torch.Tensor],
-        tf_weights: Dict[str, tf.Variable],
+        torch_weights: dict[str, torch.Tensor],
+        tf_weights: dict[str, tf.Variable],
 ):
     tf_weight = tf_weights[tf_key].numpy()
     torch_weight = torch_weights[torch_key]
@@ -31,19 +29,19 @@ def tf_idx(idx: int) -> str:
 def main(
         model_config: str,
         tf_model_path: str,
-        torch_model_path: Optional[str] = None,
+        torch_model_path: str | None = None,
 ):
     tf_model = mcpt_tf.Model.from_config_(model_config, load_model=tf_model_path)
-    torch_model = mcpt.Model.from_config(model_config)
+    torch_model = linglong.Model.from_config(model_config)
 
     tf_weights = tf_model.weights
     tf_weights = {tf_weight.name: tf_weight for tf_weight in tf_weights}
     print(f'Loaded {len(tf_weights)} weights from the TensorFlow model: '
-          f'{mcpt.pprint(list(tf_weights.keys()), export=True)}')
+          f'{linglong.pprint(list(tf_weights.keys()), export=True)}')
 
     torch_weights = torch_model.state_dict()
     print(f'Loaded {len(torch_weights)} weights from the PyTorch model: '
-          f'{mcpt.pprint(list(torch_weights.keys()), export=True)}')
+          f'{linglong.pprint(list(torch_weights.keys()), export=True)}')
 
     set_weight(
         'transformer.wte.weight',
@@ -167,5 +165,5 @@ def main(
 
 
 if __name__ == '__main__':
-    mcpt.init()
+    linglong.init()
     fire.Fire(main)

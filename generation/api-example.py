@@ -1,7 +1,7 @@
 import fire
 import torch
 
-import mcpt
+import linglong
 
 
 def main(
@@ -10,9 +10,9 @@ def main(
         device_map: str | dict[str, int | str | torch.device] | int | torch.device | None = 'cuda',
 ):
     model_path = model
-    model = mcpt.LingLongLMHeadModel.from_pretrained(model_path, device_map=device_map)
-    tokenizer = mcpt.Tokenizer.from_pretrained(model_path, padding_side='left')
-    pinyin_tokenizer = mcpt.PinyinTokenizer.from_pretrained(
+    model = linglong.LingLongLMHeadModel.from_pretrained(model_path, device_map=device_map)
+    tokenizer = linglong.Tokenizer.from_pretrained(model_path, padding_side='left')
+    pinyin_tokenizer = linglong.PinyinTokenizer.from_pretrained(
         model_path,
         padding_side='left',
         fallback=tokenizer,
@@ -41,5 +41,5 @@ def main(
 
 
 if __name__ == '__main__':
-    mcpt.init()
+    linglong.init()
     fire.Fire(main)

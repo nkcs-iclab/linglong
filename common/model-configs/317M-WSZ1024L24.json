@@ -1,0 +1,30 @@
+{
+  "activation_function": "gelu_new",
+  "architectures": [
+    "LingLongModel"
+  ],
+  "attn_c": 8,
+  "attn_mode": "sparse",
+  "attn_pdrop": 0.1,
+  "attn_stride": 128,
+  "backward": false,
+  "bos_token_id": 10,
+  "embd_pdrop": 0.1,
+  "eos_token_id": 8,
+  "initializer_range": 0.02,
+  "layer_norm_epsilon": 1e-08,
+  "model_type": "linglong",
+  "n_embd": 1024,
+  "n_head": 16,
+  "n_inner": null,
+  "n_layer": 24,
+  "n_positions": 1024,
+  "pad_token_id": 0,
+  "reorder_and_upcast_attn": false,
+  "resid_pdrop": 0.1,
+  "scale_attn_by_inverse_layer_idx": false,
+  "scale_attn_weights": true,
+  "use_cache": true,
+  "use_pinyin": false,
+  "vocab_size": 13312
+}

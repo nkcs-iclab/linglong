@@ -1,13 +1,13 @@
+accelerate
 colorama
 cmake
 datasets
+deepmerge
 fire
 jieba
-mergedeep
 nvidia-nccl-cu12
 pypinyin
 PyYAML
 tensorflow
 transformers
 yaspin
-zhconv

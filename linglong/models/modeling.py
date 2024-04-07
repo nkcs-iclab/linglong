@@ -295,7 +295,6 @@ class LingLongPreTrainedModel(PreTrainedModel):
 
     config_class = LingLongConfig
     base_model_prefix = 'transformer'
-    is_parallelizable = True
     supports_gradient_checkpointing = True
     _no_split_modules = ['LingLongBlock']
     _skip_keys_device_placement = 'past_key_values'
@@ -339,6 +338,8 @@ class LingLongModel(LingLongPreTrainedModel):
         self.drop = nn.Dropout(config.embd_pdrop)
         self.h = nn.ModuleList([LingLongBlock(config, layer_idx=i) for i in range(config.n_layer)])
         self.ln_f = nn.LayerNorm(self.n_embd, eps=config.layer_norm_epsilon)
+
+        # Model parallel
         self.gradient_checkpointing = False
 
         # Initialize weights and apply final processing
@@ -590,7 +591,7 @@ class LingLongLMHeadModel(LingLongPreTrainedModel):
             shift_labels = labels[..., 1:].contiguous()
             # Flatten the tokens
             loss_fct = nn.CrossEntropyLoss()
-            loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
+            loss = loss_fct(shift_logits.permute(0, 2, 1), shift_labels)
 
         if not return_dict:
             output = (lm_logits,) + transformer_outputs[1:]
