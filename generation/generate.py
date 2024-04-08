@@ -215,11 +215,11 @@ def main(
         if plugins is not None:
             plugins = [importlib.import_module(plugin).Plugin() for plugin in plugins]
         print(linglong.text('Model Info', style=linglong.INFO))
-        linglong.pprint({
+        print(linglong.prettify({
             'model': model_path,
             'use_pinyin': model.config.use_pinyin,
             'backward': model.config.backward,
-        })
+        }))
 
         LingLongGenerate(
             generation_config=generation_config,

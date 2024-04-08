@@ -155,7 +155,7 @@ class LingLongAttention(nn.Module):
 
         # Downcast (if necessary) back to V's dtype (if in mixed-precision) -- No-Op if otherwise
         if attn_weights.dtype != torch.float32:
-            raise RuntimeError('Error with upcasting, attn_weights does not have dtype torch.float32')
+            raise RuntimeError('Error with upcasting, attn_weights does not have dtype torch.float32.')
         attn_weights = attn_weights.type(value.dtype)
         attn_weights = self.attn_dropout(attn_weights)
 
@@ -371,7 +371,7 @@ class LingLongModel(LingLongPreTrainedModel):
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
         if input_ids is not None and inputs_embeds is not None:
-            raise ValueError('You cannot specify both input_ids and inputs_embeds at the same time')
+            raise ValueError('You cannot specify both input_ids and inputs_embeds at the same time.')
         elif input_ids is not None:
             self.warn_if_padding_and_no_attention_mask(input_ids, attention_mask)
             input_shape = input_ids.size()
@@ -381,7 +381,7 @@ class LingLongModel(LingLongPreTrainedModel):
             input_shape = inputs_embeds.size()[:-1]
             batch_size = inputs_embeds.shape[0]
         else:
-            raise ValueError('You have to specify either input_ids or inputs_embeds')
+            raise ValueError('You have to specify either input_ids or inputs_embeds.')
 
         device = input_ids.device if input_ids is not None else inputs_embeds.device
 
@@ -397,7 +397,7 @@ class LingLongModel(LingLongPreTrainedModel):
         # LingLongAttention mask.
         if attention_mask is not None:
             if batch_size <= 0:
-                raise ValueError('batch_size has to be defined and > 0')
+                raise ValueError('batch_size has to be defined and > 0.')
             attention_mask = attention_mask.view(batch_size, -1)
             # We create a 3D attention mask from a 2D tensor mask.
             # Sizes are [batch_size, 1, 1, to_seq_length]
@@ -591,7 +591,7 @@ class LingLongLMHeadModel(LingLongPreTrainedModel):
             shift_labels = labels[..., 1:].contiguous()
             # Flatten the tokens
             loss_fct = nn.CrossEntropyLoss()
-            loss = loss_fct(shift_logits.permute(0, 2, 1), shift_labels)
+            loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
 
         if not return_dict:
             output = (lm_logits,) + transformer_outputs[1:]

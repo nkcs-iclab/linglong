@@ -7,8 +7,8 @@ import warnings
 import deepmerge
 import contextlib
 
+from typing import Callable
 from tqdm import tqdm as tqdm_tqdm
-from typing import *
 from yaspin import yaspin
 from yaspin.spinners import Spinners
 
@@ -29,23 +29,6 @@ ERROR = 'error'
 STRUCTURE = 'structure'
 
 
-class Comm:
-
-    def __init__(self, size: int = 1, rank: int = 0, local_rank: int = 0):
-        self._size = size
-        self._rank = rank
-        self._local_rank = local_rank
-
-    def size(self) -> int:
-        return self._size
-
-    def rank(self) -> int:
-        return self._rank
-
-    def local_rank(self) -> int:
-        return self._local_rank
-
-
 class Writable:
 
     def __init__(self, print_fn: Callable = print):
@@ -64,15 +47,15 @@ class Noop:
         return self.noop
 
 
-def _version_str_to_tuple(version_str: str) -> Tuple[int, ...]:
+def _version_str_to_tuple(version_str: str) -> tuple[int, ...]:
     version_str = version_str.split('+')[0]
     return tuple(map(int, version_str.split('.')))
 
 
 def _check_version(
-        ver: Union[str, Tuple[int, ...]],
-        min_ver: Optional[str] = None,
-        max_ver: Optional[str] = None,
+        ver: str | tuple[int, ...],
+        min_ver: str | None = None,
+        max_ver: str | None = None,
 ) -> bool:
     if isinstance(ver, str):
         ver = _version_str_to_tuple(ver)
@@ -84,11 +67,11 @@ def _check_version(
     return status
 
 
-def torch_version(min_ver: Optional[str] = None, max_ver: Optional[str] = None) -> bool:
+def torch_version(min_ver: str | None = None, max_ver: str | None = None) -> bool:
     return _check_version(_version_str_to_tuple(torch.__version__), min_ver, max_ver)
 
 
-def python_version(min_ver: Optional[str] = None, max_ver: Optional[str] = None) -> bool:
+def python_version(min_ver: str | None = None, max_ver: str | None = None) -> bool:
     return _check_version(sys.version_info, min_ver, max_ver)
 
 
@@ -99,22 +82,22 @@ def init(window_color_fix: bool = True):
 
 
 def tqdm(*args, **kwargs) -> tqdm_tqdm:
-    comm: Comm | None = kwargs.pop('comm', None)
-    if comm is not None and comm.rank() != 0:
-        return args[0] if len(args) > 0 else Noop()
-    return tqdm_tqdm(*args, ncols=80, file=sys.stdout, ascii='.=', **kwargs)
+    is_main_process = kwargs.pop('is_main_process', True)
+    if is_main_process:
+        return tqdm_tqdm(*args, ncols=80, file=sys.stdout, ascii='.=', **kwargs)
+    return args[0] if len(args) > 0 else Noop()
 
 
 def trange(*args, **kwargs) -> tqdm_tqdm:
     return tqdm(range(*args), **kwargs)
 
 
-def text(msg: str, style: Optional[str] = None) -> str:
+def text(msg: str, style: str | None = None) -> str:
     return (_color_theme[style] + str(msg) + colorama.Fore.RESET) if style is not None else str(msg)
 
 
 # noinspection PyShadowingBuiltins
-def load_config(path: str, key: Optional[str] = None, format: Optional[str] = None) -> Dict[str, Any]:
+def load_config(path: str, key: str | None = None, format: str | None = None) -> dict:
     if format is None:
         format = path.split('.')[-1]
     format = format.lower()
@@ -132,7 +115,7 @@ def load_config(path: str, key: Optional[str] = None, format: Optional[str] = No
     return config
 
 
-def merge_configs(*configs: Dict[str, Any]) -> Dict[str, Any]:
+def merge_configs(*configs: dict) -> dict:
     merged = {}
     for config in configs:
         merged = deepmerge.always_merger.merge(merged, config)
@@ -140,7 +123,7 @@ def merge_configs(*configs: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # noinspection PyShadowingBuiltins
-def load_file(path: str, format: Optional[str] = None) -> Union[List, Dict]:
+def load_file(path: str, format: str | None = None) -> list | dict:
     if format is None:
         format = path.split('.')[-1]
     format = format.lower()
@@ -156,20 +139,16 @@ def load_file(path: str, format: Optional[str] = None) -> Union[List, Dict]:
     return data
 
 
-def pprint(
-        d: Union[Dict, List],
-        indent: Optional[Union[int, str]] = 2,
+def prettify(
+        d: list | dict,
+        indent: int | str | None = 2,
         ensure_ascii: bool = False,
-        export: bool = False,
         **kwargs,
-) -> Optional[str]:
-    formatted = json.dumps(d, indent=indent, ensure_ascii=ensure_ascii, **kwargs)
-    if export:
-        return formatted
-    print(formatted)
+) -> str | None:
+    return json.dumps(d, indent=indent, ensure_ascii=ensure_ascii, **kwargs)
 
 
-def print_training_records(records, tokenizer: 'linglong.Tokenizer'):
+def print_training_records(records, tokenizer: 'linglong.Tokenizer', print_fn: Callable = print):
     input_ids = records['input_ids']
     pinyin_input_ids = records.get('pinyin_input_ids', None)
     attention_mask = records['attention_mask']
@@ -184,8 +163,7 @@ def print_training_records(records, tokenizer: 'linglong.Tokenizer'):
         'examples': [],
     }
     for i in range(len(input_ids)):
-        example = {}
-        example['data'] = tokenizer.decode(input_ids[i])
+        example = {'data': tokenizer.decode(input_ids[i])}
         if pinyin_input_ids is not None:
             example['pinyin_input_ids'] = str(pinyin_input_ids[i].numpy().tolist())
         example['attention_mask'] = str(attention_mask[i].numpy().tolist())
@@ -194,36 +172,36 @@ def print_training_records(records, tokenizer: 'linglong.Tokenizer'):
         example['attention_mask[attention_mask != 0].shape'] = attention_mask[i][attention_mask[i] != 0].shape[0]
         example['label_ids[label_ids != -100].shape'] = label_ids[i][label_ids[i] != -100].shape[0]
         output['examples'].append(example)
-    pprint(output)
+    print_fn(prettify(output))
 
 
-def print_trainable_parameters(model, comm=None, print_fn: Callable = print):
-    if comm is None or comm.rank() <= 0:
-        trainable_params = 0
-        all_param = 0
-        for _, param in model.named_parameters():
-            numel = param.ds_numel if hasattr(param, 'ds_tensor') else param.numel()
-            all_param += numel
-            if param.requires_grad:
-                trainable_params += numel
-        print_fn(
-            f'trainable params: {trainable_params} || '
-            f'all params: {all_param} || '
-            f'trainable%: {100 * trainable_params / all_param}',
-        )
+def print_trainable_parameters(model, is_main_process: bool = True, print_fn: Callable = print):
+    if not is_main_process:
+        return
+    trainable_params = 0
+    all_param = 0
+    for _, param in model.named_parameters():
+        num_el = param.ds_numel if hasattr(param, 'ds_tensor') else param.numel()
+        all_param += num_el
+        if param.requires_grad:
+            trainable_params += num_el
+    print_fn(prettify({
+        'trainable_params': trainable_params,
+        'all_params': all_param,
+        'trainable_ratio': f'{100 * trainable_params / all_param:.3f}%',
+    }))
 
 
 @contextlib.contextmanager
-def running(text_: str, spinner: bool = True, comm=None, **kwargs):
+def running(message: str, spinner: bool = True, is_main_process: bool = True, print_fn: Callable = print, **kwargs):
     if spinner:
-        if comm is not None:
-            if comm.rank() != 0:
-                yield Writable(print_fn=lambda *_: None)
-                return
-        with yaspin(Spinners.line, text=text(text_, style=INFO), **kwargs) as spinner:
-            yield spinner
-        spinner.ok(text('(OK!)', style=SUCCESS))
+        if is_main_process:
+            with yaspin(Spinners.line, text=text(message, style=INFO), **kwargs) as spinner:
+                yield spinner
+            spinner.ok(text('(OK!)', style=SUCCESS))
+            return
+        yield Writable(print_fn=lambda *_: None)
     else:
-        if comm is None or comm.rank() <= 0:
-            print(text(text_, style=INFO))
+        if is_main_process:
+            print_fn(text(message, style=INFO))
         yield Writable()

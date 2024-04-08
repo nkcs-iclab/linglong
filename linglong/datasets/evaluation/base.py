@@ -49,7 +49,7 @@ class BaseDataset(metaclass=abc.ABCMeta):
 
     @staticmethod
     def _discard_obj(obj, discarded: List):
-        warnings.warn(f'The pinyin information of {mcpt.pprint(obj, export=True)} is discarded.')
+        warnings.warn(f'The pinyin information of {mcpt.pprint(obj, output_string=True)} is discarded.')
         discarded.append(obj)
 
     # noinspection PyMethodMayBeStatic

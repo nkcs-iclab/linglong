@@ -105,7 +105,7 @@ class Tokenizer(PreTrainedTokenizer):
             filename_prefix: str | None = None,
     ) -> tuple[str | None, str | None]:
         if not pathlib.Path(save_directory).is_dir():
-            logger.error(f'Vocabulary path ({save_directory}) should be a directory')
+            logger.error(f'Vocabulary path ({save_directory}) should be a directory.')
             return None, None
         out_vocab_file = pathlib.Path(
             save_directory,
@@ -206,7 +206,7 @@ class PinyinTokenizer(PreTrainedTokenizer):
             filename_prefix: str | None = None,
     ) -> tuple[str | None, str | None]:
         if not pathlib.Path(save_directory).is_dir():
-            logger.error(f'Vocabulary path ({save_directory}) should be a directory')
+            logger.error(f'Vocabulary path ({save_directory}) should be a directory.')
             return None, None
         out_vocab_file = pathlib.Path(
             save_directory,

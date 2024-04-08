@@ -14,7 +14,12 @@ def _int64_feature(value: Sequence) -> tf.train.Feature:
     return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
 
 
-def serialize_example(data: Sequence, pinyin: Sequence | None = None, attention_mask: Sequence | None = None) -> bytes:
+def serialize_example(
+        data: Sequence,
+        pinyin: Sequence | None = None,
+        attention_mask: Sequence | None = None,
+        label: Sequence | None = None,
+) -> bytes:
     feature = {
         'data': _int64_feature(data),
     }
@@ -22,6 +27,8 @@ def serialize_example(data: Sequence, pinyin: Sequence | None = None, attention_
         feature['pinyin'] = _int64_feature(pinyin)
     if attention_mask is not None:
         feature['attention_mask'] = _int64_feature(attention_mask)
+    if label is not None:
+        feature['label'] = _int64_feature(label)
     example = tf.train.Example(features=tf.train.Features(feature=feature))
     return example.SerializeToString()
 
@@ -30,6 +37,7 @@ def get_decode_fn(
         padding_shape: int | None = None,
         use_pinyin: bool = False,
         load_attention_mask: bool = True,
+        load_label: bool = True,
         ignore_index: int = -100,
 ):
     def decode(serialized_example: bytes) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
@@ -38,20 +46,24 @@ def get_decode_fn(
         }
         if load_attention_mask:
             feature['attention_mask'] = tf.io.VarLenFeature(dtype=tf.int64)
+        if load_label:
+            feature['label'] = tf.io.VarLenFeature(dtype=tf.int64)
         example = tf.io.parse_single_example(serialized_example, feature)
 
         data = tf.sparse.to_dense(example['data'])
         attention_mask = tf.sparse.to_dense(example['attention_mask']) if load_attention_mask else tf.ones_like(data)
+        label = tf.sparse.to_dense(example['label']) if load_label else data
 
-        padded_data = tf.pad(data, [[0, padding_shape - tf.shape(data)[0]]], constant_values=0)
-        padded_attention_mask = tf.pad(
-            attention_mask,
-            [[0, padding_shape - tf.shape(attention_mask)[0]]],
-            constant_values=0,
-        )
-        padded_label = tf.pad(data, [[0, padding_shape - tf.shape(data)[0]]], constant_values=ignore_index)
+        if padding_shape is not None:
+            data = tf.pad(data, [[0, padding_shape - tf.shape(data)[0]]], constant_values=0)
+            attention_mask = tf.pad(
+                attention_mask,
+                [[0, padding_shape - tf.shape(attention_mask)[0]]],
+                constant_values=0,
+            )
+            label = tf.pad(label, [[0, padding_shape - tf.shape(label)[0]]], constant_values=ignore_index)
 
-        return padded_data, padded_attention_mask, padded_label
+        return data, attention_mask, label
 
     def decode_pinyin(serialized_example: bytes) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
         feature = {
@@ -60,22 +72,26 @@ def get_decode_fn(
         }
         if load_attention_mask:
             feature['attention_mask'] = tf.io.VarLenFeature(dtype=tf.int64)
+        if load_label:
+            feature['label'] = tf.io.VarLenFeature(dtype=tf.int64)
         example = tf.io.parse_single_example(serialized_example, feature)
 
         data = tf.sparse.to_dense(example['data'])
         pinyin = tf.sparse.to_dense(example['pinyin'])
         attention_mask = tf.sparse.to_dense(example['attention_mask']) if load_attention_mask else tf.ones_like(data)
+        label = tf.sparse.to_dense(example['label']) if load_label else data
 
-        padded_data = tf.pad(data, [[0, padding_shape - tf.shape(data)[0]]], constant_values=0)
-        padded_pinyin = tf.pad(pinyin, [[0, padding_shape - tf.shape(pinyin)[0]]], constant_values=0)
-        padded_attention_mask = tf.pad(
-            attention_mask,
-            [[0, padding_shape - tf.shape(attention_mask)[0]]],
-            constant_values=0,
-        )
-        padded_label = tf.pad(data, [[0, padding_shape - tf.shape(data)[0]]], constant_values=ignore_index)
+        if padding_shape is not None:
+            data = tf.pad(data, [[0, padding_shape - tf.shape(data)[0]]], constant_values=0)
+            pinyin = tf.pad(pinyin, [[0, padding_shape - tf.shape(pinyin)[0]]], constant_values=0)
+            attention_mask = tf.pad(
+                attention_mask,
+                [[0, padding_shape - tf.shape(attention_mask)[0]]],
+                constant_values=0,
+            )
+            label = tf.pad(label, [[0, padding_shape - tf.shape(label)[0]]], constant_values=ignore_index)
 
-        return padded_data, padded_pinyin, padded_attention_mask, padded_label
+        return data, pinyin, attention_mask, label
 
     return decode_pinyin if use_pinyin else decode
 
@@ -88,7 +104,6 @@ class TFRecordDataset(IterableDataset):
             meta: str,
             files_key: str = 'files',
             use_pinyin: bool = False,
-            load_attention_mask: bool = True,
     ):
         super().__init__()
         path = pathlib.Path(path)
@@ -103,7 +118,8 @@ class TFRecordDataset(IterableDataset):
         decode_fn = get_decode_fn(
             padding_shape=padding_shape,
             use_pinyin=self.use_pinyin,
-            load_attention_mask=load_attention_mask,
+            load_attention_mask=meta.get('has_attention_mask', False),
+            load_label=meta.get('has_label', False),
         )
         dataset = dataset \
             .repeat() \
@@ -146,8 +162,7 @@ def load(
         path: str | None,
         meta: str,
         use_pinyin: bool = False,
-        load_attention_mask: bool = True,
 ) -> TFRecordDataset | None:
     if path is None:
         return
-    return TFRecordDataset(path, meta, use_pinyin=use_pinyin, load_attention_mask=load_attention_mask)
+    return TFRecordDataset(path, meta, use_pinyin=use_pinyin)

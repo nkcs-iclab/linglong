@@ -37,11 +37,11 @@ def main(
     tf_weights = tf_model.weights
     tf_weights = {tf_weight.name: tf_weight for tf_weight in tf_weights}
     print(f'Loaded {len(tf_weights)} weights from the TensorFlow model: '
-          f'{linglong.pprint(list(tf_weights.keys()), export=True)}')
+          f'{linglong.prettify(list(tf_weights.keys()))}')
 
     torch_weights = torch_model.state_dict()
     print(f'Loaded {len(torch_weights)} weights from the PyTorch model: '
-          f'{linglong.pprint(list(torch_weights.keys()), export=True)}')
+          f'{linglong.prettify(list(torch_weights.keys()))}')
 
     set_weight(
         'transformer.wte.weight',
