@@ -28,10 +28,10 @@ def main(
     torch_model = linglong.Model.from_config(model_config, load_model=torch_model_path, device='cpu')
     transformers_weights = transformers_model.state_dict()
     print(f'Loaded {len(transformers_weights)} weights from the Transformers model: '
-          f'{linglong.pprint(list(transformers_weights.keys()), export=True)}')
+          f'{linglong.prettify(list(transformers_weights.keys()))}')
     torch_weights = torch_model.state_dict()
     print(f'Loaded {len(torch_weights)} weights from the PyTorch model: '
-          f'{linglong.pprint(list(torch_weights.keys()), export=True)}')
+          f'{linglong.prettify(list(torch_weights.keys()))}')
 
     set_weight(
         'transformer.wte.weight',

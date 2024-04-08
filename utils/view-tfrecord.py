@@ -12,9 +12,8 @@ def main(
         use_pinyin: bool = False,
         vocab: str = '../common/vocab/char-13312.txt',
         n_example: int = 3,
-        load_attention_mask: bool = True,
 ):
-    dataset = linglong.records.load(path, meta, use_pinyin=use_pinyin, load_attention_mask=load_attention_mask)
+    dataset = linglong.records.load(path, meta, use_pinyin=use_pinyin)
     data_loader = DataLoader(dataset, batch_size=n_example)
     tokenizer = linglong.Tokenizer(vocab)
     for batch in data_loader:

@@ -1,13 +1,9 @@
 .idea/
 __pycache__/
 
-demo/
-
-old-scripts/training/hostfile
+hostfile
 *.pt
-*local.yaml
+*local*
 *.sh
-exp-*
-exp_*
 
 generation/plugins/
