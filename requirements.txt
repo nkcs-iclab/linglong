@@ -6,6 +6,7 @@ deepmerge
 fire
 jieba
 nvidia-nccl-cu12
+peft
 pypinyin
 PyYAML
 tensorflow
