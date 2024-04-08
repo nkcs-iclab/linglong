@@ -3,5 +3,6 @@ from linglong.models import Model, LingLongModel, LingLongLMHeadModel, LingLongC
 import linglong.tokenization
 from linglong.tokenization import Tokenizer, PinyinTokenizer
 import linglong.generation
+import linglong.datasets
 
 from linglong.utils import *
