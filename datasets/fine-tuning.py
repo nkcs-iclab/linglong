@@ -1,11 +1,10 @@
 import fire
 import pathlib
 
-from typing import *
+from torch.utils.data import DataLoader
 
-import mcpt
-import mcpt.records
-import tensorflow as tf
+import linglong
+import linglong.records
 
 
 def main(
@@ -19,10 +18,10 @@ def main(
         pinyin_vocab: str = '../common/vocab/pinyin-1354.txt',
         use_cache: bool = False,
         items_per_file: int = 200000,
-        special_tokens: Optional[Dict[str, str]] = None,
+        special_tokens: dict[str, str] | None = None,
         n_example: int = 3,
 ):
-    with mcpt.running('Loading configs') as spinner:
+    with linglong.running('Loading configs') as spinner:
         special_tokens = {
             'start_token': '[MASK]',
             'end_token': '[CLS]',
@@ -31,8 +30,8 @@ def main(
             **(special_tokens or {}),
         }
         model_config_path = model_config
-        model_config = mcpt.load_config(model_config_path)
-        config = mcpt.merge_configs({
+        model_config = linglong.LingLongConfig.from_json_file(model_config_path)
+        config = linglong.merge_configs({
             'dataset': dataset,
             'dataset_config_path': dataset_config,
             'model_config_path': model_config_path,
@@ -45,44 +44,36 @@ def main(
             'use_cache': use_cache,
             'items_per_file': items_per_file,
             'special_tokens': special_tokens,
-        }, mcpt.load_config(dataset_config, key=dataset))
+        }, linglong.load_config(dataset_config, key=dataset))
         dataset_path = pathlib.Path(output_path) / dataset
-        spinner.write(mcpt.pprint(config, export=True))
+        spinner.write(linglong.prettify(
+            config,
+            default=lambda o: {'n_positions': o.n_positions, 'use_pinyin': o.use_pinyin},
+        ))
 
-    with mcpt.running(f'Processing {dataset} dataset', spinner=use_cache) as spinner:
-        dataset = mcpt.datasets.finetuning.load(config)
+    with linglong.running(f'Processing {dataset} dataset', spinner=use_cache) as spinner:
+        dataset = linglong.datasets.finetuning.load(config)
         meta_path, records_path = dataset.prepare()
-        meta = mcpt.load_config(meta_path)
-        padding_shape = meta['padding_shape']
-        spinner.write(mcpt.pprint({
-            'meta': meta_path,
-            'records': records_path,
-            'record_count': meta['count'],
-            'padding_shape': padding_shape,
-        }, export=True))
+        meta = linglong.load_config(meta_path)
+        spinner.write(linglong.prettify({
+            'meta_path': meta_path,
+            'records_path': records_path,
+            'meta': meta,
+        }))
 
-    print(mcpt.text('Examples:', style=mcpt.INFO))
-    if model_config.get('use_pinyin', False):
-        dataset_path = dataset_path / f'template-{config["template_id"]}-pinyin'
-        decode_fn = mcpt.records.decode_pinyin
-        padded_shapes = ((2, padding_shape), padding_shape)
-    else:
-        dataset_path = dataset_path / f'template-{config["template_id"]}'
-        decode_fn = mcpt.records.decode
-        padded_shapes = (padding_shape, padding_shape)
-
-    dataset = tf.data.TFRecordDataset(
-        list(map(lambda x: str(dataset_path / x), meta['files'])),
-        compression_type=meta.get('compression_type'),
+    print(linglong.text('Examples:', style=linglong.INFO))
+    dataset = linglong.records.load(
+        records_path,
+        meta_path,
+        use_pinyin=model_config.use_pinyin,
     )
-    dataset = dataset.map(decode_fn)
-    dataset = dataset.padded_batch(n_example, padded_shapes=padded_shapes)
-    tokenizer = mcpt.Tokenizer(vocab)
-    for batch in dataset:
-        mcpt.print_training_records(batch, tokenizer=tokenizer)
+    data_loader = DataLoader(dataset, batch_size=n_example)
+    tokenizer = linglong.Tokenizer(vocab)
+    for batch in data_loader:
+        linglong.print_training_records(batch, tokenizer=tokenizer)
         break
 
 
 if __name__ == '__main__':
-    mcpt.init()
+    linglong.init()
     fire.Fire(main)

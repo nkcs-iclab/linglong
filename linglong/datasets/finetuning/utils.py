@@ -1,39 +1,26 @@
 import pathlib
 
-from typing import *
-
-import mcpt
+import linglong
 
 
-def load(config: Dict[str, Any]):
+def load(config: dict):
     datasets = {
-        'CEPSUM2-cases-bags': mcpt.datasets.finetuning.datasets.CEPSUM2Dataset,
-        'CEPSUM2-clothing': mcpt.datasets.finetuning.datasets.CEPSUM2Dataset,
-        'CEPSUM2-home-appliances': mcpt.datasets.finetuning.datasets.CEPSUM2Dataset,
-        'LCSTS': mcpt.datasets.finetuning.datasets.LCSTSDataset,
-        'AdGen': mcpt.datasets.finetuning.datasets.AdGenDataset,
-        'KBQA': mcpt.datasets.finetuning.datasets.KBQADataset,
-        'WordSeg-Weibo': mcpt.datasets.finetuning.datasets.CUGESegmentationDataset,
-        'ICWB-MSR': mcpt.datasets.finetuning.datasets.ICWBSegmentationDataset,
-        'LCQMC': mcpt.datasets.finetuning.datasets.LCQMCDataset,
-        'Math23K': mcpt.datasets.finetuning.datasets.Math23KDataset,
-        'CMeEE': mcpt.datasets.finetuning.datasets.CMeEEDataset,
+        'CEPSUM2-cases-bags': linglong.datasets.finetuning.CEPSUM2Dataset,
+        'CEPSUM2-clothing': linglong.datasets.finetuning.CEPSUM2Dataset,
+        'CEPSUM2-home-appliances': linglong.datasets.finetuning.CEPSUM2Dataset,
+        'LCSTS': linglong.datasets.finetuning.LCSTSDataset,
+        'AdGen': linglong.datasets.finetuning.AdGenDataset,
+        'KBQA': linglong.datasets.finetuning.KBQADataset,
+        'WordSeg-Weibo': linglong.datasets.finetuning.CUGESegmentationDataset,
+        'ICWB-MSR': linglong.datasets.finetuning.ICWBSegmentationDataset,
+        'LCQMC': linglong.datasets.finetuning.LCQMCDataset,
+        'Math23K': linglong.datasets.finetuning.Math23KDataset,
+        'CMeEE': linglong.datasets.finetuning.CMeEEDataset,
     }
     experimental_datasets = {
-        'CustomQA': mcpt.experimental.datasets.finetuning.datasets.CustomQADataset,
-        'CustomMath': mcpt.experimental.datasets.finetuning.datasets.CustomMathDataset,
-        'KBQABackward': mcpt.experimental.datasets.finetuning.datasets.KBQABackwardDataset,
-        'LCSTSBackward': mcpt.experimental.datasets.finetuning.datasets.LCSTSBackwardDataset,
-        'AdGenBackward': mcpt.experimental.datasets.finetuning.datasets.AdGenBackwardDataset,
-        'LCQMCBackward': mcpt.experimental.datasets.finetuning.datasets.LCQMCBackwardDataset,
-        'Math23KBackward': mcpt.experimental.datasets.finetuning.datasets.Math23KBackwardDataset,
-        'WordSeg-WeiboBackward': mcpt.experimental.datasets.finetuning.datasets.CUGEStyleSegmentationBackwardDataset,
-        'CEPSUM2Backward-cases-bags': mcpt.experimental.datasets.finetuning.datasets.CEPSUM2BackwardDataset,
-        'CEPSUM2Backward-clothing': mcpt.experimental.datasets.finetuning.datasets.CEPSUM2BackwardDataset,
-        'CEPSUM2Backward-home-appliances': mcpt.experimental.datasets.finetuning.datasets.CEPSUM2BackwardDataset,
-        'ICWB-MSRBackward': mcpt.experimental.datasets.finetuning.datasets.ICWBSegmentationBackwardDataset,
+
     }
-    datasets = mcpt.merge_configs(datasets, experimental_datasets)
+    datasets = linglong.merge_configs(datasets, experimental_datasets)
     input_path = pathlib.Path(config['input_path']) / config.get('base', config['dataset'])
     output_path = pathlib.Path(config['output_path']) / config['dataset']
     return datasets[config['dataset']](

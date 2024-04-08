@@ -1,3 +1,2 @@
-import mcpt.datasets.finetuning.datasets
-
-from mcpt.datasets.finetuning.utils import *
+from linglong.datasets.finetuning.datasets import *
+from linglong.datasets.finetuning.utils import *

@@ -2,7 +2,7 @@ import re
 
 from typing import *
 
-from mcpt.datasets.finetuning.base import BaseDataset
+from linglong.datasets.finetuning.base import BaseDataset
 
 
 class CEPSUM2Dataset(BaseDataset):
@@ -152,12 +152,16 @@ class LCQMCDataset(BaseDataset):
 
 class Math23KDataset(BaseDataset):
 
-    def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
-        return [
-            f'问题：{obj["text"]}',
-            [self._special_tokens['part_separator']],
-            f'答案：{obj["equation"][2:]}',
+    def _template_0(self, obj) -> list:
+        parts = [
+            (f'问题：{obj["text"]}', False),
+            (self._special_tokens['part_separator'], False),
+            (f'答案：', False),
+            (obj["equation"][2:], True),
         ]
+        self._prepend_start_token(parts)
+        self._append_end_token(parts)
+        return parts
 
 
 class BaseNERDataset(BaseDataset):
