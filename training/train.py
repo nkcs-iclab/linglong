@@ -54,6 +54,7 @@ def main():
     )
 
     with linglong.running('Loading configs', comm=comm) as spinner:
+        training_args.gradient_checkpointing_kwargs = {'use_reentrant': False}
         spinner.write(model_args)
         spinner.write(data_args)
         spinner.write(training_args)
@@ -66,6 +67,8 @@ def main():
         else:
             raise ValueError('Either pretrained_model or model_config must be provided.')
         model_config = model.config
+        if training_args.gradient_checkpointing:
+            model.config.use_cache = False
         linglong.print_trainable_parameters(model, comm=comm, print_fn=spinner.write)
         spinner.write(model)
 
