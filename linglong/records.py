@@ -17,11 +17,11 @@ def _int64_feature(value: Sequence) -> tf.train.Feature:
 def serialize_example(data: Sequence, pinyin: Sequence | None = None, attention_mask: Sequence | None = None) -> bytes:
     feature = {
         'data': _int64_feature(data),
-        'attention_mask': _int64_feature(attention_mask) if attention_mask is not None else _int64_feature(
-            [1] * len(data)),
     }
     if pinyin is not None:
         feature['pinyin'] = _int64_feature(pinyin)
+    if attention_mask is not None:
+        feature['attention_mask'] = _int64_feature(attention_mask)
     example = tf.train.Example(features=tf.train.Features(feature=feature))
     return example.SerializeToString()
 
