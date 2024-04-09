@@ -1,11 +1,8 @@
-import torch
 import pickle
 import pathlib
 import warnings
 import dataclasses
 import numpy as np
-
-from torch.utils.data import Dataset
 
 import linglong
 
@@ -29,43 +26,12 @@ class EvaluationDatasetConfig:
         self.output_path = pathlib.Path(self.output_path)
 
 
-class DictDataset(Dataset):
-
-    def __init__(self, data):
-        self.data = data
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        item = self.data[idx]
-        input_ids = torch.tensor(item['input_ids'], dtype=torch.long)
-        label_ids = torch.tensor(item['label_ids'], dtype=torch.long)
-        if 'attention_mask' in item:
-            attention_mask = torch.tensor(item['attention_mask'], dtype=torch.long)
-        else:
-            attention_mask = torch.ones_like(input_ids)
-        if 'pinyin_input_ids' in item:
-            pinyin_input_ids = torch.tensor(item['pinyin_input_ids'], dtype=torch.long)
-            return {
-                'input_ids': input_ids,
-                'pinyin_input_ids': pinyin_input_ids,
-                'attention_mask': attention_mask,
-                'label_ids': label_ids,
-            }
-        return {
-            'input_ids': input_ids,
-            'attention_mask': attention_mask,
-            'label_ids': label_ids,
-        }
-
-
 class EvaluationDatasetBase:
 
     def __init__(self, config: EvaluationDatasetConfig):
         self.config = config
         self.input_file = next(self.config.input_path.glob(f'{self.config.split}*'))
-        self.tokenizer, self.pinyin_tokenizer = linglong.load_tokenizer(
+        self.tokenizer, self.pinyin_tokenizer = linglong.get_tokenizers(
             vocab_path=self.config.vocab_path,
             pinyin_vocab_path=self.config.pinyin_vocab_path,
             pretrained_model=self.config.model_path,

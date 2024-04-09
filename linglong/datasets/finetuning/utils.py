@@ -27,15 +27,15 @@ def load(config: dict):
         FineTuningDatasetConfig(
             input_path=input_path,
             output_path=output_path,
+            split=config['split'],
+            template_id=config['template_id'],
             vocab_path=config['vocab_path'],
             pinyin_vocab_path=config['pinyin_vocab_path'],
-            template_id=config['template_id'],
             special_tokens=config['special_tokens'],
-            items_per_file=config['items_per_file'],
-            n_positions=config['n_positions'],
-            use_pinyin=config['use_pinyin'],
-            split=config['split'],
             use_cache=config['use_cache'],
+            items_per_file=config['items_per_file'],
+            use_pinyin=config['use_pinyin'],
+            n_positions=config['n_positions'],
             extra_config=config.get('extra_config'),
         )
     )

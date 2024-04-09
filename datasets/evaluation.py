@@ -1,11 +1,8 @@
 import fire
-import numpy as np
 
 from torch.utils.data import DataLoader
 
 import linglong
-
-from linglong.datasets.evaluation.base import DictDataset
 
 
 def main(
@@ -21,10 +18,10 @@ def main(
 ):
     with linglong.running('Loading configs') as spinner:
         special_tokens = {
-            'start_token': '[MASK]',
-            'end_token': '[CLS]',
-            'part_separator': '[unused1]',
-            'segment_separator': '[unused2]',
+            'start_token': '<|startoftext|>',
+            'end_token': '<|endoftext|>',
+            'part_separator': '<unused1>',
+            'segment_separator': '<unused2>',
             **(special_tokens or {}),
         }
 
@@ -41,7 +38,7 @@ def main(
         model_path = config['model'] if isinstance(config['model'], str) else config['model']['base']
         model_config = linglong.LingLongConfig.from_pretrained(model_path)
         config['use_pinyin'] = model_config.use_pinyin
-        tokenizer = linglong.load_tokenizer(
+        tokenizer = linglong.get_tokenizers(
             vocab_path=vocab,
             special_tokens=special_tokens,
             pretrained_model=model_path,
@@ -58,10 +55,10 @@ def main(
         spinner.write(linglong.prettify(meta))
 
     print(linglong.text('Examples:', style=linglong.INFO))
-    dataset = DictDataset(data)
-    data_loader = DataLoader(dataset, batch_size=n_examples, collate_fn=linglong.datasets.evaluation.padded_batch)
+    dataset = linglong.data.DictDataset(data)
+    data_loader = DataLoader(dataset, batch_size=n_examples, collate_fn=linglong.data.padded_batch)
     for batch in data_loader:
-        linglong.print_training_records(batch, tokenizer=tokenizer)
+        linglong.data.print_model_inputs(batch, tokenizer=tokenizer)
         break
 
 

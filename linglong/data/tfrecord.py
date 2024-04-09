@@ -158,7 +158,7 @@ class TFRecordDataset(IterableDataset):
         }
 
 
-def load(
+def load_tfrecord_dataset(
         path: str | None,
         meta: str,
         use_pinyin: bool = False,

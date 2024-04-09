@@ -1,3 +1,2 @@
-import mcpt.datasets.pretraining.base
-
-from mcpt.datasets.pretraining.utils import *
+from linglong.datasets.pretraining.base import *
+from linglong.datasets.pretraining.utils import load
