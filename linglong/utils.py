@@ -12,8 +12,6 @@ from tqdm import tqdm as tqdm_tqdm
 from yaspin import yaspin
 from yaspin.spinners import Spinners
 
-import linglong
-
 _color_theme = {
     'info': colorama.Fore.CYAN,
     'success': colorama.Fore.LIGHTGREEN_EX,
