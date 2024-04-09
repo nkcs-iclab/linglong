@@ -34,7 +34,7 @@ class LingLongGenerate(cmd.Cmd):
         self.model = model
         self.use_pinyin = self.model.config.use_pinyin
         self.special_tokens = special_tokens
-        self.prompt = prompt
+        self.llm_prompt = prompt
         self.prefix = prefix
         self.suffix = suffix
         self.plugins = plugins or []
@@ -45,7 +45,7 @@ class LingLongGenerate(cmd.Cmd):
         self.streamer = TextStreamer(self.tokenizer)
 
     def _renew_cmd_prompt(self):
-        prompt = f'{self.prompt[:10]}...' if len(self.prompt) > 10 else self.prompt
+        prompt = f'{self.llm_prompt[:10]}...' if len(self.llm_prompt) > 10 else self.llm_prompt
         self.prompt = linglong.text(f'({prompt})', style=linglong.ERROR)
         self.prompt += f' [max length: {linglong.text(self.generation_config["max_length"], style=linglong.STRUCTURE)}'
         if self.prefix:
@@ -66,12 +66,12 @@ class LingLongGenerate(cmd.Cmd):
         backward = self.model.config.backward
         step_by_step = self.generation_config['batch_size'] == 1 and not backward
 
-        print(linglong.text('QUERY', style=linglong.WARNING), self.prompt)
+        print(linglong.text('QUERY', style=linglong.WARNING), self.llm_prompt)
 
         prefix = self.prefix
         for plugin in self.plugins:
             if '{' + plugin.placeholder + '}' in self.prefix:
-                plugin_output = plugin(self.prompt)
+                plugin_output = plugin(self.llm_prompt)
                 if isinstance(plugin_output, dict):
                     plugin_output, debug_output = plugin_output['text'], plugin_output['debug']
                     print(debug_output)
@@ -80,7 +80,7 @@ class LingLongGenerate(cmd.Cmd):
                 print(linglong.text(f'PLUGIN {plugin.placeholder}', style=linglong.WARNING), plugin_output)
                 prefix = prefix.replace('{' + plugin.placeholder + '}', plugin_output)
         prompt = self.special_tokens['start_token'] + prefix + (
-            self.prompt[::-1] if backward else self.prompt) + self.suffix
+            self.llm_prompt[::-1] if backward else self.llm_prompt) + self.suffix
         if self.debug:
             print(linglong.text('PROMPT', style=linglong.WARNING), prompt)
         model_inputs = self.tokenizer([prompt], return_tensors='pt', padding=True).to(self.model.device)
@@ -164,7 +164,7 @@ class LingLongGenerate(cmd.Cmd):
         self._generate()
 
     def default(self, line: str):
-        self.prompt = line.strip()
+        self.llm_prompt = line.strip()
         self._renew_cmd_prompt()
         self._generate()
 
@@ -172,6 +172,8 @@ class LingLongGenerate(cmd.Cmd):
 def main(
         model: str,
         peft_model: str | None = None,
+        vocab: str | None = '../common/vocab/char-13312.txt',
+        pinyin_vocab: str | None = '../common/vocab/pinyin-1354.txt',
         batch_size: int = 1,
         max_length: int = 128,
         temperature: float = 1.0,
@@ -206,21 +208,14 @@ def main(
             model = linglong.LingLongLMHeadModel.from_pretrained(model_path, device_map=device_map)
             if peft_model is not None:
                 model = PeftModelForCausalLM.from_pretrained(model, peft_model, device_map=device_map)
-        tokenizer = linglong.Tokenizer.from_pretrained(model_path, padding_side='left')
-        tokenizer.add_special_tokens({
-            'additional_special_tokens': list(set(special_tokens.values()) - set(tokenizer.all_special_tokens)),
-        })
-        pinyin_tokenizer = linglong.PinyinTokenizer.from_pretrained(
-            model_path,
-            fallback=tokenizer,
+        tokenizer, pinyin_tokenizer = linglong.load_tokenizer(
+            vocab_path=vocab,
+            pinyin_vocab_path=pinyin_vocab,
+            pretrained_model=model_path,
+            special_tokens=special_tokens,
+            use_pinyin=model.config.use_pinyin,
             padding_side='left',
-        ) if model.config.use_pinyin else None
-        if pinyin_tokenizer is not None:
-            pinyin_tokenizer.add_special_tokens({
-                'additional_special_tokens': list(
-                    set(special_tokens.values()) - set(pinyin_tokenizer.all_special_tokens),
-                ),
-            })
+        )
         if max_length > model.config.n_positions:
             max_length = model.config.n_positions
             warnings.warn(f'The max generation length cannot be set to {max_length}. '

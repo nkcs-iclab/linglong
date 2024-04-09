@@ -1,4 +1,2 @@
-import mcpt.datasets.evaluation.generation
-import mcpt.datasets.evaluation.perplexity
-
-from mcpt.datasets.evaluation.utils import *
+from linglong.datasets.evaluation.datasets import *
+from linglong.datasets.evaluation.utils import *

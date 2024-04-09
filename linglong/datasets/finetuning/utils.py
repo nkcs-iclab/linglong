@@ -27,8 +27,8 @@ def load(config: dict):
         FineTuningDatasetConfig(
             input_path=input_path,
             output_path=output_path,
-            vocab_path=config['vocab'],
-            pinyin_vocab_path=config['pinyin_vocab'],
+            vocab_path=config['vocab_path'],
+            pinyin_vocab_path=config['pinyin_vocab_path'],
             template_id=config['template_id'],
             special_tokens=config['special_tokens'],
             items_per_file=config['items_per_file'],

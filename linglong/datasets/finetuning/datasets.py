@@ -164,8 +164,8 @@ class Math23KDataset(FineTuningDatasetBase):
 
 class NERDatasetBase(FineTuningDatasetBase):
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._entity_types = {}
 
     def entity_type(self, entity_type: str) -> str:
@@ -227,8 +227,8 @@ class CUGENERDataset(NERDatasetBase):
 
 class CMeEEDataset(CUGENERDataset):
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._entity_types = {
             'dis': '疾病',
             'sym': '临床表现',

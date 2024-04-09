@@ -1,24 +1,25 @@
 import fire
 import numpy as np
 
-from typing import *
+from torch.utils.data import DataLoader
 
-import mcpt
-import mcpt.evaluation
+import linglong
+
+from linglong.datasets.evaluation.base import DictDataset
 
 
 def main(
         dataset: str,
         input_path: str,
-        cache_path: str,
+        output_path: str,
         dataset_config: str = '../evaluation/configs/local.yaml',
         vocab: str = '../common/vocab/char-13312.txt',
-        pinyin_vocab: Optional[str] = '../common/vocab/pinyin-1354.txt',
+        pinyin_vocab: str | None = '../common/vocab/pinyin-1354.txt',
         use_cache: bool = False,
-        special_tokens: Optional[Dict[str, str]] = None,
-        slicer: Optional[str] = '0:3',
+        special_tokens: dict[str, str] | None = None,
+        n_examples: int = 3,
 ):
-    with mcpt.running('Loading configs') as spinner:
+    with linglong.running('Loading configs') as spinner:
         special_tokens = {
             'start_token': '[MASK]',
             'end_token': '[CLS]',
@@ -26,56 +27,44 @@ def main(
             'segment_separator': '[unused2]',
             **(special_tokens or {}),
         }
-        config = mcpt.merge_configs({
+
+        config = linglong.merge_configs({
             'dataset': dataset,
-            'dataset_config_path': dataset_config,
             'input_path': input_path,
-            'cache_path': cache_path,
-            'vocab': vocab,
-            'pinyin_vocab': pinyin_vocab,
+            'output_path': output_path,
+            'dataset_config_path': dataset_config,
+            'vocab_path': vocab,
+            'pinyin_vocab_path': pinyin_vocab,
             'use_cache': use_cache,
             'special_tokens': special_tokens,
-        }, mcpt.load_config(dataset_config, key=dataset))
-        config['model_config'] = mcpt.load_config(config['model']['config'])
-        tokenizer = mcpt.Tokenizer(vocab)
-        spinner.write(mcpt.pprint(config, export=True))
+        }, linglong.load_config(dataset_config, key=dataset))
+        model_path = config['model'] if isinstance(config['model'], str) else config['model']['base']
+        model_config = linglong.LingLongConfig.from_pretrained(model_path)
+        config['use_pinyin'] = model_config.use_pinyin
+        tokenizer = linglong.load_tokenizer(
+            vocab_path=vocab,
+            special_tokens=special_tokens,
+            pretrained_model=model_path,
+        )[0]
+        spinner.write(linglong.prettify(config))
 
-    with mcpt.running(f'Loading {dataset} dataset', spinner=use_cache):
-        x, y_true, candidates = mcpt.evaluation.load_dataset(config)
-        if slicer is not None:
-            slicer = slice(*(int(x) for x in slicer.split(':')))
-            x, y_true = x[slicer], y_true[slicer]
+    with linglong.running(f'Loading {dataset} dataset', spinner=use_cache):
+        dataset = linglong.datasets.evaluation.load(config)
+        data, candidates = dataset.prepare()
+        meta = {
+            'count': len(data),
+            'candidates': candidates,
+        }
+        spinner.write(linglong.prettify(meta))
 
-    print(mcpt.text('Examples:', style=mcpt.INFO))
-    output: Dict[str, Any] = {
-        'example_count': len(x),
-        'examples': [],
-    }
-    for i in range(len(x)):
-        example: Dict[str, Optional[Union[str, List[int]]]] = {}
-        if isinstance(x[i], np.ndarray):
-            x[i] = [x[i]]
-        x_ids = [str(_.tolist()) for _ in x[i]]
-        x_str = [
-            tokenizer.convert_ids_to_string(list(_[0][0] if config['model_config'].get('use_pinyin', False) else _[0]))
-            for _ in x[i]]
-        example['x'] = x_ids if len(x_ids) > 1 else x_ids[0]
-        example['x_str'] = x_str if len(x_str) > 1 else x_str[0]
-        if y_true[i] is not None:
-            if isinstance(y_true[i], np.ndarray):
-                y_true[i] = [y_true[i]]
-            y_true_ids = [str(_.tolist()) for _ in y_true[i]]
-            example['y_true'] = y_true_ids if len(y_true_ids) > 1 else y_true_ids[0]
-            if not config.get('use_perplexity', False):
-                y_true_str = [tokenizer.convert_ids_to_string(list(_)) for _ in y_true[i]]
-                example['y_true_str'] = y_true_str if len(y_true_str) > 1 else y_true_str[0]
-        else:
-            example['y_true'] = None
-        output['examples'].append(example)
-    output['candidates'] = candidates
-    mcpt.pprint(output)
+    print(linglong.text('Examples:', style=linglong.INFO))
+    dataset = DictDataset(data)
+    data_loader = DataLoader(dataset, batch_size=n_examples, collate_fn=linglong.datasets.evaluation.padded_batch)
+    for batch in data_loader:
+        linglong.print_training_records(batch, tokenizer=tokenizer)
+        break
 
 
 if __name__ == '__main__':
-    mcpt.init()
+    linglong.init()
     fire.Fire(main)

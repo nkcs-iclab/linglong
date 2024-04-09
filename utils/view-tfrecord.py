@@ -15,7 +15,7 @@ def main(
 ):
     dataset = linglong.records.load(path, meta, use_pinyin=use_pinyin)
     data_loader = DataLoader(dataset, batch_size=n_example)
-    tokenizer = linglong.Tokenizer(vocab)
+    tokenizer = linglong.load_tokenizer(vocab_path=vocab)[0]
     linglong.print_training_records(next(iter(data_loader)), tokenizer=tokenizer)
 
 
