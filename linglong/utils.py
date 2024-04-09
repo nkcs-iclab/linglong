@@ -163,7 +163,7 @@ def print_training_records(records, tokenizer: 'linglong.Tokenizer', print_fn: C
         'examples': [],
     }
     for i in range(len(input_ids)):
-        example = {'data': tokenizer.decode(input_ids[i])}
+        example = {'data': tokenizer.decode(input_ids[i]), 'input_ids': str(input_ids[i].numpy().tolist())}
         if pinyin_input_ids is not None:
             example['pinyin_input_ids'] = str(pinyin_input_ids[i].numpy().tolist())
         example['attention_mask'] = str(attention_mask[i].numpy().tolist())
