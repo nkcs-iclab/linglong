@@ -128,6 +128,7 @@ The latest models will be released soon.
 - Remove the `mcpt` package and replace it with the `linglong` package.
 - Remove RLHF support. This feature will be re-implemented in the future.
 - Remove all experimental features. These features will be considered for re-implementation in the future.
+- *Evaluation:* Remove the evaluation module. This module will be re-implemented in the future.
 
 ### 0.9
 
@@ -150,23 +151,23 @@ The latest models will be released soon.
 
 ### 0.7
 
-- *Experimental:* Add a word-based tokenizer and a word-based vocabulary file (from CPM-2).
 - *Evaluation:* Add more evaluation dataset and metrics.
 - *Evaluation:* Update the evaluation config schema.
 - *Evaluation:* Various bug fixes.
+- *Experimental:* Add a word-based tokenizer and a word-based vocabulary file (from CPM-2).
 - Rename `mcpt.print_dict` to `mcpt.pprint`.
 - Compress tfrecord files with gzip to save disk space.
 - Convert meta files from pickle to json.
 
 ### 0.6
 
-- *Compatibility:* The code is now compatible with Python 3.6.
-- *Stability:* Various stability improvements.
 - *Dataset:* Remove the template list from dataset classes.
 - *Dataset:* The templates in the dataset classes now accept a list of strings.
 - *Training:* *DeepSpeed:* Fix model saving issue with DeepSpeed models.
 - *Generation:* Add prompt plugin support for text generation.
 - *Experimental:* Add more experimental dataset classes.
+- The code is now compatible with Python 3.6.
+- Various stability improvements.
 
 ### 0.5
 
