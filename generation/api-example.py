@@ -1,22 +1,49 @@
 import fire
 import torch
 
+from peft import PeftModelForCausalLM
+
 import linglong
 
 
 def main(
         model: str,
         prompt: str,
+        peft_model: str | None = None,
         device_map: str | dict[str, int | str | torch.device] | int | torch.device | None = 'cuda',
+        special_tokens: dict[str, str] | None = None,
+        max_length: int = 128,
+        temperature: float = 1.0,
+        top_k: int = 20,
+        top_p: float = 1.0,
 ):
     model_path = model
+    special_tokens = {
+        'start_token': '[MASK]',
+        'end_token': '[CLS]',
+        'part_separator': '[unused1]',
+        'segment_separator': '[unused2]',
+        'new_line': '[SEP]',
+        **(special_tokens or {}),
+    }
     model = linglong.LingLongLMHeadModel.from_pretrained(model_path, device_map=device_map)
+    if peft_model is not None:
+        model = PeftModelForCausalLM.from_pretrained(model, peft_model, device_map=device_map)
     tokenizer = linglong.Tokenizer.from_pretrained(model_path, padding_side='left')
+    tokenizer.add_special_tokens({
+        'additional_special_tokens': list(set(special_tokens.values()) - set(tokenizer.all_special_tokens)),
+    })
     pinyin_tokenizer = linglong.PinyinTokenizer.from_pretrained(
         model_path,
         padding_side='left',
         fallback=tokenizer,
     ) if model.config.use_pinyin else None
+    if pinyin_tokenizer is not None:
+        pinyin_tokenizer.add_special_tokens({
+            'additional_special_tokens': list(
+                set(special_tokens.values()) - set(pinyin_tokenizer.all_special_tokens),
+            ),
+        })
 
     model_inputs = tokenizer([prompt], return_tensors='pt', padding=True).to(model.device)
     if pinyin_tokenizer:
@@ -30,11 +57,11 @@ def main(
 
     generated_ids = model.generate(
         **model_inputs,
-        max_length=128,
+        max_length=max_length,
         do_sample=True,
-        top_k=20,
-        top_p=1,
-        temperature=1,
+        top_k=top_k,
+        top_p=top_p,
+        temperature=temperature,
     )
     generated_text = tokenizer.batch_decode(generated_ids)[0]
     print(generated_text)

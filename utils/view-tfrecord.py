@@ -16,9 +16,7 @@ def main(
     dataset = linglong.records.load(path, meta, use_pinyin=use_pinyin)
     data_loader = DataLoader(dataset, batch_size=n_example)
     tokenizer = linglong.Tokenizer(vocab)
-    for batch in data_loader:
-        linglong.print_training_records(batch, tokenizer=tokenizer)
-        break
+    linglong.print_training_records(next(iter(data_loader)), tokenizer=tokenizer)
 
 
 if __name__ == '__main__':

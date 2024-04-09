@@ -171,7 +171,7 @@ class PinyinTokenizer(PreTrainedTokenizer):
             self.idx_count.setdefault(ids, 0)
             self.idx_count[ids] += 1
         self.ids_to_tokens = collections.OrderedDict([(ids, tok) for tok, ids in self.vocab.items()])
-        self._fallback = fallback
+        self.fallback_tokenizer = fallback
         super().__init__(
             unk_token=unk_token,
             sep_token=sep_token,
@@ -206,7 +206,7 @@ class PinyinTokenizer(PreTrainedTokenizer):
         return str(out_vocab_file), None
 
     def _tokenize(self, text: str | list[str], **kwargs) -> list[str]:
-        return [token[0] for token in pypinyin.pinyin(text, errors=lambda x: self._fallback.tokenize(x))]
+        return [token[0] for token in pypinyin.pinyin(text, errors=lambda x: self.fallback_tokenizer.tokenize(x))]
 
     def _convert_token_to_id(self, token: str) -> int:
         return self.vocab.get(token, self.vocab.get(self.unk_token))
