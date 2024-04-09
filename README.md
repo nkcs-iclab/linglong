@@ -1,9 +1,9 @@
 # LingLong (玲珑): A Small-Scale Chinese PreTrained Language Model
 
-![version 0.8.2](https://img.shields.io/badge/version-0.8.2-blue)
-![Python >=3.6,<3.12](https://img.shields.io/badge/Python->=3.6,<3.12-blue?logo=python&logoColor=white)
-![PyTorch 2.1](https://img.shields.io/badge/PyTorch-2.1-EE4C2C?logo=pytorch&logoColor=white)
-![TensorFlow 2.14](https://img.shields.io/badge/TensorFlow-2.14-FF6F00?logo=tensorflow&logoColor=white)
+![version 0.10.0](https://img.shields.io/badge/version-0.10.0-blue)
+![Python >=3.11,<3.12](https://img.shields.io/badge/Python->=3.11,<3.12-blue?logo=python&logoColor=white)
+![PyTorch 2.2](https://img.shields.io/badge/PyTorch-2.2-EE4C2C?logo=pytorch&logoColor=white)
+![TensorFlow 2.16](https://img.shields.io/badge/TensorFlow-2.16-FF6F00?logo=tensorflow&logoColor=white)
 ![License GNU GPL v3](https://img.shields.io/badge/License-GNU%20GPL%20v3-blue?logo=gnu&logoColor=white)
 
 This is LingLong (玲珑), a Chinese pretrained language model trained by the College of Software at Nankai University.
@@ -36,11 +36,7 @@ The model can also run on CPUs, but the training and inference speed will be sig
 
 ## Python Requirements
 
-This package requires Python 3.6 or later, with a few exceptions:
-
-- If you want to use the parallel evaluation script, you need Python 3.11 or later.
-- PyTorch 2.1 requires Python 3.8 or later. PyTorch with a lower version number may work, but it is not tested.
-- TensorFlow 2.14 requires Python 3.9 or later. TensorFlow with a lower version number may work, but it is not tested.
+This package requires Python 3.11 or later.
 
 ## Environment Setup
 
@@ -49,79 +45,64 @@ The required packages are not listed in `setup.py` yet, so you need to install t
 1. Clone the repository.
 
     ```
-    git clone https://github.com/NKCSICLab/linglong-mcpt.git
-    cd linglong-mcpt
+    git clone https://github.com/NKCSICLab/linglong.git
+    cd linglong
     ```
 
 2. Create new conda environment with `environment.yaml`.
 
     ```
     conda env create -f environment.yaml
-    conda activate mcpt
-    pip install -r requirements.txt
-    pip install -r requirements-torch.txt
+    conda activate linglong
     ```
 
-    *Optional:* If you want to perform evaluation on public datasets, you need to install the evaluation dependencies.
+3. Install the required packages. Be sure to install PyTorch first. You have to edit the `requirements-torch.txt`
+   and `requirements.txt` file to match your CUDA version. The default version is 12.1.
+
+    ```
+    pip install -r requirements-torch.txt
+    pip install -r requirements.txt
+    ```
+
+   *Optional:* If you want to perform evaluation on public datasets, you need to install the evaluation dependencies.
 
     ```
     pip install -r requirements-evaluation.txt
     ```
 
-3. Install the package.
+4. Install the package.
 
     ```
     pip install -e .
     ```
 
-4. Install Horovod (optional, for data parallel training).
-
-    ```
-    export NCCL_HOME=$(python -c "import sysconfig; print(sysconfig.get_path('purelib'))")/nvidia/nccl
-    ln -s $NCCL_HOME/lib/libnccl.so.2 $NCCL_HOME/lib/libnccl.so
-    git clone https://github.com/horovod/horovod.git --recursive
-    cd horovod
-    sed -i 's/set(CMAKE_CXX_STANDARD 14)/set(CMAKE_CXX_STANDARD 17)/g' CMakeLists.txt
-    sed -i 's/set(CMAKE_CUDA_STANDARD 11)/set(CMAKE_CUDA_STANDARD 17)/g' horovod/common/ops/cuda/CMakeLists.txt
-    sed -i 's/set(CMAKE_CXX_STANDARD 14)/set(CMAKE_CXX_STANDARD 17)/g' horovod/torch/CMakeLists.txt
-    HOROVOD_NCCL_HOME=$NCCL_HOME \
-      HOROVOD_GPU_OPERATIONS=NCCL \
-      HOROVOD_WITH_PYTORCH=1 \
-      python setup.py bdist_wheel
-    pip install dist/horovod-*.whl
-    cd ..
-    rm -rf horovod
-    ```
-    After successfully installing Horovod, run:
-
-    ```
-    horovodrun --check-build
-    ```
-
-    Every feature that was successfully enabled will be marked with an "X".
-
-5. Install DeepSpeed (optional, experimental, for DeepSpeed enabled training).
+5. Install DeepSpeed (optional, for DeepSpeed enabled training).
 
     ```
     pip install deepspeed
     ```
 
-    After installation, you can validate your installation and see which ops your machine is compatible with via the
-    DeepSpeed environment report with `ds_report` or `python -m deepspeed.env_report`.
+   After installation, you can validate your installation and see which ops your machine is compatible with via the
+   DeepSpeed environment report with `ds_report` or `python -m deepspeed.env_report`.
 
 ## A Quick Guide to Text Generation
 
 We provide an interactive text generation script `generation/generate.py` for generating text from a trained model.
 
 ```
-python generate.py \
-  --model=/path/to/linglong-mcpt/models/V12.pt \
-  --model-config=/path/to/linglong-mcpt/common/model-configs/317M-WSZ1024L24.yaml
+python generate.py --model=/path/to/linglong/model
 ```
 
 There is also a script `generation/api-example.py` demonstrating how to use the generation API.
 
+More usage details can be found using the `--help` flag.
+
 ## Pretrained Models
+
+### Legacy Models
+
+You have to convert these legacy models to the latest format before using them with the current version of the codebase.
+A conversion script is provided at `utils/torch2transformers.py`.
 
 | Model Name          | Version | Parameters | Size   | Download                                                                |
 |---------------------|---------|------------|--------|-------------------------------------------------------------------------|
@@ -130,71 +111,86 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 | LingLong-Pinyin     | V1      | 318M       | 1.2 GB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUkqto9guYQ0BZLVTyzw?e=eKh7H4) |
 | LingLong-Small      | V1      | 106M       | 367 MB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUkqtlbLLOx0t03obH1w?e=ikRx63) |
 | LingLong-Small-Word | V1      | 106M       | 404 MB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUkqtmk8xMs-OmBwhtdw?e=mlXZGf) |
-| LingLong-Chat       | V4      | 317 M      | 1.2 GB | TBA                                                                     |     
+
+### Latest Models
+
+The latest models will be released soon.
 
 ## Changelog
 
-### 0.9 (pre-release)
+### 0.11 (Upcoming)
+
+- Nothing yet.
+
+### 0.10
+
+- Hello 🤗 Transformers! We have migrated to the Hugging Face Transformers library.
+- Remove the `mcpt` package and replace it with the `linglong` package.
+- Remove RLHF support. This feature will be re-implemented in the future.
+- Remove all experimental features. These features will be considered for re-implementation in the future.
+
+### 0.9
 
 - *Training:* Allow users to skip steps during training.
-- *Evaluation:* Added NER datasets and metrics.
+- *Training:* Add `save_initial` and `save_final` switches to the training script.
+- *Evaluation:* Add NER datasets and metrics.
 - Various bug fixes for the latest dependencies.
-- Migrated from `setup.py` to `pyproject.toml`.
+- Migrate from `setup.py` to `pyproject.toml`.
 
 ### 0.8
 
-- *Dataset:* Added processing scripts for plain text pre-training data.
-- *Training:* Fixed a bug that caused the training not able to find meta files.
+- *Dataset:* Add processing scripts for plain text pre-training data.
+- *Training:* Fix a bug that caused the training not able to find meta files.
 - *Training:* Allow users to disable the strict mode when loading the model.
 - *Training:* It is now possible to add a prefix to the name of the saved model.
-- Updated the format of the model output from `tuple` to `dict`.
-- Added RLHF (stage 1 & stage 2) support.
-- Moved the LM head from the basic model to the model wrapper `mcpt.Model`. You can now retrieve the hidden states from
+- Update the format of the model output from `tuple` to `dict`.
+- Add RLHF (stage 1 & stage 2) support.
+- Move the LM head from the basic model to the model wrapper `mcpt.Model`. You can now retrieve the hidden states from
   the model wrapper using `mcpt.Model.hidden_states`.
 
 ### 0.7
 
-- *Experimental:* Added a word-based tokenizer and a word-based vocabulary file (from CPM-2).
-- *Evaluation:* Added more evaluation dataset and metrics.
-- *Evaluation:* Updated the evaluation config schema.
+- *Experimental:* Add a word-based tokenizer and a word-based vocabulary file (from CPM-2).
+- *Evaluation:* Add more evaluation dataset and metrics.
+- *Evaluation:* Update the evaluation config schema.
 - *Evaluation:* Various bug fixes.
-- Renamed `mcpt.print_dict` to `mcpt.pprint`.
-- Compressed tfrecord files with gzip to save disk space.
-- Converted meta files from pickle to json.
+- Rename `mcpt.print_dict` to `mcpt.pprint`.
+- Compress tfrecord files with gzip to save disk space.
+- Convert meta files from pickle to json.
 
 ### 0.6
 
 - *Compatibility:* The code is now compatible with Python 3.6.
 - *Stability:* Various stability improvements.
-- *Dataset:* Removed the template list from dataset classes.
+- *Dataset:* Remove the template list from dataset classes.
 - *Dataset:* The templates in the dataset classes now accept a list of strings.
-- *Training:* *DeepSpeed:* Fixed model saving issue with DeepSpeed models.
-- *Generation:* Added prompt plugin support for text generation.
-- *Experimental:* Added more experimental dataset classes.
+- *Training:* *DeepSpeed:* Fix model saving issue with DeepSpeed models.
+- *Generation:* Add prompt plugin support for text generation.
+- *Experimental:* Add more experimental dataset classes.
 
 ### 0.5
 
-- *Training:* *DeepSpeed:* Added `train-ds.py` for DeepSpeed enabled training.
+- *Training:* *DeepSpeed:* Add `train-ds.py` for DeepSpeed enabled training.
 - *Generation:* Stop batch text generation when the end of the text is reached in all samples.
 - *Generation:* Fixed: Text are now clipped to the maximum context length of the model.
-- Moved `use_pinyin` and `backward` arguments from method arguments to the model configuration.
+- Move `use_pinyin` and `backward` arguments from method arguments to the model configuration.
 
 ### 0.4
 
-- *Dataset:* Added dataset scripts for fine-tuning.
-- *Training:* Fixed the training script by adding if statements to prevent missing object/attribute/reference errors
+- *Dataset:* Add dataset scripts for fine-tuning.
+- *Training:* Fix the training script by adding if statements to prevent missing object/attribute/reference errors
   when using mixed precision training or data parallel training.
-- *Training:* Fixed the model saving callback.
-- *Generation:* Introduced `mcpt.generate` function for generation.
-- *Generation:* Replaced `[SEP]` with `\n` in generation results.
-- Introduced `mcpt.Model` class. This class can be used to load a specified model from a checkpoint.
-- Exported `mcpt.Tokenizer` and `mcpt.PinyinTokenizer` to the top-level module.
+- *Training:* Fix the model saving callback.
+- *Generation:* Introduce `mcpt.generate` function for generation.
+- *Generation:* Replace `[SEP]` with `\n` in generation results.
+- Introduce `mcpt.Model` class. This class can be used to load a specified model from a checkpoint.
+- Export `mcpt.Tokenizer` and `mcpt.PinyinTokenizer` to the top-level module.
 
 ### 0.3
 
-- *Dataset:* Added modules for evaluation.
-- *Generation:* Refactored `mcpt/sampling.py`. The `Sampler` class has now been moved to `mcpt/generation.py`.
+- *Dataset:* Add modules for evaluation.
+- *Generation:* Refactor `mcpt/sampling.py`. The `Sampler` class has now been moved to `mcpt/generation.py`.
 
 ## Copyright
 
-© 2023 College of Software, Nankai University All Rights Reserved
+© 2023-2024 College of Software, Nankai University All Rights Reserved
