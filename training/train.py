@@ -6,7 +6,6 @@ from transformers import (
     HfArgumentParser,
     TrainingArguments,
 )
-from transformers.utils import check_min_version
 from peft import LoraConfig, TaskType
 
 import linglong
@@ -105,6 +104,5 @@ def main():
 
 
 if __name__ == '__main__':
-    check_min_version('4.39.3')
     linglong.init()
     main()
