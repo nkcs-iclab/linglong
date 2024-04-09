@@ -1,53 +1,47 @@
 CEPSUM2-cases-bags:
   model:
-    checkpoint:
-    config:
-  evaluation_method: generation
+    base:
+    peft:
   evaluation_metric: generation_metric
   template_id: 1
   split: valid
 
 CEPSUM2-clothing:
   model:
-    checkpoint:
-    config:
-  evaluation_method: generation
+    base:
+    peft:
   evaluation_metric: generation_metric
   template_id: 1
   split: valid
 
 CEPSUM2-home-appliances:
   model:
-    checkpoint:
-    config:
-  evaluation_method: generation
+    base:
+    peft:
   evaluation_metric: generation_metric
   template_id: 1
   split: valid
 
 LCSTS:
   model:
-    checkpoint:
-    config:
-  evaluation_method: generation
+    base:
+    peft:
   evaluation_metric: generation_metric
   template_id: 1
   split: valid
 
 AdGen:
   model:
-    checkpoint:
-    config:
-  evaluation_method: generation
+    base:
+    peft:
   evaluation_metric: generation_metric
   template_id: 1
   split: valid
 
 KBQA:
   model:
-    checkpoint:
-    config:
-  evaluation_method: generation
+    base:
+    peft:
   evaluation_metric: dataset_kbqa_metric
   template_id: 0
   split: valid
@@ -58,9 +52,8 @@ KBQA:
 
 WordSeg-Weibo:
   model:
-    checkpoint:
-    config:
-  evaluation_method: generation
+    base:
+    peft:
   evaluation_metric: dataset_cuge_segmentation_adjust_edit_distance_metric
   template_id: 0
   split: valid
@@ -69,9 +62,8 @@ WordSeg-Weibo:
 
 ICWB-MSR:
   model:
-    checkpoint:
-    config:
-  evaluation_method: generation
+    base:
+    peft:
   evaluation_metric: dataset_cuge_segmentation_adjust_edit_distance_metric
   template_id: 0
   split: test
@@ -80,38 +72,34 @@ ICWB-MSR:
 
 LCQMC:
   model:
-    checkpoint:
-    config:
-  evaluation_method: generation
+    base:
+    peft:
   evaluation_metric: accuracy_metric
   template_id: 1
   split: valid
 
 Math23K:
   model:
-    checkpoint:
-    config:
-  evaluation_method: generation
+    base:
+    peft:
   evaluation_metric: dataset_math23k_metric
   template_id: 1
   split: valid
 
 SIGHAN15:
   model:
-    checkpoint:
-    config:
-  evaluation_method: generation
+    base:
+    peft:
   template_id: 1
   split: test
 
 CMeEE:
   model:
-    checkpoint:
-    config:
-  evaluation_method: generation
+    base:
+    peft:
   evaluation_metric: ner_metric
   template_id: 1
   split: test
   special-tokens:
-    entity-prefix: '[unused2]'
-    entity-postfix: '[unused3]'
+    entity-prefix: '<unused2>'
+    entity-postfix: '<unused3>'
