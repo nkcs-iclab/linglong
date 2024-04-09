@@ -10,7 +10,7 @@ def load(config: Dict[str, Any]):
     output_path = pathlib.Path(config['output_path']) / config['dataset']
     if config['stride'] <= 0:
         raise ValueError(f'`stride` is set to {config["stride"]}, which is not positive.')
-    return mcpt.datasets.pretraining.base.BaseDataset(
+    return mcpt.datasets.pretraining.base.FineTuningDatasetBase(
         input_path=input_path,
         output_path=output_path,
         vocab_path=config['vocab'],

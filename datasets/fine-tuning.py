@@ -35,7 +35,8 @@ def main(
             'dataset': dataset,
             'dataset_config_path': dataset_config,
             'model_config_path': model_config_path,
-            'model_config': model_config,
+            'use_pinyin': model_config.use_pinyin,
+            'n_positions': model_config.n_positions,
             'input_path': input_path,
             'output_path': output_path,
             'split': split,
@@ -45,11 +46,7 @@ def main(
             'items_per_file': items_per_file,
             'special_tokens': special_tokens,
         }, linglong.load_config(dataset_config, key=dataset))
-        dataset_path = pathlib.Path(output_path) / dataset
-        spinner.write(linglong.prettify(
-            config,
-            default=lambda o: {'n_positions': o.n_positions, 'use_pinyin': o.use_pinyin},
-        ))
+        spinner.write(linglong.prettify(config))
 
     with linglong.running(f'Processing {dataset} dataset', spinner=use_cache) as spinner:
         dataset = linglong.datasets.finetuning.load(config)

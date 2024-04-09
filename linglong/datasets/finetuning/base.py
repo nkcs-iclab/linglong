@@ -2,57 +2,61 @@ import json
 import math
 import pathlib
 import warnings
+import dataclasses
 
 import linglong
 
 
-class BaseDataset:
+@dataclasses.dataclass
+class FineTuningDatasetConfig:
+    input_path: str | pathlib.Path
+    output_path: str | pathlib.Path
+    vocab_path: str
+    template_id: int
+    special_tokens: dict[str, str]
+    items_per_file: int
+    n_positions: int
+    use_pinyin: bool = False
+    pinyin_vocab_path: str | None = None
+    split: str = 'train'
+    use_cache: bool = False
+    extra_config: dict | None = None
 
-    def __init__(
-            self,
-            input_path: str,
-            output_path: str,
-            vocab_path: str,
-            template_id: int,
-            model_config: linglong.LingLongConfig,
-            special_tokens: dict[str, str],
-            items_per_file: int,
-            pinyin_vocab_path: str | None = None,
-            split: str = 'train',
-            use_cache: bool = False,
-            extra_config: dict | None = None,
-    ):
-        self._split = split
-        self._use_pinyin = model_config.use_pinyin
-        self._n_positions = model_config.n_positions
-        self._input_path = next(pathlib.Path(input_path).glob(f'{self._split}*'))
-        self._output_path = pathlib.Path(output_path) / f'template-{template_id}{"-pinyin" if self._use_pinyin else ""}'
-        self._output_path.mkdir(parents=True, exist_ok=True)
-        self._tokenizer = linglong.Tokenizer(vocab_path)
+    def __post_init__(self):
+        self.input_path = pathlib.Path(self.input_path)
+        self.output_path = pathlib.Path(
+            self.output_path) / f'template-{self.template_id}{"-pinyin" if self.use_pinyin else ""}'
+
+
+class FineTuningDatasetBase:
+
+    def __init__(self, config: FineTuningDatasetConfig):
+        self.config = config
+        self.input_file = next(self.config.input_path.glob(f'{self.config.split}*'))
+        self.tokenizer = linglong.Tokenizer(self.config.vocab_path)
+        self.pinyin_tokenizer = linglong.PinyinTokenizer(
+            vocab_file=self.config.pinyin_vocab_path,
+            fallback=self.tokenizer,
+        ) if self.config.use_pinyin else None
+        self.file_format = None
+
+        self.config.output_path.mkdir(parents=True, exist_ok=True)
         # noinspection PyTypeChecker
-        self._tokenizer.add_special_tokens({
-            'additional_special_tokens': list(set(special_tokens.values()) - set(self._tokenizer.all_special_tokens)),
+        self.tokenizer.add_special_tokens({
+            'additional_special_tokens': list(
+                set(self.config.special_tokens.values()) - set(self.tokenizer.all_special_tokens),
+            ),
         })
-        self._pinyin_tokenizer = linglong.PinyinTokenizer(
-            vocab_file=pinyin_vocab_path,
-            fallback=self._tokenizer,
-        ) if self._use_pinyin else None
-        if self._pinyin_tokenizer is not None:
+        if self.pinyin_tokenizer is not None:
             # noinspection PyTypeChecker
-            self._pinyin_tokenizer.add_special_tokens({
+            self.pinyin_tokenizer.add_special_tokens({
                 'additional_special_tokens': list(
-                    set(special_tokens.values()) - set(self._pinyin_tokenizer.all_special_tokens),
+                    set(self.config.special_tokens.values()) - set(self.pinyin_tokenizer.all_special_tokens),
                 ),
             })
-        self._template_id = template_id
-        self._use_cache = use_cache
-        self._items_per_file = items_per_file
-        self._extra_config = extra_config
-        self._file_format = None
-        self._special_tokens = special_tokens
 
     def _load_file(self, path: str) -> list | dict:
-        return linglong.load_file(path, format=self._file_format)
+        return linglong.load_file(path, format=self.file_format)
 
     @staticmethod
     def _discard_obj(obj, discarded: list, reason: str | None = None):
@@ -61,7 +65,7 @@ class BaseDataset:
         discarded.append(obj)
 
     def _templatize(self, obj) -> list:
-        parts = getattr(self, f'_template_{self._template_id}')(obj)
+        parts = getattr(self, f'_template_{self.config.template_id}')(obj)
         if not (all(isinstance(part, tuple) for part in parts) or all(not isinstance(part, tuple) for part in parts)):
             raise ValueError('All parts should be tuples or none of them should be.')
         return parts
@@ -72,9 +76,9 @@ class BaseDataset:
             is_label: bool = False,
     ):
         if parts and isinstance(parts[0], tuple):
-            parts.insert(0, (self._special_tokens['start_token'], is_label))
+            parts.insert(0, (self.config.special_tokens['start_token'], is_label))
         else:
-            parts.insert(0, self._special_tokens['start_token'])
+            parts.insert(0, self.config.special_tokens['start_token'])
 
     def _append_end_token(
             self,
@@ -82,16 +86,21 @@ class BaseDataset:
             is_label: bool = True,
     ):
         if parts and isinstance(parts[0], tuple):
-            parts.append((self._special_tokens['end_token'], is_label))
+            parts.append((self.config.special_tokens['end_token'], is_label))
         else:
-            parts.append(self._special_tokens['end_token'])
+            parts.append(self.config.special_tokens['end_token'])
+
+    def _add_start_and_end_tokens(self, parts: list) -> list:
+        self._prepend_start_token(parts)
+        self._append_end_token(parts)
+        return parts
 
     def _process(self) -> tuple[dict, list]:
-        objs = self._load_file(str(self._input_path))
+        objs = self._load_file(str(self.input_file))
         discarded = []
         writer = None
         file_idx = None
-        n_file = math.ceil(len(objs) / self._items_per_file)
+        n_file = math.ceil(len(objs) / self.config.items_per_file)
         meta = {
             'padding_shape': 0,
             'count': 0,
@@ -103,7 +112,7 @@ class BaseDataset:
         for i in linglong.trange(len(objs)):
             parts = self._templatize(objs[i])
             input_ids, pinyin_input_ids, label_ids = self._encode(parts)
-            if self._use_pinyin and len(input_ids) != len(pinyin_input_ids):
+            if self.config.use_pinyin and len(input_ids) != len(pinyin_input_ids):
                 self._discard_obj(
                     objs[i],
                     discarded,
@@ -112,21 +121,22 @@ class BaseDataset:
                            f'(most likely due to omitted control characters.)',
                 )
                 continue
-            if len(input_ids) > self._n_positions:
+            if len(input_ids) > self.config.n_positions:
                 self._discard_obj(
                     objs[i],
                     discarded,
-                    f'`input_ids` has size {len(input_ids)}, exceeding `n_positions`: {self._n_positions}.',
+                    f'`input_ids` has size {len(input_ids)}, '
+                    f'exceeding `n_positions`: {self.config.n_positions}.',
                 )
                 continue
-            new_file_idx = i // self._items_per_file
+            new_file_idx = i // self.config.items_per_file
             if new_file_idx != file_idx:
                 if writer is not None:
                     writer.close()
                 file_idx = new_file_idx
-                filename = f'{self._split}-{file_idx + 1:0{len(str(n_file))}d}-of-{n_file}.tfrecord.gz'
+                filename = f'{self.config.split}-{file_idx + 1:0{len(str(n_file))}d}-of-{n_file}.tfrecord.gz'
                 meta['files'].append(filename)
-                writer = tf.io.TFRecordWriter(str(self._output_path / filename), options='GZIP')
+                writer = tf.io.TFRecordWriter(str(self.config.output_path / filename), options='GZIP')
             writer.write(linglong.records.serialize_example(
                 data=input_ids,
                 pinyin=pinyin_input_ids,
@@ -149,7 +159,7 @@ class BaseDataset:
             parts=parts,
             use_pinyin=True,
             output_labels=False,
-        ) if self._use_pinyin else None
+        ) if self.config.use_pinyin else None
         return input_ids, pinyin_input_ids, label_ids
 
     def _convert_parts_to_ids(
@@ -159,7 +169,7 @@ class BaseDataset:
             output_labels: bool = True,
             ignore_index: int = -100,
     ) -> list[int] | tuple[list[int], list[int]]:
-        tokenizer = self._pinyin_tokenizer if use_pinyin else self._tokenizer
+        tokenizer = self.pinyin_tokenizer if use_pinyin else self.tokenizer
         has_label = parts and isinstance(parts[0], tuple)
         input_ids = []
         label_ids = [] if output_labels and has_label else None
@@ -184,11 +194,11 @@ class BaseDataset:
         return input_ids
 
     def prepare(self) -> tuple[str, str]:
-        meta_path = self._output_path / f'{self._split}-meta.json'
-        if not (self._use_cache and meta_path.is_file()):
+        meta_path = self.config.output_path / f'{self.config.split}-meta.json'
+        if not (self.config.use_cache and meta_path.is_file()):
             meta, discarded = self._process()
             with open(meta_path, 'w') as f:
                 json.dump(meta, f, indent=2)
             if len(discarded) > 0:
                 print(f'\n{len(discarded)} items are discarded.')
-        return str(meta_path.absolute()), str(self._output_path.absolute())
+        return str(meta_path.absolute()), str(self.config.output_path.absolute())

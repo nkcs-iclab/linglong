@@ -2,6 +2,8 @@ import pathlib
 
 import linglong
 
+from linglong.datasets.finetuning.base import FineTuningDatasetConfig
+
 
 def load(config: dict):
     datasets = {
@@ -17,22 +19,23 @@ def load(config: dict):
         'Math23K': linglong.datasets.finetuning.Math23KDataset,
         'CMeEE': linglong.datasets.finetuning.CMeEEDataset,
     }
-    experimental_datasets = {
-
-    }
+    experimental_datasets = {}
     datasets = linglong.merge_configs(datasets, experimental_datasets)
     input_path = pathlib.Path(config['input_path']) / config.get('base', config['dataset'])
     output_path = pathlib.Path(config['output_path']) / config['dataset']
     return datasets[config['dataset']](
-        input_path=input_path,
-        output_path=output_path,
-        vocab_path=config['vocab'],
-        pinyin_vocab_path=config['pinyin_vocab'],
-        template_id=config['template_id'],
-        model_config=config['model_config'],
-        special_tokens=config['special_tokens'],
-        split=config['split'],
-        use_cache=config['use_cache'],
-        items_per_file=config['items_per_file'],
-        extra_config=config.get('extra_config'),
+        FineTuningDatasetConfig(
+            input_path=input_path,
+            output_path=output_path,
+            vocab_path=config['vocab'],
+            pinyin_vocab_path=config['pinyin_vocab'],
+            template_id=config['template_id'],
+            special_tokens=config['special_tokens'],
+            items_per_file=config['items_per_file'],
+            n_positions=config['n_positions'],
+            use_pinyin=config['use_pinyin'],
+            split=config['split'],
+            use_cache=config['use_cache'],
+            extra_config=config.get('extra_config'),
+        )
     )
