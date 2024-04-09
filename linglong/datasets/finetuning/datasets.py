@@ -1,13 +1,11 @@
 import re
 
-from typing import *
-
-from linglong.datasets.finetuning.base import BaseDataset
+from linglong.datasets.finetuning.base import FineTuningDatasetBase
 
 
-class CEPSUM2Dataset(BaseDataset):
+class CEPSUM2Dataset(FineTuningDatasetBase):
 
-    def _load_file(self, path: str) -> Union[List, Dict]:
+    def _load_file(self, path: str) -> list | dict:
         objs = super()._load_file(path)
         data = []
         for obj in objs:
@@ -20,7 +18,7 @@ class CEPSUM2Dataset(BaseDataset):
                 })
         return data
 
-    def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
+    def _template_0(self, obj) -> list:
         obj_type = {
             'bc': '箱包',
             'cl': '衣服',
@@ -30,26 +28,28 @@ class CEPSUM2Dataset(BaseDataset):
         features = '；'.join(
             [f'{"".join(k.split())}：{"".join(v.split())}' for k, v in obj['feature'].items()]
         )
-        return [
-            f'商品种类：{obj_type}；特征信息：{features}；商品描述：{"".join(obj["source"].split())}',
-            [self._special_tokens['part_separator']],
-            f'商品简介：{"".join(obj["target"].split())}',
-        ]
+        return self._add_start_and_end_tokens([
+            (f'商品种类：{obj_type}；特征信息：{features}；商品描述：{"".join(obj["source"].split())}', False),
+            (self.config.special_tokens['part_separator'], False),
+            ('商品简介：', False),
+            (''.join(obj['target'].split()), True),
+        ])
 
 
-class LCSTSDataset(BaseDataset):
+class LCSTSDataset(FineTuningDatasetBase):
 
-    def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
-        return [
-            f'文本：{obj["text"]}',
-            [self._special_tokens['part_separator']],
-            f'摘要：{obj["summary"]}',
-        ]
+    def _template_0(self, obj) -> list:
+        return self._add_start_and_end_tokens([
+            (f'文本：{obj["text"]}', False),
+            (self.config.special_tokens['part_separator'], False),
+            ('摘要：', False),
+            (obj['summary'], True),
+        ])
 
 
-class AdGenDataset(BaseDataset):
+class AdGenDataset(FineTuningDatasetBase):
 
-    def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
+    def _template_0(self, obj) -> list:
         description = f'标题信息：{obj["title"]}；' if obj['title'] else ''
         if 'tags' in obj:
             description += '标签信息：'
@@ -60,77 +60,78 @@ class AdGenDataset(BaseDataset):
         for feature in obj['feature']:
             description += f'{feature[0]}：{feature[1]}，'
         description = description[:-1] + '；'
-        return [
-            description,
-            [self._special_tokens['part_separator']],
-            f'商品描述：{obj["desc"]}',
-        ]
+        return self._add_start_and_end_tokens([
+            (description, False),
+            (self.config.special_tokens['part_separator'], False),
+            ('商品描述：', False),
+            (obj['desc'], True),
+        ])
 
 
-class KBQADataset(BaseDataset):
+class KBQADataset(FineTuningDatasetBase):
 
-    def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
+    def _template_0(self, obj) -> list:
         a, relation, _ = obj['triple'].strip().split('|||')
-        return [
-            f'问题：{obj["question"]}',
-            [self._special_tokens['part_separator']],
-            '答案：',
-            a.strip(),
-            [self._special_tokens['segment_separator']],
-            relation.strip(),
-        ]
+        return self._add_start_and_end_tokens([
+            (f'问题：{obj["question"]}', False),
+            (self.config.special_tokens['part_separator'], False),
+            ('答案：', False),
+            (a.strip(), True),
+            (self.config.special_tokens['segment_separator'], True),
+            (relation.strip(), True),
+        ])
 
 
-class BaseSegmentationDataset(BaseDataset):
+class SegmentationDatasetBase(FineTuningDatasetBase):
 
     @staticmethod
     def _get_text(obj) -> str:
         raise NotImplementedError
 
     @staticmethod
-    def _get_segments(obj) -> List[str]:
+    def _get_segments(obj) -> list[str]:
         raise NotImplementedError
 
-    def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
+    def _template_0(self, obj) -> list:
         parts = [
-            f'原始文本：{self._get_text(obj)}',
-            [self._special_tokens['part_separator']],
-            '分词结果：',
+            (f'原始文本：{self._get_text(obj)}', False),
+            (self.config.special_tokens['part_separator'], False),
+            ('分词结果：', False),
         ]
         segments = []
         for segment in self._get_segments(obj):
-            segments.append(segment)
-            segments.append([self._special_tokens['segment_separator']])
+            segments.append((segment, True))
+            segments.append((self.config.special_tokens['segment_separator'], True))
         # Drop the last segment separator.
         parts.extend(segments[:-1])
-        return parts
+        return self._add_start_and_end_tokens(parts)
 
 
-class CUGESegmentationDataset(BaseSegmentationDataset):
+class CUGESegmentationDataset(SegmentationDatasetBase):
 
     @staticmethod
     def _get_text(obj) -> str:
         return obj['text']
 
     @staticmethod
-    def _get_segments(obj) -> List[str]:
+    def _get_segments(obj) -> list[str]:
         return obj['ans'].split()
 
 
-class ICWBSegmentationDataset(BaseSegmentationDataset):
+class ICWBSegmentationDataset(SegmentationDatasetBase):
 
     @staticmethod
     def _get_text(obj) -> str:
-        return obj.replace("  ", "")
+        return obj.replace('  ', '')
 
     @staticmethod
-    def _get_segments(obj) -> List[str]:
+    def _get_segments(obj) -> list[str]:
         return obj.split()
 
 
-class LCQMCDataset(BaseDataset):
+class LCQMCDataset(FineTuningDatasetBase):
 
-    def _load_file(self, path: str) -> Union[List, Dict]:
+    def _load_file(self, path: str) -> list | dict:
         objs = super()._load_file(path)
         data = []
         for obj in objs:
@@ -142,29 +143,26 @@ class LCQMCDataset(BaseDataset):
             })
         return data
 
-    def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
-        return [
-            f'句子一“{obj["sentence1"]}”与句子二“{obj["sentence2"]}”的意思是否相似？',
-            [self._special_tokens['part_separator']],
-            ['否', '是'][obj['label']],
-        ]
+    def _template_0(self, obj) -> list:
+        return self._add_start_and_end_tokens([
+            (f'句子一“{obj["sentence1"]}”与句子二“{obj["sentence2"]}”的意思是否相似？', False),
+            (self.config.special_tokens['part_separator'], False),
+            (['否', '是'][obj['label']], True),
+        ])
 
 
-class Math23KDataset(BaseDataset):
+class Math23KDataset(FineTuningDatasetBase):
 
     def _template_0(self, obj) -> list:
-        parts = [
+        return self._add_start_and_end_tokens([
             (f'问题：{obj["text"]}', False),
-            (self._special_tokens['part_separator'], False),
-            (f'答案：', False),
-            (obj["equation"][2:], True),
-        ]
-        self._prepend_start_token(parts)
-        self._append_end_token(parts)
-        return parts
+            (self.config.special_tokens['part_separator'], False),
+            ('答案：', False),
+            (obj['equation'][2:], True),
+        ])
 
 
-class BaseNERDataset(BaseDataset):
+class NERDatasetBase(FineTuningDatasetBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -178,25 +176,25 @@ class BaseNERDataset(BaseDataset):
         raise NotImplementedError
 
     @staticmethod
-    def _get_entities(obj) -> List[Dict[str, Any]]:
+    def _get_entities(obj) -> list[dict]:
         raise NotImplementedError
 
-    def _template_0(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
+    def _template_0(self, obj) -> list:
         parts = [
-            f'原始文本：{self._get_text(obj)}',
-            [self._special_tokens['part-separator']],
-            '实体：',
+            (f'原始文本：{self._get_text(obj)}', False),
+            (self.config.special_tokens['part-separator'], False),
+            ('实体：', False),
         ]
         for entity in self._get_entities(obj):
-            parts.append(f'{self.entity_type(entity["type"])}：{entity["entity"]}')
-            parts.append([self._special_tokens['segment-separator']])
-        return parts[:-1]
+            parts.append((f'{self.entity_type(entity["type"])}：{entity["entity"]}', True))
+            parts.append((self.config.special_tokens['segment-separator'], True))
+        return self._add_start_and_end_tokens(parts[:-1])
 
-    def _template_1(self, obj) -> List[Union[str, List[str], Dict[str, List[str]]]]:
+    def _template_1(self, obj) -> list:
         parts = [
-            f'原始文本：{self._get_text(obj)}',
-            [self._special_tokens['part-separator']],
-            '实体：',
+            (f'原始文本：{self._get_text(obj)}', False),
+            (self.config.special_tokens['part-separator'], False),
+            ('实体：', False),
         ]
         entities = {
             entity['entity']: self.entity_type(entity['type'])
@@ -207,23 +205,23 @@ class BaseNERDataset(BaseDataset):
         for text_split in text_splits:
             if text_split in entities:
                 parts.extend([
-                    [self._special_tokens['entity-prefix']],
-                    f'{entities[text_split]}：{text_split}',
-                    [self._special_tokens['entity-postfix']],
+                    (self.config.special_tokens['entity-prefix'], True),
+                    (f'{entities[text_split]}：{text_split}', True),
+                    (self.config.special_tokens['entity-postfix'], True),
                 ])
             else:
-                parts.append(text_split)
-        return parts
+                parts.append((text_split, True))
+        return self._add_start_and_end_tokens(parts)
 
 
-class CUGENERDataset(BaseNERDataset):
+class CUGENERDataset(NERDatasetBase):
 
     @staticmethod
     def _get_text(obj) -> str:
         return obj['text']
 
     @staticmethod
-    def _get_entities(obj) -> List[Dict[str, Any]]:
+    def _get_entities(obj) -> list[dict]:
         return obj['entities']
 
 
