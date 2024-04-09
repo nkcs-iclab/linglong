@@ -62,9 +62,11 @@ def main():
 
     with linglong.running('Loading configs', is_main_process=is_main_process) as spinner:
         training_args.gradient_checkpointing_kwargs = {'use_reentrant': False}
-        spinner.write(model_args)
-        spinner.write(data_args)
-        spinner.write(training_args)
+        spinner.write(linglong.prettify({
+            'model_args': model_args,
+            'data_args': data_args,
+            'training_args': training_args,
+        }))
 
     with linglong.running('Loading the model', is_main_process=is_main_process, timer=True) as spinner:
         if model_args.pretrained_model is not None:
