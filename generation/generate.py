@@ -7,6 +7,7 @@ import importlib
 
 from typing import Callable
 from transformers import TextStreamer
+from peft import PeftModelForCausalLM
 
 import linglong
 
@@ -170,6 +171,7 @@ class LingLongGenerate(cmd.Cmd):
 
 def main(
         model: str,
+        peft_model: str | None = None,
         batch_size: int = 1,
         max_length: int = 128,
         temperature: float = 1.0,
@@ -202,6 +204,8 @@ def main(
         model_path = model
         with linglong.running('Loading the model', timer=True):
             model = linglong.LingLongLMHeadModel.from_pretrained(model_path, device_map=device_map)
+            if peft_model is not None:
+                model = PeftModelForCausalLM.from_pretrained(model, peft_model)
         tokenizer = linglong.Tokenizer.from_pretrained(model_path, padding_side='left')
         pinyin_tokenizer = linglong.PinyinTokenizer.from_pretrained(
             model_path,
@@ -217,6 +221,7 @@ def main(
         print(linglong.text('Model Info', style=linglong.INFO))
         print(linglong.prettify({
             'model': model_path,
+            **({'peft_model': peft_model} if peft_model is not None else {}),
             'use_pinyin': model.config.use_pinyin,
             'backward': model.config.backward,
         }))
