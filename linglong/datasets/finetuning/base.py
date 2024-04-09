@@ -33,7 +33,7 @@ class FineTuningDatasetBase:
     def __init__(self, config: FineTuningDatasetConfig):
         self.config = config
         self.input_file = next(self.config.input_path.glob(f'{self.config.split}*'))
-        self.tokenizer, self.pinyin_tokenizer = linglong.load_tokenizer(
+        self.tokenizer, self.pinyin_tokenizer = linglong.get_tokenizers(
             vocab_path=self.config.vocab_path,
             pinyin_vocab_path=self.config.pinyin_vocab_path,
             special_tokens=self.config.special_tokens,
@@ -97,7 +97,7 @@ class FineTuningDatasetBase:
             'files': [],
             'has_attention_mask': False,
         }
-        import linglong.records
+        import linglong.data.tfrecord
         import tensorflow as tf
         for i in linglong.trange(len(objs)):
             parts = self._templatize(objs[i])
@@ -127,7 +127,7 @@ class FineTuningDatasetBase:
                 filename = f'{self.config.split}-{file_idx + 1:0{len(str(n_file))}d}-of-{n_file}.tfrecord.gz'
                 meta['files'].append(filename)
                 writer = tf.io.TFRecordWriter(str(self.config.output_path / filename), options='GZIP')
-            writer.write(linglong.records.serialize_example(
+            writer.write(linglong.data.tfrecord.serialize_example(
                 data=input_ids,
                 pinyin=pinyin_input_ids,
                 label=label_ids,

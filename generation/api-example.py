@@ -21,17 +21,17 @@ def main(
 ):
     model_path = model
     special_tokens = {
-        'start_token': '[MASK]',
-        'end_token': '[CLS]',
-        'part_separator': '[unused1]',
-        'segment_separator': '[unused2]',
-        'new_line': '[SEP]',
+        'start_token': '<|startoftext|>',
+        'end_token': '<|endoftext|>',
+        'part_separator': '<unused1>',
+        'segment_separator': '<unused2>',
+        'new_line': '<sep>',
         **(special_tokens or {}),
     }
     model = linglong.LingLongLMHeadModel.from_pretrained(model_path, device_map=device_map)
     if peft_model is not None:
         model = PeftModelForCausalLM.from_pretrained(model, peft_model, device_map=device_map)
-    tokenizer, pinyin_tokenizer = linglong.load_tokenizer(
+    tokenizer, pinyin_tokenizer = linglong.get_tokenizers(
         vocab_path=vocab,
         pinyin_vocab_path=pinyin_vocab,
         pretrained_model=model_path,

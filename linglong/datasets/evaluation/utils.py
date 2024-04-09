@@ -1,4 +1,3 @@
-import torch
 import pathlib
 
 import linglong
@@ -40,40 +39,3 @@ def load(config: dict):
             extra_config=config.get('extra_config'),
         )
     )
-
-
-def pad_sequence(
-        sequences,
-        batch_first: bool = False,
-        padding_value: float = 0.0,
-        padding_side: str = 'right',
-):
-    if padding_side == 'right':
-        padded_sequence = torch.nn.utils.rnn.pad_sequence(sequences, batch_first, padding_value)
-    elif padding_side == 'left':
-        sequences = list(map(lambda s: s.flip(0), sequences))
-        padded_sequence = torch.nn.utils.rnn.pad_sequence(sequences, batch_first, padding_value)
-        _seq_dim = padded_sequence.dim()
-        padded_sequence = padded_sequence.flip(-_seq_dim + batch_first)
-    else:
-        raise ValueError(f'`padding_side` should be either "right" or "left", but got {padding_side}')
-    return padded_sequence
-
-
-def padded_batch(batch):
-    output = {}
-    keys = batch[0].keys()
-    for k in keys:
-        if k == 'label_ids':
-            padding_side = 'right'
-            padding_value = -100
-        else:
-            padding_side = 'left'
-            padding_value = 0
-        output[k] = pad_sequence(
-            [x[k] for x in batch],
-            batch_first=True,
-            padding_value=padding_value,
-            padding_side=padding_side,
-        )
-    return output

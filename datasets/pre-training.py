@@ -1,10 +1,8 @@
 import fire
 import pathlib
 
-from typing import *
-
-import mcpt
-import mcpt.records
+import linglong
+import linglong.data.tfrecord
 import tensorflow as tf
 
 
@@ -16,38 +14,39 @@ def main(
         vocab: str = '../common/vocab/char-13312.txt',
         pinyin_vocab: str = '../common/vocab/pinyin-1354.txt',
         use_cache: bool = False,
-        stride: Optional[int] = None,
+        stride: int | None = None,
         items_per_file: int = 200000,
-        special_tokens: Optional[Dict[str, str]] = None,
+        special_tokens: dict[str, str] | None = None,
         n_example: int = 3,
 ):
-    with mcpt.running('Loading configs') as spinner:
+    with linglong.running('Loading configs') as spinner:
         special_tokens = {
-            'start_token': '[MASK]',
-            'end_token': '[CLS]',
-            'part_separator': '[unused1]',
-            'segment_separator': '[unused2]',
+            'start_token': '<|startoftext|>',
+            'end_token': '<|endoftext|>',
+            'part_separator': '<unused1>',
+            'segment_separator': '<unused2>',
             **(special_tokens or {}),
         }
         model_config_path = model_config
-        model_config = mcpt.load_config(model_config_path)
+        model_config = linglong.LingLongConfig.from_json_file(model_config_path)
         config = {
             'dataset': dataset,
-            'model_config_path': model_config_path,
-            'model_config': model_config,
             'input_path': input_path,
             'output_path': output_path,
-            'vocab': vocab,
-            'pinyin_vocab': pinyin_vocab,
+            'model_config_path': model_config_path,
+            'model_config': model_config,
+            'vocab_path': vocab,
+            'pinyin_vocab_path': pinyin_vocab,
             'use_cache': use_cache,
             'stride': stride or model_config['n_ctx'] // 2,
             'items_per_file': items_per_file,
             'special_tokens': special_tokens,
+            'use_pinyin': model_config.use_pinyin,
+            'n_positions': model_config.n_positions,
         }
-        dataset_path = pathlib.Path(output_path) / dataset
-        spinner.write(mcpt.pprint(config, export=True))
+        spinner.write(linglong.prettify(config))
 
-    with mcpt.running(f'Processing {dataset} dataset', spinner=use_cache) as spinner:
+    with linglong.running(f'Processing {dataset} dataset', spinner=use_cache) as spinner:
         dataset = mcpt.datasets.pretraining.load(config)
         meta_path, records_path = dataset.prepare()
         meta = mcpt.load_config(meta_path)

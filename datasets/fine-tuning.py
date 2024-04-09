@@ -3,7 +3,7 @@ import fire
 from torch.utils.data import DataLoader
 
 import linglong
-import linglong.records
+import linglong.data.tfrecord
 
 
 def main(
@@ -22,10 +22,10 @@ def main(
 ):
     with linglong.running('Loading configs') as spinner:
         special_tokens = {
-            'start_token': '[MASK]',
-            'end_token': '[CLS]',
-            'part_separator': '[unused1]',
-            'segment_separator': '[unused2]',
+            'start_token': '<|startoftext|>',
+            'end_token': '<|endoftext|>',
+            'part_separator': '<unused1>',
+            'segment_separator': '<unused2>',
             **(special_tokens or {}),
         }
         model_config_path = model_config
@@ -34,16 +34,16 @@ def main(
             'dataset': dataset,
             'input_path': input_path,
             'output_path': output_path,
-            'model_config_path': model_config_path,
             'split': split,
-            'dataset_config_path': dataset_config,
             'vocab_path': vocab,
             'pinyin_vocab_path': pinyin_vocab,
+            'special_tokens': special_tokens,
             'use_cache': use_cache,
             'items_per_file': items_per_file,
-            'special_tokens': special_tokens,
             'use_pinyin': model_config.use_pinyin,
             'n_positions': model_config.n_positions,
+            'model_config_path': model_config_path,
+            'dataset_config_path': dataset_config,
         }, linglong.load_config(dataset_config, key=dataset))
         spinner.write(linglong.prettify(config))
 
@@ -58,15 +58,15 @@ def main(
         }))
 
     print(linglong.text('Examples:', style=linglong.INFO))
-    dataset = linglong.records.load(
+    dataset = linglong.data.tfrecord.load_tfrecord_dataset(
         records_path,
         meta_path,
         use_pinyin=model_config.use_pinyin,
     )
     data_loader = DataLoader(dataset, batch_size=n_examples)
-    tokenizer = linglong.load_tokenizer(vocab_path=vocab)[0]
+    tokenizer = linglong.get_tokenizers(vocab_path=vocab)[0]
     for batch in data_loader:
-        linglong.print_training_records(batch, tokenizer=tokenizer)
+        linglong.data.print_model_inputs(batch, tokenizer=tokenizer)
         break
 
 

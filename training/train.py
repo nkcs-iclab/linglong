@@ -10,7 +10,7 @@ from transformers.utils import check_min_version
 from peft import LoraConfig, TaskType
 
 import linglong
-import linglong.records
+import linglong.data.tfrecord
 
 
 @dataclasses.dataclass
@@ -89,7 +89,7 @@ def main():
         spinner.write(model)
 
     with linglong.running('Loading the dataset', is_main_process=is_main_process, timer=True):
-        train_dataset = linglong.records.load(
+        train_dataset = linglong.data.tfrecord.load_tfrecord_dataset(
             path=data_args.training_data,
             meta=data_args.training_meta,
             use_pinyin=model_config.use_pinyin,

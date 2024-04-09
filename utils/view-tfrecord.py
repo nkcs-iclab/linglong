@@ -3,7 +3,7 @@ import fire
 from torch.utils.data import DataLoader
 
 import linglong
-import linglong.records
+import linglong.data.tfrecord
 
 
 def main(
@@ -13,10 +13,10 @@ def main(
         vocab: str = '../common/vocab/char-13312.txt',
         n_example: int = 3,
 ):
-    dataset = linglong.records.load(path, meta, use_pinyin=use_pinyin)
+    dataset = linglong.data.tfrecord.load_tfrecord_dataset(path, meta, use_pinyin=use_pinyin)
     data_loader = DataLoader(dataset, batch_size=n_example)
-    tokenizer = linglong.load_tokenizer(vocab_path=vocab)[0]
-    linglong.print_training_records(next(iter(data_loader)), tokenizer=tokenizer)
+    tokenizer = linglong.get_tokenizers(vocab_path=vocab)[0]
+    linglong.data.print_model_inputs(next(iter(data_loader)), tokenizer=tokenizer)
 
 
 if __name__ == '__main__':
