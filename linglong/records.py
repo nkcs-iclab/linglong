@@ -10,7 +10,7 @@ import linglong
 tf.config.set_visible_devices([], 'GPU')
 
 
-def _int64_feature(value: Sequence) -> tf.train.Feature:
+def int64_feature(value: Sequence) -> tf.train.Feature:
     return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
 
 
@@ -21,14 +21,14 @@ def serialize_example(
         label: Sequence | None = None,
 ) -> bytes:
     feature = {
-        'data': _int64_feature(data),
+        'data': int64_feature(data),
     }
     if pinyin is not None:
-        feature['pinyin'] = _int64_feature(pinyin)
+        feature['pinyin'] = int64_feature(pinyin)
     if attention_mask is not None:
-        feature['attention_mask'] = _int64_feature(attention_mask)
+        feature['attention_mask'] = int64_feature(attention_mask)
     if label is not None:
-        feature['label'] = _int64_feature(label)
+        feature['label'] = int64_feature(label)
     example = tf.train.Example(features=tf.train.Features(feature=feature))
     return example.SerializeToString()
 

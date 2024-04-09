@@ -28,50 +28,50 @@ class LingLongGenerate(cmd.Cmd):
             debug: bool = False,
     ):
         super().__init__()
-        self._generation_config = generation_config
-        self._tokenizer = tokenizer
-        self._pinyin_tokenizer = pinyin_tokenizer
-        self._model = model
-        self._use_pinyin = self._model.config.use_pinyin
-        self._special_tokens = special_tokens
-        self._prompt = prompt
-        self._prefix = prefix
-        self._suffix = suffix
-        self._plugins = plugins or []
-        self._debug = debug
+        self.generation_config = generation_config
+        self.tokenizer = tokenizer
+        self.pinyin_tokenizer = pinyin_tokenizer
+        self.model = model
+        self.use_pinyin = self.model.config.use_pinyin
+        self.special_tokens = special_tokens
+        self.prompt = prompt
+        self.prefix = prefix
+        self.suffix = suffix
+        self.plugins = plugins or []
+        self.debug = debug
         self._renew_cmd_prompt()
         self.use_rawinput = True
         # noinspection PyTypeChecker
-        self._streamer = TextStreamer(self._tokenizer)
+        self.streamer = TextStreamer(self.tokenizer)
 
     def _renew_cmd_prompt(self):
-        prompt = f'{self._prompt[:10]}...' if len(self._prompt) > 10 else self._prompt
+        prompt = f'{self.prompt[:10]}...' if len(self.prompt) > 10 else self.prompt
         self.prompt = linglong.text(f'({prompt})', style=linglong.ERROR)
-        self.prompt += f' [max length: {linglong.text(self._generation_config["max_length"], style=linglong.STRUCTURE)}'
-        if self._prefix:
-            self.prompt += f', prefix: {linglong.text(self._prefix, style=linglong.STRUCTURE)}'
-        if self._suffix:
-            self.prompt += f', suffix: {linglong.text(self._suffix, style=linglong.STRUCTURE)}'
+        self.prompt += f' [max length: {linglong.text(self.generation_config["max_length"], style=linglong.STRUCTURE)}'
+        if self.prefix:
+            self.prompt += f', prefix: {linglong.text(self.prefix, style=linglong.STRUCTURE)}'
+        if self.suffix:
+            self.prompt += f', suffix: {linglong.text(self.suffix, style=linglong.STRUCTURE)}'
         self.prompt += '] -> '
 
     def _print_samples(self, samples: list[str]):
         for idx, sample in enumerate(samples):
-            sample = sample.split(self._special_tokens['new_line'] + self._special_tokens['end_token'])[0]
-            sample = sample.split(self._special_tokens['new_line'])[0]
-            sample = sample.replace(self._special_tokens['new_line'], '\\n')
+            sample = sample.split(self.special_tokens['new_line'] + self.special_tokens['end_token'])[0]
+            sample = sample.split(self.special_tokens['new_line'])[0]
+            sample = sample.replace(self.special_tokens['new_line'], '\\n')
             print(linglong.text(f'GENERATED [{idx + 1}]', style=linglong.WARNING), end=' ')
             print(sample)
 
     def _generate(self):
-        backward = self._model.config.backward
-        step_by_step = self._generation_config['batch_size'] == 1 and not backward
+        backward = self.model.config.backward
+        step_by_step = self.generation_config['batch_size'] == 1 and not backward
 
-        print(linglong.text('QUERY', style=linglong.WARNING), self._prompt)
+        print(linglong.text('QUERY', style=linglong.WARNING), self.prompt)
 
-        prefix = self._prefix
-        for plugin in self._plugins:
-            if '{' + plugin.placeholder + '}' in self._prefix:
-                plugin_output = plugin(self._prompt)
+        prefix = self.prefix
+        for plugin in self.plugins:
+            if '{' + plugin.placeholder + '}' in self.prefix:
+                plugin_output = plugin(self.prompt)
                 if isinstance(plugin_output, dict):
                     plugin_output, debug_output = plugin_output['text'], plugin_output['debug']
                     print(debug_output)
@@ -79,43 +79,43 @@ class LingLongGenerate(cmd.Cmd):
                         print(linglong.text(f'PLUGIN {plugin.placeholder} - {k}', style=linglong.WARNING), v)
                 print(linglong.text(f'PLUGIN {plugin.placeholder}', style=linglong.WARNING), plugin_output)
                 prefix = prefix.replace('{' + plugin.placeholder + '}', plugin_output)
-        prompt = self._special_tokens['start_token'] + prefix + (
-            self._prompt[::-1] if backward else self._prompt) + self._suffix
-        if self._debug:
+        prompt = self.special_tokens['start_token'] + prefix + (
+            self.prompt[::-1] if backward else self.prompt) + self.suffix
+        if self.debug:
             print(linglong.text('PROMPT', style=linglong.WARNING), prompt)
-        model_inputs = self._tokenizer([prompt], return_tensors='pt', padding=True).to(self._model.device)
-        if self._use_pinyin:
-            model_inputs['pinyin_input_ids'] = self._pinyin_tokenizer(
+        model_inputs = self.tokenizer([prompt], return_tensors='pt', padding=True).to(self.model.device)
+        if self.use_pinyin:
+            model_inputs['pinyin_input_ids'] = self.pinyin_tokenizer(
                 [prompt],
                 return_tensors='pt',
                 padding=True,
-            ).to(self._model.device)['input_ids']
+            ).to(self.model.device)['input_ids']
         try:
             if step_by_step:
                 print(linglong.text(f'GENERATED', style=linglong.WARNING), end=' ')
-                _ = self._model.generate(
+                _ = self.model.generate(
                     **model_inputs,
-                    max_length=self._generation_config['max_length'],
+                    max_length=self.generation_config['max_length'],
                     do_sample=True,
-                    top_k=self._generation_config['top_k'],
-                    top_p=self._generation_config['top_p'],
-                    temperature=self._generation_config['temperature'],
-                    streamer=self._streamer,
+                    top_k=self.generation_config['top_k'],
+                    top_p=self.generation_config['top_p'],
+                    temperature=self.generation_config['temperature'],
+                    streamer=self.streamer,
                 )
             else:
-                with linglong.running(f'Generating {self._generation_config["batch_size"]} sample(s)', timer=True):
-                    generated_ids = self._model.generate(
+                with linglong.running(f'Generating {self.generation_config["batch_size"]} sample(s)', timer=True):
+                    generated_ids = self.model.generate(
                         **model_inputs,
-                        max_length=self._generation_config['max_length'],
+                        max_length=self.generation_config['max_length'],
                         do_sample=True,
-                        top_k=self._generation_config['top_k'],
-                        top_p=self._generation_config['top_p'],
-                        temperature=self._generation_config['temperature'],
-                        num_return_sequences=self._generation_config['batch_size'],
+                        top_k=self.generation_config['top_k'],
+                        top_p=self.generation_config['top_p'],
+                        temperature=self.generation_config['temperature'],
+                        num_return_sequences=self.generation_config['batch_size'],
                     )
                     if backward:
                         generated_ids = torch.flip(generated_ids, [1])
-                    generated_text = self._tokenizer.batch_decode(generated_ids)
+                    generated_text = self.tokenizer.batch_decode(generated_ids)
         except KeyboardInterrupt:
             print()
 
@@ -123,7 +123,7 @@ class LingLongGenerate(cmd.Cmd):
             self._print_samples(generated_text)
 
     def do_set(self, arg):
-        allowed_keys = {*self._generation_config.keys(), 'prefix', 'suffix'}
+        allowed_keys = {*self.generation_config.keys(), 'prefix', 'suffix'}
         k, v = arg.split()
         if k not in allowed_keys:
             print(linglong.text(f'`{k}` is not a valid key. Valid keys are: {allowed_keys}', style=linglong.ERROR))
@@ -133,15 +133,15 @@ class LingLongGenerate(cmd.Cmd):
         elif k in ('temperature', 'top_p'):
             v = float(v)
         elif k == 'prefix':
-            self._prefix = v
+            self.prefix = v
         elif k == 'suffix':
-            self._suffix = v
-        if k == 'max_length' and v > self._model.config.n_positions:
-            v = self._model.config.n_positions
+            self.suffix = v
+        if k == 'max_length' and v > self.model.config.n_positions:
+            v = self.model.config.n_positions
             warnings.warn(f'The max generation length cannot be set to {v}. '
-                          f'Clipping the length to {self._model.config.n_positions}.')
-        if k in self._generation_config:
-            self._generation_config[k] = v
+                          f'Clipping the length to {self.model.config.n_positions}.')
+        if k in self.generation_config:
+            self.generation_config[k] = v
         print(linglong.text(f'`{k}` is set to {v}', style=linglong.INFO))
         self._renew_cmd_prompt()
 
@@ -150,9 +150,9 @@ class LingLongGenerate(cmd.Cmd):
             os.system('cls' if os.name == 'nt' else 'clear')
         else:
             if arg == 'prefix':
-                self._prefix = ''
+                self.prefix = ''
             elif arg == 'suffix':
-                self._suffix = ''
+                self.suffix = ''
             self._renew_cmd_prompt()
 
     @staticmethod
@@ -164,7 +164,7 @@ class LingLongGenerate(cmd.Cmd):
         self._generate()
 
     def default(self, line: str):
-        self._prompt = line.strip()
+        self.prompt = line.strip()
         self._renew_cmd_prompt()
         self._generate()
 
@@ -205,7 +205,7 @@ def main(
         with linglong.running('Loading the model', timer=True):
             model = linglong.LingLongLMHeadModel.from_pretrained(model_path, device_map=device_map)
             if peft_model is not None:
-                model = PeftModelForCausalLM.from_pretrained(model, peft_model)
+                model = PeftModelForCausalLM.from_pretrained(model, peft_model, device_map=device_map)
         tokenizer = linglong.Tokenizer.from_pretrained(model_path, padding_side='left')
         tokenizer.add_special_tokens({
             'additional_special_tokens': list(set(special_tokens.values()) - set(tokenizer.all_special_tokens)),
