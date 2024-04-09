@@ -141,9 +141,22 @@ def prettify(
         d: list | dict,
         indent: int | str | None = 2,
         ensure_ascii: bool = False,
+        default=None,
         **kwargs,
-) -> str | None:
-    return json.dumps(d, indent=indent, ensure_ascii=ensure_ascii, **kwargs)
+) -> str:
+    def _default(o):
+        try:
+            return o.__dict__,
+        except AttributeError:
+            return str(o)
+
+    return json.dumps(
+        d,
+        indent=indent,
+        ensure_ascii=ensure_ascii,
+        default=default or _default,
+        **kwargs,
+    )
 
 
 def print_trainable_parameters(model, is_main_process: bool = True, print_fn: Callable = print):
