@@ -1,5 +1,4 @@
 import fire
-import pathlib
 
 from torch.utils.data import DataLoader
 
@@ -15,11 +14,11 @@ def main(
         split: str = 'train',
         dataset_config: str = 'configs/fine-tuning/local.yaml',
         vocab: str = '../common/vocab/char-13312.txt',
-        pinyin_vocab: str = '../common/vocab/pinyin-1354.txt',
+        pinyin_vocab: str | None = '../common/vocab/pinyin-1354.txt',
         use_cache: bool = False,
         items_per_file: int = 200000,
         special_tokens: dict[str, str] | None = None,
-        n_example: int = 3,
+        n_examples: int = 3,
 ):
     with linglong.running('Loading configs') as spinner:
         special_tokens = {
@@ -33,18 +32,18 @@ def main(
         model_config = linglong.LingLongConfig.from_json_file(model_config_path)
         config = linglong.merge_configs({
             'dataset': dataset,
-            'dataset_config_path': dataset_config,
-            'model_config_path': model_config_path,
-            'use_pinyin': model_config.use_pinyin,
-            'n_positions': model_config.n_positions,
             'input_path': input_path,
             'output_path': output_path,
+            'model_config_path': model_config_path,
             'split': split,
-            'vocab': vocab,
-            'pinyin_vocab': pinyin_vocab,
+            'dataset_config_path': dataset_config,
+            'vocab_path': vocab,
+            'pinyin_vocab_path': pinyin_vocab,
             'use_cache': use_cache,
             'items_per_file': items_per_file,
             'special_tokens': special_tokens,
+            'use_pinyin': model_config.use_pinyin,
+            'n_positions': model_config.n_positions,
         }, linglong.load_config(dataset_config, key=dataset))
         spinner.write(linglong.prettify(config))
 
@@ -64,8 +63,8 @@ def main(
         meta_path,
         use_pinyin=model_config.use_pinyin,
     )
-    data_loader = DataLoader(dataset, batch_size=n_example)
-    tokenizer = linglong.Tokenizer(vocab)
+    data_loader = DataLoader(dataset, batch_size=n_examples)
+    tokenizer = linglong.load_tokenizer(vocab_path=vocab)[0]
     for batch in data_loader:
         linglong.print_training_records(batch, tokenizer=tokenizer)
         break

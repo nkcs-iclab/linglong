@@ -33,27 +33,15 @@ class FineTuningDatasetBase:
     def __init__(self, config: FineTuningDatasetConfig):
         self.config = config
         self.input_file = next(self.config.input_path.glob(f'{self.config.split}*'))
-        self.tokenizer = linglong.Tokenizer(self.config.vocab_path)
-        self.pinyin_tokenizer = linglong.PinyinTokenizer(
-            vocab_file=self.config.pinyin_vocab_path,
-            fallback=self.tokenizer,
-        ) if self.config.use_pinyin else None
+        self.tokenizer, self.pinyin_tokenizer = linglong.load_tokenizer(
+            vocab_path=self.config.vocab_path,
+            pinyin_vocab_path=self.config.pinyin_vocab_path,
+            special_tokens=self.config.special_tokens,
+            use_pinyin=self.config.use_pinyin,
+        )
         self.file_format = None
 
         self.config.output_path.mkdir(parents=True, exist_ok=True)
-        # noinspection PyTypeChecker
-        self.tokenizer.add_special_tokens({
-            'additional_special_tokens': list(
-                set(self.config.special_tokens.values()) - set(self.tokenizer.all_special_tokens),
-            ),
-        })
-        if self.pinyin_tokenizer is not None:
-            # noinspection PyTypeChecker
-            self.pinyin_tokenizer.add_special_tokens({
-                'additional_special_tokens': list(
-                    set(self.config.special_tokens.values()) - set(self.pinyin_tokenizer.all_special_tokens),
-                ),
-            })
 
     def _load_file(self, path: str) -> list | dict:
         return linglong.load_file(path, format=self.file_format)
@@ -74,21 +62,23 @@ class FineTuningDatasetBase:
             self,
             parts: list,
             is_label: bool = False,
-    ):
+    ) -> list:
         if parts and isinstance(parts[0], tuple):
             parts.insert(0, (self.config.special_tokens['start_token'], is_label))
         else:
             parts.insert(0, self.config.special_tokens['start_token'])
+        return parts
 
     def _append_end_token(
             self,
             parts: list,
             is_label: bool = True,
-    ):
+    ) -> list:
         if parts and isinstance(parts[0], tuple):
             parts.append((self.config.special_tokens['end_token'], is_label))
         else:
             parts.append(self.config.special_tokens['end_token'])
+        return parts
 
     def _add_start_and_end_tokens(self, parts: list) -> list:
         self._prepend_start_token(parts)
@@ -150,10 +140,7 @@ class FineTuningDatasetBase:
             writer.close()
         return meta, discarded
 
-    def _encode(
-            self,
-            parts: list,
-    ) -> tuple[list[int], list[int] | None, list[int] | None]:
+    def _encode(self, parts: list) -> tuple[list[int], list[int] | None, list[int] | None]:
         input_ids, label_ids = self._convert_parts_to_ids(parts=parts)
         pinyin_input_ids = self._convert_parts_to_ids(
             parts=parts,

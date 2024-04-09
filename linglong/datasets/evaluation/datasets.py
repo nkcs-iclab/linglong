@@ -1,13 +1,11 @@
 import re
 
-from typing import *
-
-from mcpt.datasets.evaluation.base import BaseDataset
+from linglong.datasets.evaluation.base import EvaluationDatasetBase
 
 
-class CEPSUM2Dataset(BaseDataset):
+class CEPSUM2Dataset(EvaluationDatasetBase):
 
-    def _load_file(self, path: str) -> Union[List, Dict]:
+    def _load_file(self, path: str) -> list | dict:
         objs = super()._load_file(path)
         data = []
         for obj in objs:
@@ -23,23 +21,18 @@ class CEPSUM2Dataset(BaseDataset):
                 })
         return data
 
-    def _postprocess(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _post_process(self, data: list[dict]) -> list[dict]:
         groups = {}
         for obj in data:
             if f'{obj["type"]}-{obj["id"]}' in groups:
-                if groups[f'{obj["type"]}-{obj["id"]}']['label'] is not None:
-                    groups[f'{obj["type"]}-{obj["id"]}']['label'].append(obj['label'])
+                if groups[f'{obj["type"]}-{obj["id"]}']['label_ids'] is not None:
+                    groups[f'{obj["type"]}-{obj["id"]}']['label_ids'].append(obj['label_ids'])
             else:
-                obj['label'] = [obj['label']] if obj['label'] is not None else None
+                obj['label_ids'] = [obj['label_ids']] if obj['label_ids'] is not None else None
                 groups[f'{obj["type"]}-{obj["id"]}'] = obj
         return list(groups.values())
 
-    def _template_0(self, obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
+    def _template_0(self, obj) -> tuple[list, list | None] | tuple[list, list | None, dict]:
         obj_type = {
             'bc': '箱包',
             'cl': '衣服',
@@ -50,58 +43,41 @@ class CEPSUM2Dataset(BaseDataset):
         )
         parts = [
             f'商品种类：{obj_type}；特征信息：{features}；商品描述：{"".join(obj["source"].split())}',
-            [self._special_tokens['part_separator']],
+            self.config.special_tokens['part_separator'],
             '商品简介：',
         ]
         label = [
             "".join(obj["target"].split()),
         ] if obj['target'] else None
-        return parts, label, {'id': obj['id'], 'type': obj['type']}
+        return self._prepend_start_token(parts), label, {'id': obj['id'], 'type': obj['type']}
 
 
-class LCSTSDataset(BaseDataset):
+class LCSTSDataset(EvaluationDatasetBase):
 
-    @staticmethod
-    def _template_0(obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
+    def _template_0(self, obj) -> tuple[list, list | None] | tuple[list, list | None, dict]:
         parts = [
             f'文本：{obj["text"]}摘要：',
         ]
         label = [
             obj['summary'],
         ] if obj['summary'] else None
-        return parts, label, {}
+        return self._prepend_start_token(parts), label
 
-    def _template_1(self, obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
+    def _template_1(self, obj) -> tuple[list, list | None] | tuple[list, list | None, dict]:
         parts = [
             f'文本：{obj["text"]}',
-            [self._special_tokens['part_separator']],
+            self.config.special_tokens['part_separator'],
             '摘要：',
         ]
         label = [
             obj['summary'],
         ] if obj['summary'] else None
-        return parts, label, {}
+        return self._prepend_start_token(parts), label
 
 
-class AdGenDataset(BaseDataset):
+class AdGenDataset(EvaluationDatasetBase):
 
-    @staticmethod
-    def _template_0(obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
+    def _template_0(self, obj) -> tuple[list, list | None] | tuple[list, list | None, dict]:
         description = f'标题信息：{obj["title"]}；' if obj['title'] else ''
         if 'tags' in obj:
             description += '标签信息：'
@@ -118,14 +94,9 @@ class AdGenDataset(BaseDataset):
         label = [
             obj['desc'],
         ]
-        return parts, label, {}
+        return self._prepend_start_token(parts), label
 
-    def _template_1(self, obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
+    def _template_1(self, obj) -> tuple[list, list | None] | tuple[list, list | None, dict]:
         description = f'标题信息：{obj["title"]}；' if obj['title'] else ''
         if 'tags' in obj:
             description += '标签信息：'
@@ -138,100 +109,90 @@ class AdGenDataset(BaseDataset):
         description = description[:-1] + '；'
         parts = [
             description,
-            [self._special_tokens['part_separator']],
+            self.config.special_tokens['part_separator'],
             '商品描述：',
         ]
         label = [
             obj['desc'],
         ]
-        return parts, label, {}
+        return self._prepend_start_token(parts), label
 
 
-class KBQADataset(BaseDataset):
+class KBQADataset(EvaluationDatasetBase):
 
-    def _template_0(self, obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
+    def _template_0(self, obj) -> tuple[list, list | None] | tuple[list, list | None, dict]:
         parts = [
             f'问题：{obj["question"]}',
-            [self._special_tokens['part_separator']],
+            self.config.special_tokens['part_separator'],
             '答案：',
         ]
         if obj['answer']:
             a, relation, b = obj['triple'].strip().split('|||')
             label = [
                 a.strip(),
-                [self._special_tokens['segment_separator']],
+                self.config.special_tokens['segment_separator'],
                 relation.strip(),
-                [self._special_tokens['segment_separator']],
+                self.config.special_tokens['segment_separator'],
                 b.strip(),
             ]
         else:
             label = None
-        return parts, label, {}
+        return self._prepend_start_token(parts), label
 
 
-class BaseSegmentationDataset(BaseDataset):
+class SegmentationDatasetBase(EvaluationDatasetBase):
 
     @staticmethod
     def _get_text(obj) -> str:
         raise NotImplementedError
 
     @staticmethod
-    def _get_segments(obj) -> List[str]:
+    def _get_segments(obj) -> list[str]:
         raise NotImplementedError
 
-    def _template_0(self, obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
+    def _template_0(self, obj) -> tuple[list, list | None] | tuple[list, list | None, dict]:
         parts = [
             f'原始文本：{self._get_text(obj)}',
-            [self._special_tokens['part_separator']],
+            self.config.special_tokens['part_separator'],
             '分词结果：',
         ]
         label = []
         for segment in self._get_segments(obj):
             label.append(segment)
-            label.append([self._special_tokens['segment_separator']])
+            label.append(self.config.special_tokens['segment_separator'])
         label = label[:-1]
-        return parts, label, {}
+        return self._prepend_start_token(parts), label
 
 
-class CUGESegmentationDataset(BaseSegmentationDataset):
+class CUGESegmentationDatasetBase(SegmentationDatasetBase):
 
     @staticmethod
     def _get_text(obj) -> str:
         return obj['text']
 
     @staticmethod
-    def _get_segments(obj) -> List[str]:
+    def _get_segments(obj) -> list[str]:
         return obj['ans'].split()
 
 
-class ICWBSegmentationDataset(BaseSegmentationDataset):
+class ICWBSegmentationDatasetBase(SegmentationDatasetBase):
 
     @staticmethod
     def _get_text(obj) -> str:
         return obj.replace("  ", "")
 
     @staticmethod
-    def _get_segments(obj) -> List[str]:
+    def _get_segments(obj) -> list[str]:
         return obj.split()
 
 
-class LCQMCDataset(BaseDataset):
+class LCQMCDataset(EvaluationDatasetBase):
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._candidates = ['是', '否']
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.candidates = ['是', '否']
 
-    def _load_file(self, path: str) -> Union[List, Dict]:
+    def _load_file(self, path: str) -> list | dict:
         objs = super()._load_file(path)
         data = []
         for obj in objs:
@@ -243,90 +204,64 @@ class LCQMCDataset(BaseDataset):
             })
         return data
 
-    def _template_0(self, obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
+    def _template_0(self, obj) -> tuple[list, list | None] | tuple[list, list | None, dict]:
         parts = [
             f'“{obj["sentence1"]}”与“{obj["sentence2"]}”的意思是否矛盾？',
         ]
         label = [
-            self._candidates[obj['label']],
+            self.candidates[obj['label']],
         ]
-        return parts, label, {}
+        return self._prepend_start_token(parts), label
 
-    def _template_1(self, obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
+    def _template_1(self, obj) -> tuple[list, list | None] | tuple[list, list | None, dict]:
         parts = [
             f'句子一“{obj["sentence1"]}”与句子二“{obj["sentence2"]}”的意思是否相似？',
-            [self._special_tokens['part_separator']],
+            self.config.special_tokens['part_separator'],
         ]
         label = [
-            self._candidates[1 - obj['label']],
+            self.candidates[1 - obj['label']],
         ]
-        return parts, label, {}
+        return self._prepend_start_token(parts), label
 
 
-class Math23KDataset(BaseDataset):
+class Math23KDataset(EvaluationDatasetBase):
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._candidates = [
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.candidates = [
             '%', '(', ')', '*', '+', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '[', ']', '^',
         ]
 
-    @staticmethod
-    def _template_0(obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
+    def _template_0(self, obj) -> tuple[list, list | None] | tuple[list, list | None, dict]:
         parts = [
             f'问题：{obj["text"]}答案：',
         ]
         label = [
             obj['label'],
         ] if 'label' in obj else None
-        return parts, label, {}
+        return self._prepend_start_token(parts), label
 
-    def _template_1(self, obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
+    def _template_1(self, obj) -> tuple[list, list | None] | tuple[list, list | None, dict]:
         parts = [
             f'问题：{obj["text"]}',
-            [self._special_tokens['part_separator']],
+            self.config.special_tokens['part_separator'],
             '答案：',
         ]
         label = [
             obj['equation'][2:],
-            [self._special_tokens['part_separator']],
+            self.config.special_tokens['part_separator'],
             obj['label'],
         ] if 'label' in obj else None
-        return parts, label, {}
+        return self._prepend_start_token(parts), label
 
 
-class SIGHANDataset(BaseDataset):
+class SIGHANDataset(EvaluationDatasetBase):
 
-    def _load_file(self, path: str) -> Union[List, Dict]:
+    def _load_file(self, path: str) -> list | dict:
         objs = super()._load_file(path)
         return list(objs.values())
 
-    def _template_0(self, obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
+    def _template_0(self, obj) -> tuple[list, list | None] | tuple[list, list | None, dict]:
         source = obj['text']
         target = list(source)
         for error in obj['errors']:
@@ -335,20 +270,15 @@ class SIGHANDataset(BaseDataset):
             target[error_index] = correct_char
         parts = [
             f'原始文本：{source}',
-            [self._special_tokens['part_separator']],
+            self.config.special_tokens['part_separator'],
             '纠错后文本：',
         ]
         label = [
             ''.join(target),
         ] if len(obj['errors']) > 0 else None
-        return parts, label, {}
+        return self._prepend_start_token(parts), label
 
-    def _template_1(self, obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
+    def _template_1(self, obj) -> tuple[list, list | None] | tuple[list, list | None, dict]:
         source = obj['text']
         target = list(source)
         corrections = []
@@ -357,20 +287,15 @@ class SIGHANDataset(BaseDataset):
             corrections.append(f'{error_index}:-{target[error_index]}+{error[1]}')
         parts = [
             f'原始文本：{source}',
-            [self._special_tokens['part_separator']],
+            self.config.special_tokens['part_separator'],
             '纠错：',
         ]
         label = [
             ';'.join(corrections),
         ] if len(obj['errors']) > 0 else None
-        return parts, label, {}
+        return self._prepend_start_token(parts), label
 
-    def _template_2(self, obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
+    def _template_2(self, obj) -> tuple[list, list | None] | tuple[list, list | None, dict]:
         target = list(obj['text'])
         for error in obj['errors']:
             error_index = int(error[0]) - 1
@@ -378,46 +303,38 @@ class SIGHANDataset(BaseDataset):
             target[error_index] = correct_char
         parts = [
             obj['text'],
-            [self._special_tokens['end_token']],
         ]
         label = [
-            [self._special_tokens['start_token']],
             ''.join(target),
-            [self._special_tokens['end_token']],
         ]
-        return parts, label, {}
+        return self._add_start_and_end_tokens(parts), self._add_start_and_end_tokens(label)
 
 
-class BaseNERDataset(BaseDataset):
+class BaseNERDataset(EvaluationDatasetBase):
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._entity_types = {}
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.entity_types = {}
 
     def entity_type(self, entity_type: str) -> str:
-        return self._entity_types[entity_type]
+        return self.entity_types[entity_type]
 
     @staticmethod
     def _get_text(obj) -> str:
         raise NotImplementedError
 
     @staticmethod
-    def _get_entities(obj) -> List[Dict[str, Any]]:
+    def _get_entities(obj) -> list[dict]:
         raise NotImplementedError
 
     @staticmethod
     def _has_label(obj) -> bool:
         raise NotImplementedError
 
-    def _template_0(self, obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
+    def _template_0(self, obj) -> tuple[list, list | None] | tuple[list, list | None, dict]:
         parts = [
             f'原始文本：{self._get_text(obj)}',
-            [self._special_tokens['part_separator']],
+            self.config.special_tokens['part_separator'],
             '实体：',
         ]
         label = None
@@ -425,19 +342,14 @@ class BaseNERDataset(BaseDataset):
             label = []
             for entity in self._get_entities(obj):
                 label.append(f'{self.entity_type(entity["type"])}：{entity["entity"]}')
-                label.append([self._special_tokens['segment_separator']])
+                label.append(self.config.special_tokens['segment_separator'])
             label = label[:-1]
-        return parts, label, {}
+        return self._prepend_start_token(parts), label
 
-    def _template_1(self, obj) -> \
-            Tuple[
-                List[Union[str, List[str], Dict[str, List[str]]]],
-                Optional[List[Union[str, List[str], Dict[str, List[str]]]]],
-                Dict[str, Any],
-            ]:
+    def _template_1(self, obj) -> tuple[list, list | None] | tuple[list, list | None, dict]:
         parts = [
             f'原始文本：{self._get_text(obj)}',
-            [self._special_tokens['part_separator']],
+            self.config.special_tokens['part_separator'],
             '实体：',
         ]
         label = None
@@ -452,13 +364,13 @@ class BaseNERDataset(BaseDataset):
             for text_split in text_splits:
                 if text_split in entities:
                     label.extend([
-                        [self._special_tokens['entity_prefix']],
+                        self.config.special_tokens['entity_prefix'],
                         f'{entities[text_split]}：{text_split}',
-                        [self._special_tokens['entity_postfix']],
+                        self.config.special_tokens['entity_postfix'],
                     ])
                 else:
                     label.append(text_split)
-        return parts, label, {}
+        return self._prepend_start_token(parts), label
 
 
 class CUGENERDataset(BaseNERDataset):
@@ -468,7 +380,7 @@ class CUGENERDataset(BaseNERDataset):
         return obj['text']
 
     @staticmethod
-    def _get_entities(obj) -> List[Dict[str, Any]]:
+    def _get_entities(obj) -> list[dict]:
         return obj['entities']
 
     @staticmethod
@@ -478,9 +390,9 @@ class CUGENERDataset(BaseNERDataset):
 
 class CMeEEDataset(CUGENERDataset):
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._entity_types = {
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.entity_types = {
             'dis': '疾病',
             'sym': '临床表现',
             'dru': '药物',

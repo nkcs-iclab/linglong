@@ -139,6 +139,64 @@ def load_file(path: str, format: str | None = None) -> list | dict:
     return data
 
 
+def load_tokenizer(
+        vocab_path: str | None = None,
+        pinyin_vocab_path: str | None = None,
+        pretrained_model: str | None = None,
+        special_tokens: dict[str, str] | None = None,
+        use_pinyin: bool = False,
+        **kwargs,
+) -> tuple[linglong.Tokenizer, linglong.PinyinTokenizer | None]:
+    def load_tokenizer_from_vocab() -> linglong.Tokenizer:
+        return linglong.Tokenizer(vocab_path, **kwargs)
+
+    def load_pinyin_tokenizer_from_vocab() -> linglong.PinyinTokenizer:
+        return linglong.PinyinTokenizer(
+            vocab_file=pinyin_vocab_path,
+            fallback=tokenizer,
+            **kwargs,
+        )
+
+    if pretrained_model is not None:
+        try:
+            tokenizer = linglong.Tokenizer.from_pretrained(pretrained_model, **kwargs)
+        except (OSError, EnvironmentError):
+            warnings.warn(
+                f'Cannot load tokenizer from {pretrained_model}. '
+                f'Loading from vocab file {vocab_path}.'
+            )
+            tokenizer = load_tokenizer_from_vocab()
+        try:
+            pinyin_tokenizer = linglong.PinyinTokenizer.from_pretrained(
+                pretrained_model,
+                **kwargs,
+            ) if use_pinyin else None
+        except (OSError, EnvironmentError):
+            warnings.warn(
+                f'Cannot load pinyin tokenizer from {pretrained_model}. '
+                f'Loading from vocab file {pinyin_vocab_path}.'
+            )
+            pinyin_tokenizer = load_pinyin_tokenizer_from_vocab() if use_pinyin else None
+    else:
+        tokenizer = load_tokenizer_from_vocab()
+        pinyin_tokenizer = load_pinyin_tokenizer_from_vocab() if use_pinyin else None
+    if special_tokens is not None:
+        # noinspection PyTypeChecker
+        tokenizer.add_special_tokens({
+            'additional_special_tokens': list(
+                set(special_tokens.values()) - set(tokenizer.all_special_tokens),
+            ),
+        })
+        if use_pinyin:
+            # noinspection PyTypeChecker
+            pinyin_tokenizer.add_special_tokens({
+                'additional_special_tokens': list(
+                    set(special_tokens.values()) - set(pinyin_tokenizer.all_special_tokens),
+                ),
+            })
+    return tokenizer, pinyin_tokenizer
+
+
 def prettify(
         d: list | dict,
         indent: int | str | None = 2,
@@ -163,11 +221,12 @@ def print_training_records(records, tokenizer: 'linglong.Tokenizer', print_fn: C
         'examples': [],
     }
     for i in range(len(input_ids)):
-        example = {'data': tokenizer.decode(input_ids[i]), 'input_ids': str(input_ids[i].numpy().tolist())}
+        example = {'input': tokenizer.decode(input_ids[i]), 'input_ids': str(input_ids[i].numpy().tolist())}
         if pinyin_input_ids is not None:
             example['pinyin_input_ids'] = str(pinyin_input_ids[i].numpy().tolist())
         example['attention_mask'] = str(attention_mask[i].numpy().tolist())
-        example['label_ids'] = tokenizer.decode(label_ids[i])
+        example['label'] = tokenizer.decode(label_ids[i])
+        example['label_ids'] = str(label_ids[i].numpy().tolist())
         example['data[data != 0].shape'] = input_ids[i][input_ids[i] != 0].shape[0]
         example['attention_mask[attention_mask != 0].shape'] = attention_mask[i][attention_mask[i] != 0].shape[0]
         example['label_ids[label_ids != -100].shape'] = label_ids[i][label_ids[i] != -100].shape[0]
