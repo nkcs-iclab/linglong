@@ -84,12 +84,6 @@ class Tokenizer(PreTrainedTokenizer):
             strip_accents=strip_accents,
             **kwargs,
         )
-        # noinspection PyTypeChecker
-        self.add_special_tokens({
-            'additional_special_tokens': [
-                '[unused1]',
-                '[unused2]',
-            ]})
         self.wordpiece_tokenizer = WordpieceTokenizer(vocab=self.vocab, unk_token=self.unk_token)
 
     @property
@@ -186,12 +180,6 @@ class PinyinTokenizer(PreTrainedTokenizer):
             mask_token=mask_token,
             **kwargs,
         )
-        # noinspection PyTypeChecker
-        self.add_special_tokens({
-            'additional_special_tokens': [
-                '[unused1]',
-                '[unused2]',
-            ]})
 
     @property
     def vocab_size(self) -> int:

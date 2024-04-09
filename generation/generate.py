@@ -207,11 +207,20 @@ def main(
             if peft_model is not None:
                 model = PeftModelForCausalLM.from_pretrained(model, peft_model)
         tokenizer = linglong.Tokenizer.from_pretrained(model_path, padding_side='left')
+        tokenizer.add_special_tokens({
+            'additional_special_tokens': list(set(special_tokens.values()) - set(tokenizer.all_special_tokens)),
+        })
         pinyin_tokenizer = linglong.PinyinTokenizer.from_pretrained(
             model_path,
             fallback=tokenizer,
             padding_side='left',
         ) if model.config.use_pinyin else None
+        if pinyin_tokenizer is not None:
+            pinyin_tokenizer.add_special_tokens({
+                'additional_special_tokens': list(
+                    set(special_tokens.values()) - set(pinyin_tokenizer.all_special_tokens),
+                ),
+            })
         if max_length > model.config.n_positions:
             max_length = model.config.n_positions
             warnings.warn(f'The max generation length cannot be set to {max_length}. '

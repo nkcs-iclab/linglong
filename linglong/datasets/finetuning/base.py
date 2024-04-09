@@ -29,10 +29,21 @@ class BaseDataset:
         self._output_path = pathlib.Path(output_path) / f'template-{template_id}{"-pinyin" if self._use_pinyin else ""}'
         self._output_path.mkdir(parents=True, exist_ok=True)
         self._tokenizer = linglong.Tokenizer(vocab_path)
+        # noinspection PyTypeChecker
+        self._tokenizer.add_special_tokens({
+            'additional_special_tokens': list(set(special_tokens.values()) - set(self._tokenizer.all_special_tokens)),
+        })
         self._pinyin_tokenizer = linglong.PinyinTokenizer(
             vocab_file=pinyin_vocab_path,
             fallback=self._tokenizer,
         ) if self._use_pinyin else None
+        if self._pinyin_tokenizer is not None:
+            # noinspection PyTypeChecker
+            self._pinyin_tokenizer.add_special_tokens({
+                'additional_special_tokens': list(
+                    set(special_tokens.values()) - set(self._pinyin_tokenizer.all_special_tokens),
+                ),
+            })
         self._template_id = template_id
         self._use_cache = use_cache
         self._items_per_file = items_per_file
