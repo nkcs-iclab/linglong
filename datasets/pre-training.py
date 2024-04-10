@@ -1,9 +1,9 @@
 import fire
-import pathlib
+
+from torch.utils.data import DataLoader
 
 import linglong
 import linglong.data.tfrecord
-import tensorflow as tf
 
 
 def main(
@@ -17,7 +17,7 @@ def main(
         stride: int | None = None,
         items_per_file: int = 200000,
         special_tokens: dict[str, str] | None = None,
-        n_example: int = 3,
+        n_examples: int = 3,
 ):
     with linglong.running('Loading configs') as spinner:
         special_tokens = {
@@ -47,39 +47,28 @@ def main(
         spinner.write(linglong.prettify(config))
 
     with linglong.running(f'Processing {dataset} dataset', spinner=use_cache) as spinner:
-        dataset = mcpt.datasets.pretraining.load(config)
+        dataset = linglong.datasets.pretraining.load(config)
         meta_path, records_path = dataset.prepare()
-        meta = mcpt.load_config(meta_path)
-        padding_shape = meta['padding_shape']
-        spinner.write(mcpt.pprint({
-            'meta': meta_path,
-            'records': records_path,
-            'record_count': meta['count'],
-            'padding_shape': padding_shape,
-        }, export=True))
+        meta = linglong.load_config(meta_path)
+        spinner.write(linglong.prettify({
+            'meta_path': meta_path,
+            'records_path': records_path,
+            'meta': meta,
+        }))
 
-    print(mcpt.text('Examples:', style=mcpt.INFO))
-    if model_config.get('use_pinyin', False):
-        dataset_path = dataset_path / f'template-0-pinyin'
-        decode_fn = mcpt.records.decode_pinyin
-        padded_shapes = ((2, padding_shape), padding_shape)
-    else:
-        dataset_path = dataset_path / f'template-0'
-        decode_fn = mcpt.records.decode
-        padded_shapes = (padding_shape, padding_shape)
-
-    dataset = tf.data.TFRecordDataset(
-        list(map(lambda x: str(dataset_path / x), meta['files'])),
-        compression_type=meta.get('compression_type'),
+    print(linglong.text('Examples:', style=linglong.INFO))
+    dataset = linglong.data.tfrecord.load_tfrecord_dataset(
+        records_path,
+        meta_path,
+        use_pinyin=model_config.use_pinyin,
     )
-    dataset = dataset.map(decode_fn)
-    dataset = dataset.padded_batch(n_example, padded_shapes=padded_shapes)
-    tokenizer = mcpt.Tokenizer(vocab)
-    for batch in dataset:
-        mcpt.print_training_records(batch, tokenizer=tokenizer)
+    data_loader = DataLoader(dataset, batch_size=n_examples)
+    tokenizer = linglong.get_tokenizers(vocab_path=vocab)[0]
+    for batch in data_loader:
+        linglong.data.print_model_inputs(batch, tokenizer=tokenizer)
         break
 
 
 if __name__ == '__main__':
-    mcpt.init()
+    linglong.init()
     fire.Fire(main)
