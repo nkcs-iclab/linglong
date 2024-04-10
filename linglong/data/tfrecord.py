@@ -2,7 +2,7 @@ import torch
 import pathlib
 import tensorflow as tf
 
-from typing import Sequence
+from typing import Sequence, Iterator
 from torch.utils.data import IterableDataset
 
 import linglong
@@ -127,14 +127,20 @@ class TFRecordDataset(IterableDataset):
             .prefetch(tf.data.experimental.AUTOTUNE)
         self.dataset = dataset
         self.index = 0
-        self.dataset_iter = iter(self.dataset)
+        self.dataset_iter: Iterator[
+            tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor] |
+            tuple[tf.Tensor, tf.Tensor, tf.Tensor]
+            ] = iter(self.dataset)
 
     def __len__(self):
         return self.count
 
     def __iter__(self):
         self.index = 0
-        self.dataset_iter = iter(self.dataset)
+        self.dataset_iter: Iterator[
+            tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor] |
+            tuple[tf.Tensor, tf.Tensor, tf.Tensor]
+            ] = iter(self.dataset)
         return self
 
     def __next__(self):
@@ -149,7 +155,6 @@ class TFRecordDataset(IterableDataset):
                 'attention_mask': torch.from_numpy(attention_mask.numpy()).long(),
                 'label_ids': torch.from_numpy(label.numpy()).long(),
             }
-        # noinspection PyTupleAssignmentBalance
         data, attention_mask, label = next(self.dataset_iter)
         return {
             'input_ids': torch.from_numpy(data.numpy()).long(),
