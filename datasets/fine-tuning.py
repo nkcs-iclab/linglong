@@ -10,11 +10,12 @@ def main(
         dataset: str,
         input_path: str,
         output_path: str,
-        model_config: str,
+        dataset_config: str,
+        vocab_path: str | None = None,
+        pinyin_vocab_path: str | None = None,
+        model_config: str | None = None,
+        model_path: str | None = None,
         split: str = 'train',
-        dataset_config: str = 'configs/fine-tuning/local.yaml',
-        vocab: str = '../common/vocab/char-13312.txt',
-        pinyin_vocab: str | None = '../common/vocab/pinyin-1354.txt',
         use_cache: bool = False,
         items_per_file: int = 200000,
         special_tokens: dict[str, str] | None = None,
@@ -29,19 +30,25 @@ def main(
             **(special_tokens or {}),
         }
         model_config_path = model_config
-        model_config = linglong.LingLongConfig.from_json_file(model_config_path)
+        if model_path is not None:
+            model_config = linglong.LingLongConfig.from_pretrained(model_path)
+        elif model_config_path is not None:
+            model_config = linglong.LingLongConfig.from_json_file(model_config_path)
+        else:
+            raise ValueError('Either `model_config` or `model_path` should be provided.')
         config = linglong.merge_configs({
             'dataset': dataset,
             'input_path': input_path,
             'output_path': output_path,
             'split': split,
-            'vocab_path': vocab,
-            'pinyin_vocab_path': pinyin_vocab,
+            'vocab_path': vocab_path,
+            'pinyin_vocab_path': pinyin_vocab_path,
             'special_tokens': special_tokens,
             'use_cache': use_cache,
             'items_per_file': items_per_file,
             'use_pinyin': model_config.use_pinyin,
             'n_positions': model_config.n_positions,
+            'model_path': model_path,
             'model_config_path': model_config_path,
             'dataset_config_path': dataset_config,
         }, linglong.load_config(dataset_config, key=dataset))
@@ -64,7 +71,11 @@ def main(
         use_pinyin=model_config.use_pinyin,
     )
     data_loader = DataLoader(dataset, batch_size=n_examples)
-    tokenizer = linglong.get_tokenizers(vocab_path=vocab)[0]
+    tokenizer = linglong.get_tokenizers(
+        vocab_path=vocab_path,
+        pretrained_model=model_path,
+        special_tokens=special_tokens,
+    )[0]
     for batch in data_loader:
         linglong.data.print_model_inputs(batch, tokenizer=tokenizer)
         break

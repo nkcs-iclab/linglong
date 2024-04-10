@@ -11,15 +11,16 @@ import linglong
 class FineTuningDatasetConfig:
     input_path: str | pathlib.Path
     output_path: str | pathlib.Path
-    vocab_path: str
     template_id: int
     special_tokens: dict[str, str]
     items_per_file: int
     n_positions: int
     use_pinyin: bool = False
+    vocab_path: str | None = None
     pinyin_vocab_path: str | None = None
     split: str = 'train'
     use_cache: bool = False
+    model_path: str | None = None
     extra_config: dict | None = None
 
     def __post_init__(self):
@@ -36,6 +37,7 @@ class FineTuningDatasetBase:
         self.tokenizer, self.pinyin_tokenizer = linglong.get_tokenizers(
             vocab_path=self.config.vocab_path,
             pinyin_vocab_path=self.config.pinyin_vocab_path,
+            pretrained_model=self.config.model_path,
             special_tokens=self.config.special_tokens,
             use_pinyin=self.config.use_pinyin,
         )
