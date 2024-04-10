@@ -1,6 +1,6 @@
 # LingLong (玲珑): A Small-Scale Chinese PreTrained Language Model
 
-![version 0.10.0](https://img.shields.io/badge/version-0.10.0-blue)
+![version 0.10.1](https://img.shields.io/badge/version-0.10.1-blue)
 ![Python >=3.11,<3.12](https://img.shields.io/badge/Python->=3.11,<3.12-blue?logo=python&logoColor=white)
 ![PyTorch 2.2](https://img.shields.io/badge/PyTorch-2.2-EE4C2C?logo=pytorch&logoColor=white)
 ![TensorFlow 2.16](https://img.shields.io/badge/TensorFlow-2.16-FF6F00?logo=tensorflow&logoColor=white)
@@ -120,7 +120,11 @@ The latest models will be released soon.
 
 ### 0.11 (Upcoming)
 
-- Nothing yet.
+- *Dataset:* Dataset pre-processing scripts can now initialize tokenizers from pretrained models or vocab files.
+- *Generation:* Add `bingsearch` plugin for text generation.
+- Add a new model conversion script.
+- Progress bars are now printed to `stderr` instead of `stdout`.
+- Use transformers' logger instead of the built-in `warnings` module.
 
 ### 0.10
 
