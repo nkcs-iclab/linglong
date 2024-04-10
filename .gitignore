@@ -5,5 +5,3 @@ hostfile
 *.pt
 *local*
 *.sh
-
-generation/plugins/

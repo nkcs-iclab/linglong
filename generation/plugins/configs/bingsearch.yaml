@@ -1,0 +1,20 @@
+# Mandatory fields:
+subscription_key:
+endpoint: 'https://api.bing.microsoft.com/v7.0/search'
+mkt: 'zh-CN'
+
+# Optional fields:
+proxies:
+  http:
+  https:
+placeholder: 'BINGSEARCH'
+extract_keywords: false
+keywords_model:
+  base:
+  peft:
+  device_map: 'cuda'
+  # Please provide vocab file for keywords tokenizer if the keywords model does not have one
+  vocab_path:
+  special_tokens:
+  max_length: 128
+  template:

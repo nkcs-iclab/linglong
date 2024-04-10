@@ -2,11 +2,11 @@ import os
 import cmd
 import fire
 import torch
-import warnings
 import importlib
 
 from typing import Callable
 from transformers import TextStreamer
+from transformers.utils import logging
 from peft import PeftModelForCausalLM
 
 import linglong
@@ -74,7 +74,6 @@ class LingLongGenerate(cmd.Cmd):
                 plugin_output = plugin(self.llm_prompt)
                 if isinstance(plugin_output, dict):
                     plugin_output, debug_output = plugin_output['text'], plugin_output['debug']
-                    print(debug_output)
                     for k, v in debug_output.items():
                         print(linglong.text(f'PLUGIN {plugin.placeholder} - {k}', style=linglong.WARNING), v)
                 print(linglong.text(f'PLUGIN {plugin.placeholder}', style=linglong.WARNING), plugin_output)
@@ -83,10 +82,10 @@ class LingLongGenerate(cmd.Cmd):
             self.llm_prompt[::-1] if backward else self.llm_prompt) + self.suffix
         if self.debug:
             print(linglong.text('PROMPT', style=linglong.WARNING), prompt)
-        model_inputs = self.tokenizer([prompt], return_tensors='pt', padding=True).to(self.model.device)
+        model_inputs = self.tokenizer(prompt, return_tensors='pt', padding=True).to(self.model.device)
         if self.use_pinyin:
             model_inputs['pinyin_input_ids'] = self.pinyin_tokenizer(
-                [prompt],
+                prompt,
                 return_tensors='pt',
                 padding=True,
             ).to(self.model.device)['input_ids']
@@ -138,8 +137,10 @@ class LingLongGenerate(cmd.Cmd):
             self.suffix = v
         if k == 'max_length' and v > self.model.config.n_positions:
             v = self.model.config.n_positions
-            warnings.warn(f'The max generation length cannot be set to {v}. '
-                          f'Clipping the length to {self.model.config.n_positions}.')
+            logger.warning(
+                f'The max generation length cannot be set to {v}. '
+                f'Clipping the length to {self.model.config.n_positions}.',
+            )
         if k in self.generation_config:
             self.generation_config[k] = v
         print(linglong.text(f'`{k}` is set to {v}', style=linglong.INFO))
@@ -172,8 +173,8 @@ class LingLongGenerate(cmd.Cmd):
 def main(
         model: str,
         peft_model: str | None = None,
-        vocab: str | None = '../common/vocab/char-13312.txt',
-        pinyin_vocab: str | None = '../common/vocab/pinyin-1354.txt',
+        vocab_path: str | None = None,
+        pinyin_vocab_path: str | None = None,
         batch_size: int = 1,
         max_length: int = 128,
         temperature: float = 1.0,
@@ -185,6 +186,7 @@ def main(
         prefix: str = '',
         suffix: str = '',
         plugins: list[str] | None = None,
+        plugin_kwargs: dict[str, dict[str, str]] | None = None,
         debug: bool = False,
 ):
     generation_config = {
@@ -209,8 +211,8 @@ def main(
             if peft_model is not None:
                 model = PeftModelForCausalLM.from_pretrained(model, peft_model, device_map=device_map)
         tokenizer, pinyin_tokenizer = linglong.get_tokenizers(
-            vocab_path=vocab,
-            pinyin_vocab_path=pinyin_vocab,
+            vocab_path=vocab_path,
+            pinyin_vocab_path=pinyin_vocab_path,
             pretrained_model=model_path,
             special_tokens=special_tokens,
             use_pinyin=model.config.use_pinyin,
@@ -218,8 +220,10 @@ def main(
         )
         if max_length > model.config.n_positions:
             max_length = model.config.n_positions
-            warnings.warn(f'The max generation length cannot be set to {max_length}. '
-                          f'Clipping the length to {model.config.n_positions}.')
+            logger.warning(
+                f'The max generation length cannot be set to {max_length}. '
+                f'Clipping the length to {model.config.n_positions}.',
+            )
         if plugins is not None:
             plugins = [importlib.import_module(plugin).Plugin() for plugin in plugins]
         print(linglong.text('Model Info', style=linglong.INFO))
@@ -248,4 +252,5 @@ def main(
 
 if __name__ == '__main__':
     linglong.init()
+    logger = logging.get_logger()
     fire.Fire(main)
