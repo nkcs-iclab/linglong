@@ -36,6 +36,7 @@ def load(config: dict):
             items_per_file=config['items_per_file'],
             use_pinyin=config['use_pinyin'],
             n_positions=config['n_positions'],
+            model_path=config['model_path'],
             extra_config=config.get('extra_config'),
         )
     )

@@ -11,8 +11,8 @@ def main(
         input_path: str,
         output_path: str,
         model_config: str,
-        vocab: str = '../common/vocab/char-13312.txt',
-        pinyin_vocab: str = '../common/vocab/pinyin-1354.txt',
+        vocab_path: str,
+        pinyin_vocab_path: str | None = None,
         use_cache: bool = False,
         stride: int | None = None,
         items_per_file: int = 200000,
@@ -35,8 +35,8 @@ def main(
             'output_path': output_path,
             'model_config_path': model_config_path,
             'model_config': model_config,
-            'vocab_path': vocab,
-            'pinyin_vocab_path': pinyin_vocab,
+            'vocab_path': vocab_path,
+            'pinyin_vocab_path': pinyin_vocab_path,
             'use_cache': use_cache,
             'stride': stride or model_config['n_ctx'] // 2,
             'items_per_file': items_per_file,
@@ -63,7 +63,10 @@ def main(
         use_pinyin=model_config.use_pinyin,
     )
     data_loader = DataLoader(dataset, batch_size=n_examples)
-    tokenizer = linglong.get_tokenizers(vocab_path=vocab)[0]
+    tokenizer = linglong.get_tokenizers(
+        vocab_path=vocab_path,
+        special_tokens=special_tokens,
+    )[0]
     for batch in data_loader:
         linglong.data.print_model_inputs(batch, tokenizer=tokenizer)
         break

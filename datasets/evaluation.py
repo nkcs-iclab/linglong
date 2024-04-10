@@ -9,9 +9,9 @@ def main(
         dataset: str,
         input_path: str,
         output_path: str,
-        dataset_config: str = '../evaluation/configs/local.yaml',
-        vocab: str = '../common/vocab/char-13312.txt',
-        pinyin_vocab: str | None = '../common/vocab/pinyin-1354.txt',
+        dataset_config: str,
+        vocab_path: str | None = None,
+        pinyin_vocab_path: str | None = None,
         use_cache: bool = False,
         special_tokens: dict[str, str] | None = None,
         n_examples: int = 3,
@@ -30,8 +30,8 @@ def main(
             'input_path': input_path,
             'output_path': output_path,
             'dataset_config_path': dataset_config,
-            'vocab_path': vocab,
-            'pinyin_vocab_path': pinyin_vocab,
+            'vocab_path': vocab_path,
+            'pinyin_vocab_path': pinyin_vocab_path,
             'use_cache': use_cache,
             'special_tokens': special_tokens,
         }, linglong.load_config(dataset_config, key=dataset))
@@ -39,9 +39,9 @@ def main(
         model_config = linglong.LingLongConfig.from_pretrained(model_path)
         config['use_pinyin'] = model_config.use_pinyin
         tokenizer = linglong.get_tokenizers(
-            vocab_path=vocab,
-            special_tokens=special_tokens,
+            vocab_path=vocab_path,
             pretrained_model=model_path,
+            special_tokens=special_tokens,
         )[0]
         spinner.write(linglong.prettify(config))
 

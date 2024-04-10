@@ -11,11 +11,11 @@ import linglong
 class EvaluationDatasetConfig:
     input_path: str | pathlib.Path
     output_path: str | pathlib.Path
-    vocab_path: str
     template_id: int
     special_tokens: dict[str, str]
     use_pinyin: bool = False
     model_path: str | None = None
+    vocab_path: str | None = None
     pinyin_vocab_path: str | None = None
     split: str = 'test'
     use_cache: bool = False
