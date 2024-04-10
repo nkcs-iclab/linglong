@@ -35,7 +35,7 @@ def load(config: dict):
             use_cache=config['use_cache'],
             items_per_file=config['items_per_file'],
             use_pinyin=config['use_pinyin'],
-            n_positions=config['n_positions'],
+            n_position=config['n_position'],
             model_path=config['model_path'],
             extra_config=config.get('extra_config'),
         )

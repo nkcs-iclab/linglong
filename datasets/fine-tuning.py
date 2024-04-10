@@ -19,7 +19,7 @@ def main(
         use_cache: bool = False,
         items_per_file: int = 200000,
         special_tokens: dict[str, str] | None = None,
-        n_examples: int = 3,
+        n_example: int = 3,
 ):
     with linglong.running('Loading configs') as spinner:
         special_tokens = {
@@ -47,7 +47,7 @@ def main(
             'use_cache': use_cache,
             'items_per_file': items_per_file,
             'use_pinyin': model_config.use_pinyin,
-            'n_positions': model_config.n_positions,
+            'n_position': model_config.n_position,
             'model_path': model_path,
             'model_config_path': model_config_path,
             'dataset_config_path': dataset_config,
@@ -70,7 +70,7 @@ def main(
         meta_path,
         use_pinyin=model_config.use_pinyin,
     )
-    data_loader = DataLoader(dataset, batch_size=n_examples)
+    data_loader = DataLoader(dataset, batch_size=n_example)
     tokenizer = linglong.get_tokenizers(
         vocab_path=vocab_path,
         pretrained_model=model_path,

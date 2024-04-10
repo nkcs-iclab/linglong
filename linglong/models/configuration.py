@@ -7,7 +7,7 @@ class LingLongConfig(PretrainedConfig):
     def __init__(
             self,
             vocab_size: int = 13312,
-            n_positions: int = 1024,
+            n_position: int = 1024,
             n_embd: int = 1024,
             n_layer: int = 24,
             n_head: int = 16,
@@ -33,7 +33,7 @@ class LingLongConfig(PretrainedConfig):
             **kwargs,
     ):
         self.vocab_size = vocab_size
-        self.n_positions = n_positions
+        self.n_position = n_position
         self.n_embd = n_embd
         self.n_layer = n_layer
         self.n_head = n_head

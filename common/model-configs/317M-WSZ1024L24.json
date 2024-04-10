@@ -18,7 +18,7 @@
   "n_head": 16,
   "n_inner": null,
   "n_layer": 24,
-  "n_positions": 1024,
+  "n_position": 1024,
   "pad_token_id": 0,
   "reorder_and_upcast_attn": false,
   "resid_pdrop": 0.1,

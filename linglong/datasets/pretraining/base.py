@@ -46,7 +46,7 @@ class PreTrainingDatasetConfig:
     special_tokens: dict[str, str]
     stride: int
     items_per_file: int
-    n_positions: int
+    n_position: int
     use_pinyin: bool = False
     pinyin_vocab_path: str | None = None
     use_cache: bool = False
@@ -88,7 +88,7 @@ class PreTrainingDataset:
         writer = None
         file_idx = None
         meta = {
-            'padding_shape': self.config.n_positions,
+            'padding_shape': self.config.n_position,
             'count': 0,
             'files': [],
             'compression_type': 'GZIP',
@@ -99,7 +99,7 @@ class PreTrainingDataset:
         import linglong.data.tfrecord
         import tensorflow as tf
         while not file_loader.empty():
-            input_tokens = file_loader.load(length=self.config.n_positions, stride=self.config.stride)
+            input_tokens = file_loader.load(length=self.config.n_position, stride=self.config.stride)
             input_ids = self.tokenizer.convert_tokens_to_ids(input_tokens)
             pinyin_input_ids = None
             if self.config.use_pinyin:
