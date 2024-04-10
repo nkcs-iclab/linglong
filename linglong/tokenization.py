@@ -2,7 +2,6 @@ import shutil
 import string
 import pathlib
 import pypinyin
-import warnings
 import collections
 
 from transformers.utils import logging
@@ -37,7 +36,6 @@ def _load_pinyin_vocab(vocab_file: str) -> dict[str, int]:
     }
     for k, v in number_pinyin.items():
         if k in vocab and v in vocab:
-            # To fix a linting bug in PyCharm.
             # noinspection PyUnresolvedReferences
             vocab[k] = vocab[v]
     return vocab
@@ -300,13 +298,13 @@ def get_tokenizers(
         try:
             tokenizer = Tokenizer.from_pretrained(pretrained_model, **kwargs)
             if vocab_path is not None:
-                warnings.warn(
-                    f'Successfully loaded tokenizer from {pretrained_model}.'
+                logger.warning(
+                    f'Successfully loaded tokenizer from {pretrained_model}. '
                     f'Vocab file {vocab_path} is ignored.',
                 )
         except (OSError, EnvironmentError):
             tokenizer = load_tokenizer_from_vocab()
-            warnings.warn(
+            logger.warning(
                 f'Cannot load tokenizer from {pretrained_model}. '
                 f'Loading from vocab file {vocab_path}.'
             )
@@ -317,15 +315,15 @@ def get_tokenizers(
                     **kwargs,
                 )
                 if pinyin_vocab_path is not None:
-                    warnings.warn(
-                        f'Successfully loaded pinyin tokenizer from {pretrained_model}.'
+                    logger.warning(
+                        f'Successfully loaded pinyin tokenizer from {pretrained_model}. '
                         f'Vocab file {pinyin_vocab_path} is ignored.',
                     )
             else:
                 pinyin_tokenizer = None
         except (OSError, EnvironmentError):
             pinyin_tokenizer = load_pinyin_tokenizer_from_vocab() if use_pinyin else None
-            warnings.warn(
+            logger.warning(
                 f'Cannot load pinyin tokenizer from {pretrained_model}. '
                 f'Loading from vocab file {pinyin_vocab_path}.'
             )
