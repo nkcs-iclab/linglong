@@ -10,8 +10,8 @@ def main(
         model: str,
         prompt: str,
         peft_model: str | None = None,
-        vocab: str | None = '../common/vocab/char-13312.txt',
-        pinyin_vocab: str | None = '../common/vocab/pinyin-1354.txt',
+        vocab_path: str | None = None,
+        pinyin_vocab_path: str | None = None,
         device_map: str | dict[str, int | str | torch.device] | int | torch.device | None = 'cuda',
         special_tokens: dict[str, str] | None = None,
         max_length: int = 128,
@@ -32,18 +32,18 @@ def main(
     if peft_model is not None:
         model = PeftModelForCausalLM.from_pretrained(model, peft_model, device_map=device_map)
     tokenizer, pinyin_tokenizer = linglong.get_tokenizers(
-        vocab_path=vocab,
-        pinyin_vocab_path=pinyin_vocab,
+        vocab_path=vocab_path,
+        pinyin_vocab_path=pinyin_vocab_path,
         pretrained_model=model_path,
         special_tokens=special_tokens,
         use_pinyin=model.config.use_pinyin,
         padding_side='left',
     )
 
-    model_inputs = tokenizer([prompt], return_tensors='pt', padding=True).to(model.device)
+    model_inputs = tokenizer(prompt, return_tensors='pt', padding=True).to(model.device)
     if pinyin_tokenizer:
         model_inputs['pinyin_input_ids'] = pinyin_tokenizer(
-            [prompt],
+            prompt,
             return_tensors='pt',
             padding=True,
         ).to(model.device)['input_ids']
@@ -57,8 +57,8 @@ def main(
         top_k=top_k,
         top_p=top_p,
         temperature=temperature,
-    )
-    generated_text = tokenizer.batch_decode(generated_ids)[0]
+    )[0]
+    generated_text = tokenizer.decode(generated_ids)
     print(generated_text)
 
 

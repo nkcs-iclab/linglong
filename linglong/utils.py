@@ -75,7 +75,6 @@ def python_version(min_ver: str | None = None, max_ver: str | None = None) -> bo
 
 def init(window_color_fix: bool = True):
     if window_color_fix:
-        # noinspection PyUnresolvedReferences
         colorama.just_fix_windows_console()
 
 
