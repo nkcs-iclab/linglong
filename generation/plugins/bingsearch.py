@@ -40,10 +40,10 @@ class Plugin(linglong.generation.BasePlugin):
         keywords_input = None
         if self.config.get('extract_keywords', False):
             keywords_input = self.template.format(prompt=prompt, **(self.special_tokens or {}))
-            input_ids = self.keywords_tokenizer.encode(
+            input_ids = self.keywords_tokenizer(
                 keywords_input,
                 return_tensors='pt',
-            ).to(self.keywords_model.device)
+            ).to(self.keywords_model.device)['input_ids']
             generated_ids = self.keywords_model.generate(
                 input_ids,
                 max_length=self.config['keywords_model']['max_length'],
