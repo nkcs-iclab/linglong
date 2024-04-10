@@ -283,9 +283,13 @@ def get_tokenizers(
         **kwargs,
 ) -> tuple[Tokenizer, PinyinTokenizer | None]:
     def load_tokenizer_from_vocab() -> Tokenizer:
+        if vocab_path is None:
+            raise ValueError('`vocab_path` must be provided if `pretrained_model` is None.')
         return Tokenizer(vocab_path, **kwargs)
 
     def load_pinyin_tokenizer_from_vocab() -> PinyinTokenizer:
+        if pinyin_vocab_path is None:
+            raise ValueError('`pinyin_vocab_path` must be provided if `pretrained_model` is None.')
         return PinyinTokenizer(
             vocab_file=pinyin_vocab_path,
             fallback=tokenizer,
@@ -295,23 +299,36 @@ def get_tokenizers(
     if pretrained_model is not None:
         try:
             tokenizer = Tokenizer.from_pretrained(pretrained_model, **kwargs)
+            if vocab_path is not None:
+                warnings.warn(
+                    f'Successfully loaded tokenizer from {pretrained_model}.'
+                    f'Vocab file {vocab_path} is ignored.',
+                )
         except (OSError, EnvironmentError):
+            tokenizer = load_tokenizer_from_vocab()
             warnings.warn(
                 f'Cannot load tokenizer from {pretrained_model}. '
                 f'Loading from vocab file {vocab_path}.'
             )
-            tokenizer = load_tokenizer_from_vocab()
         try:
-            pinyin_tokenizer = PinyinTokenizer.from_pretrained(
-                pretrained_model,
-                **kwargs,
-            ) if use_pinyin else None
+            if use_pinyin:
+                pinyin_tokenizer = PinyinTokenizer.from_pretrained(
+                    pretrained_model,
+                    **kwargs,
+                )
+                if pinyin_vocab_path is not None:
+                    warnings.warn(
+                        f'Successfully loaded pinyin tokenizer from {pretrained_model}.'
+                        f'Vocab file {pinyin_vocab_path} is ignored.',
+                    )
+            else:
+                pinyin_tokenizer = None
         except (OSError, EnvironmentError):
+            pinyin_tokenizer = load_pinyin_tokenizer_from_vocab() if use_pinyin else None
             warnings.warn(
                 f'Cannot load pinyin tokenizer from {pretrained_model}. '
                 f'Loading from vocab file {pinyin_vocab_path}.'
             )
-            pinyin_tokenizer = load_pinyin_tokenizer_from_vocab() if use_pinyin else None
     else:
         tokenizer = load_tokenizer_from_vocab()
         pinyin_tokenizer = load_pinyin_tokenizer_from_vocab() if use_pinyin else None
