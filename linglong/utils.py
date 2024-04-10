@@ -82,7 +82,7 @@ def init(window_color_fix: bool = True):
 def tqdm(*args, **kwargs) -> tqdm_tqdm:
     is_main_process = kwargs.pop('is_main_process', True)
     if is_main_process:
-        return tqdm_tqdm(*args, ncols=80, file=sys.stdout, ascii='.=', **kwargs)
+        return tqdm_tqdm(*args, ncols=80, ascii='.=', **kwargs)
     return args[0] if len(args) > 0 else Noop()
 
 
