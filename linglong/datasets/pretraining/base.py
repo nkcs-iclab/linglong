@@ -103,7 +103,7 @@ class PreTrainingDataset:
             input_ids = self.tokenizer.convert_tokens_to_ids(input_tokens)
             pinyin_input_ids = None
             if self.config.use_pinyin:
-                pinyin_input_ids = self.pinyin_tokenizer.encode(input_tokens)
+                pinyin_input_ids = self.pinyin_tokenizer.convert_tokens_to_ids(input_tokens)
                 if len(input_ids) != len(pinyin_input_ids):
                     self._discard_obj(
                         input_tokens,

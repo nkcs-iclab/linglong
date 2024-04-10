@@ -25,7 +25,6 @@ def main(
         'end_token': '<|endoftext|>',
         'part_separator': '<unused1>',
         'segment_separator': '<unused2>',
-        'new_line': '<sep>',
         **(special_tokens or {}),
     }
     model = linglong.LingLongLMHeadModel.from_pretrained(model_path, device_map=device_map)
