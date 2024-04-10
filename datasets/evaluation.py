@@ -14,7 +14,7 @@ def main(
         pinyin_vocab_path: str | None = None,
         use_cache: bool = False,
         special_tokens: dict[str, str] | None = None,
-        n_examples: int = 3,
+        n_example: int = 3,
 ):
     with linglong.running('Loading configs') as spinner:
         special_tokens = {
@@ -56,7 +56,7 @@ def main(
 
     print(linglong.text('Examples:', style=linglong.INFO))
     dataset = linglong.data.DictDataset(data)
-    data_loader = DataLoader(dataset, batch_size=n_examples, collate_fn=linglong.data.padded_batch)
+    data_loader = DataLoader(dataset, batch_size=n_example, collate_fn=linglong.data.padded_batch)
     for batch in data_loader:
         linglong.data.print_model_inputs(batch, tokenizer=tokenizer)
         break

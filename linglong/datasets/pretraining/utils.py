@@ -18,7 +18,7 @@ def load(config: dict):
             special_tokens=config['special_tokens'],
             stride=config['stride'],
             items_per_file=config['items_per_file'],
-            n_positions=config['n_positions'],
+            n_position=config['n_position'],
             use_pinyin=config['use_pinyin'],
             pinyin_vocab_path=config['pinyin_vocab_path'],
             use_cache=config['use_cache'],

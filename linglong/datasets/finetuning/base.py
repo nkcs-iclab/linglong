@@ -14,7 +14,7 @@ class FineTuningDatasetConfig:
     template_id: int
     special_tokens: dict[str, str]
     items_per_file: int
-    n_positions: int
+    n_position: int
     use_pinyin: bool = False
     vocab_path: str | None = None
     pinyin_vocab_path: str | None = None
@@ -113,12 +113,12 @@ class FineTuningDatasetBase:
                            f'(most likely due to omitted control characters.)',
                 )
                 continue
-            if len(input_ids) > self.config.n_positions:
+            if len(input_ids) > self.config.n_position:
                 self._discard_obj(
                     objs[i],
                     discarded,
                     f'`input_ids` has size {len(input_ids)}, '
-                    f'exceeding `n_positions`: {self.config.n_positions}.',
+                    f'exceeding `n_position`: {self.config.n_position}.',
                 )
                 continue
             new_file_idx = i // self.config.items_per_file

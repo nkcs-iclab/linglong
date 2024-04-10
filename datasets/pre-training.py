@@ -17,7 +17,7 @@ def main(
         stride: int | None = None,
         items_per_file: int = 200000,
         special_tokens: dict[str, str] | None = None,
-        n_examples: int = 3,
+        n_example: int = 3,
 ):
     with linglong.running('Loading configs') as spinner:
         special_tokens = {
@@ -42,7 +42,7 @@ def main(
             'items_per_file': items_per_file,
             'special_tokens': special_tokens,
             'use_pinyin': model_config.use_pinyin,
-            'n_positions': model_config.n_positions,
+            'n_position': model_config.n_position,
         }
         spinner.write(linglong.prettify(config))
 
@@ -62,7 +62,7 @@ def main(
         meta_path,
         use_pinyin=model_config.use_pinyin,
     )
-    data_loader = DataLoader(dataset, batch_size=n_examples)
+    data_loader = DataLoader(dataset, batch_size=n_example)
     tokenizer = linglong.get_tokenizers(
         vocab_path=vocab_path,
         special_tokens=special_tokens,

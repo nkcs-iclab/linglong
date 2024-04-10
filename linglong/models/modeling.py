@@ -20,11 +20,11 @@ class LingLongAttention(nn.Module):
     def __init__(self, config, layer_idx=None):
         super().__init__()
 
-        n_positions = config.n_positions
+        n_position = config.n_position
         self.register_buffer(
             'bias',
-            torch.tril(torch.ones((n_positions, n_positions), dtype=torch.bool)).view(
-                1, 1, n_positions, n_positions
+            torch.tril(torch.ones((n_position, n_position), dtype=torch.bool)).view(
+                1, 1, n_position, n_position
             ),
             persistent=False,
         )
@@ -334,7 +334,7 @@ class LingLongModel(LingLongPreTrainedModel):
         super().__init__(config)
         self.n_embd = config.n_embd
         self.wte = nn.Embedding(config.vocab_size, self.n_embd)
-        self.wpe = nn.Embedding(config.n_positions, self.n_embd)
+        self.wpe = nn.Embedding(config.n_position, self.n_embd)
         self.drop = nn.Dropout(config.embd_pdrop)
         self.h = nn.ModuleList([LingLongBlock(config, layer_idx=i) for i in range(config.n_layer)])
         self.ln_f = nn.LayerNorm(self.n_embd, eps=config.layer_norm_epsilon)

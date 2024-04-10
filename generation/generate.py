@@ -135,11 +135,11 @@ class LingLongGenerate(cmd.Cmd):
             self.prefix = v
         elif k == 'suffix':
             self.suffix = v
-        if k == 'max_length' and v > self.model.config.n_positions:
-            v = self.model.config.n_positions
+        if k == 'max_length' and v > self.model.config.n_position:
+            v = self.model.config.n_position
             logger.warning(
                 f'The max generation length cannot be set to {v}. '
-                f'Clipping the length to {self.model.config.n_positions}.',
+                f'Clipping the length to {self.model.config.n_position}.',
             )
         if k in self.generation_config:
             self.generation_config[k] = v
@@ -218,11 +218,11 @@ def main(
             use_pinyin=model.config.use_pinyin,
             padding_side='left',
         )
-        if max_length > model.config.n_positions:
-            max_length = model.config.n_positions
+        if max_length > model.config.n_position:
+            max_length = model.config.n_position
             logger.warning(
                 f'The max generation length cannot be set to {max_length}. '
-                f'Clipping the length to {model.config.n_positions}.',
+                f'Clipping the length to {model.config.n_position}.',
             )
         if plugins is not None:
             plugins = [importlib.import_module(plugin).Plugin() for plugin in plugins]
