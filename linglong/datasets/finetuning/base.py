@@ -66,9 +66,9 @@ class FineTuningDatasetBase:
             is_label: bool = False,
     ) -> list:
         if parts and isinstance(parts[0], tuple):
-            parts.insert(0, (self.config.special_tokens['start_token'], is_label))
+            parts.insert(0, (self.tokenizer.bos_token, is_label))
         else:
-            parts.insert(0, self.config.special_tokens['start_token'])
+            parts.insert(0, self.tokenizer.bos_token)
         return parts
 
     def _append_end_token(
@@ -77,9 +77,9 @@ class FineTuningDatasetBase:
             is_label: bool = True,
     ) -> list:
         if parts and isinstance(parts[0], tuple):
-            parts.append((self.config.special_tokens['end_token'], is_label))
+            parts.append((self.tokenizer.eos_token, is_label))
         else:
-            parts.append(self.config.special_tokens['end_token'])
+            parts.append(self.tokenizer.eos_token)
         return parts
 
     def _add_start_and_end_tokens(self, parts: list) -> list:

@@ -33,10 +33,10 @@ class FileLoader:
                 self.current_file_idx += 1
                 if self.progbar is not None:
                     self.progbar.update(1)
-                self.text_pool.append(self.special_tokens['start_token'])
+                self.text_pool.append(self.tokenizer.bos_token)
                 for line in f:
                     self.text_pool.extend(self.tokenizer.tokenize(line))
-                self.text_pool.append(self.special_tokens['end_token'])
+                self.text_pool.append(self.tokenizer.eos_token)
         return len(self.text_pool) >= length
 
     def reset(self):

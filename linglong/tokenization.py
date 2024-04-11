@@ -56,6 +56,8 @@ class Tokenizer(PreTrainedTokenizer):
             pad_token: str = '<pad>',
             cls_token: str = '<cls>',
             mask_token: str = '<mask>',
+            bos_token: str = '<|startoftext|>',
+            eos_token: str = '<|endoftext|>',
             tokenize_chinese_chars: bool = True,
             strip_accents: bool | None = None,
             **kwargs,
@@ -79,6 +81,8 @@ class Tokenizer(PreTrainedTokenizer):
             pad_token=pad_token,
             cls_token=cls_token,
             mask_token=mask_token,
+            bos_token=bos_token,
+            eos_token=eos_token,
             strip_accents=strip_accents,
             **kwargs,
         )
@@ -158,6 +162,8 @@ class PinyinTokenizer(PreTrainedTokenizer):
             pad_token: str = '<pad>',
             cls_token: str = '<cls>',
             mask_token: str = '<mask>',
+            bos_token: str = '<|startoftext|>',
+            eos_token: str = '<|endoftext|>',
             **kwargs,
     ):
         self.vocab_file = vocab_file
@@ -176,6 +182,8 @@ class PinyinTokenizer(PreTrainedTokenizer):
             pad_token=pad_token,
             cls_token=cls_token,
             mask_token=mask_token,
+            bos_token=bos_token,
+            eos_token=eos_token,
             **kwargs,
         )
 

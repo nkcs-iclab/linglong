@@ -23,8 +23,6 @@ def main(
 ):
     with linglong.running('Loading configs') as spinner:
         special_tokens = {
-            'start_token': '<|startoftext|>',
-            'end_token': '<|endoftext|>',
             'part_separator': '<unused1>',
             'segment_separator': '<unused2>',
             **(special_tokens or {}),

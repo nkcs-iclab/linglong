@@ -60,11 +60,11 @@ class EvaluationDatasetBase:
         return getattr(self, f'_template_{self.config.template_id}')(obj)
 
     def _prepend_start_token(self, parts: list) -> list:
-        parts.insert(0, self.config.special_tokens['start_token'])
+        parts.insert(0, self.tokenizer.bos_token)
         return parts
 
     def _append_end_token(self, parts: list) -> list:
-        parts.append(self.config.special_tokens['end_token'])
+        parts.append(self.tokenizer.eos_token)
         return parts
 
     def _add_start_and_end_tokens(self, parts: list) -> list:

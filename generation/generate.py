@@ -56,9 +56,9 @@ class LingLongGenerate(cmd.Cmd):
 
     def _print_samples(self, samples: list[str]):
         for idx, sample in enumerate(samples):
-            sample = sample.split(self.special_tokens['new_line'] + self.special_tokens['end_token'])[0]
-            sample = sample.split(self.special_tokens['new_line'])[0]
-            sample = sample.replace(self.special_tokens['new_line'], '\\n')
+            sample = sample.split(self.tokenizer.sep_token + self.tokenizer.eos_token)[0]
+            sample = sample.split(self.tokenizer.sep_token)[0]
+            sample = sample.replace(self.tokenizer.sep_token, '\\n')
             print(linglong.text(f'GENERATED [{idx + 1}]', style=linglong.WARNING), end=' ')
             print(sample)
 
@@ -78,7 +78,7 @@ class LingLongGenerate(cmd.Cmd):
                         print(linglong.text(f'PLUGIN {plugin.placeholder} - {k}', style=linglong.WARNING), v)
                 print(linglong.text(f'PLUGIN {plugin.placeholder}', style=linglong.WARNING), plugin_output)
                 prefix = prefix.replace('{' + plugin.placeholder + '}', plugin_output)
-        prompt = self.special_tokens['start_token'] + prefix + (
+        prompt = self.tokenizer.bos_token + prefix + (
             self.llm_prompt[::-1] if backward else self.llm_prompt) + self.suffix
         if self.debug:
             print(linglong.text('PROMPT', style=linglong.WARNING), prompt)
@@ -197,11 +197,8 @@ def main(
         'top_p': top_p,
     }
     special_tokens = {
-        'start_token': '<|startoftext|>',
-        'end_token': '<|endoftext|>',
         'part_separator': '<unused1>',
         'segment_separator': '<unused2>',
-        'new_line': '<sep>',
         **(special_tokens or {}),
     }
     try:
