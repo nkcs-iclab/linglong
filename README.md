@@ -121,6 +121,7 @@ The latest models will be released soon.
 ### 0.11 (Upcoming)
 
 - *Dataset:* Dataset pre-processing scripts can now initialize tokenizers from pretrained models or vocab files.
+- *Dataset:* Add a streaming pre-training dataset class `StreamingPretrainingDataset`.
 - *Generation:* Add `bingsearch` plugin for text generation.
 - Add a new model conversion script.
 - Progress bars are now printed to `stderr` instead of `stdout`.

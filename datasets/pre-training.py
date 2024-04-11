@@ -38,7 +38,7 @@ def main(
             'vocab_path': vocab_path,
             'pinyin_vocab_path': pinyin_vocab_path,
             'use_cache': use_cache,
-            'stride': stride or model_config['n_ctx'] // 2,
+            'stride': stride or model_config.n_position // 2,
             'items_per_file': items_per_file,
             'special_tokens': special_tokens,
             'use_pinyin': model_config.use_pinyin,
