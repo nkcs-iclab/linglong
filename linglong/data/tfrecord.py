@@ -104,6 +104,7 @@ class TFRecordDataset(IterableDataset):
             meta: str,
             files_key: str = 'files',
             use_pinyin: bool = False,
+            infinite: bool = False,
     ):
         super().__init__()
         path = pathlib.Path(path)
@@ -111,6 +112,7 @@ class TFRecordDataset(IterableDataset):
         padding_shape = meta['padding_shape']
         self.count = meta['count']
         self.use_pinyin = use_pinyin
+        self.infinite = infinite
         dataset = tf.data.TFRecordDataset(
             list(map(lambda x: str(path / x), meta[files_key])) if path.is_dir() else str(path),
             compression_type=meta.get('compression_type'),
@@ -126,41 +128,33 @@ class TFRecordDataset(IterableDataset):
             .map(decode_fn) \
             .prefetch(tf.data.experimental.AUTOTUNE)
         self.dataset = dataset
-        self.index = 0
-        self.dataset_iter: Iterator[
-            tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor] |
-            tuple[tf.Tensor, tf.Tensor, tf.Tensor]
-            ] = iter(self.dataset)
 
     def __len__(self):
         return self.count
 
     def __iter__(self):
-        self.index = 0
-        self.dataset_iter: Iterator[
-            tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor] |
-            tuple[tf.Tensor, tf.Tensor, tf.Tensor]
-            ] = iter(self.dataset)
-        return self
+        return iter(self.generate())
 
-    def __next__(self):
-        if self.index >= self.count:
-            raise StopIteration
-        self.index += 1
-        if self.use_pinyin:
-            data, pinyin, attention_mask, label = next(self.dataset_iter)
-            return {
+    def generate(self):
+        index = 0
+        for data in self.dataset:
+            if self.use_pinyin:
+                data, pinyin, attention_mask, label = data
+                yield {
+                    'input_ids': torch.from_numpy(data.numpy()).long(),
+                    'pinyin_input_ids': torch.from_numpy(pinyin.numpy()).long(),
+                    'attention_mask': torch.from_numpy(attention_mask.numpy()).long(),
+                    'label_ids': torch.from_numpy(label.numpy()).long(),
+                }
+            data, attention_mask, label = data
+            yield {
                 'input_ids': torch.from_numpy(data.numpy()).long(),
-                'pinyin_input_ids': torch.from_numpy(pinyin.numpy()).long(),
                 'attention_mask': torch.from_numpy(attention_mask.numpy()).long(),
                 'label_ids': torch.from_numpy(label.numpy()).long(),
             }
-        data, attention_mask, label = next(self.dataset_iter)
-        return {
-            'input_ids': torch.from_numpy(data.numpy()).long(),
-            'attention_mask': torch.from_numpy(attention_mask.numpy()).long(),
-            'label_ids': torch.from_numpy(label.numpy()).long(),
-        }
+            index += 1 if not self.infinite else 0
+            if index >= self.count:
+                break
 
 
 def load_tfrecord_dataset(
