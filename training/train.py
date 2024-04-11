@@ -75,7 +75,6 @@ def main():
             model = linglong.LingLongLMHeadModel(linglong.LingLongConfig.from_json_file(model_args.model_config))
         else:
             raise ValueError('Either pretrained_model or model_config must be provided.')
-        model_config = model.config
         if model_args.use_peft_lora:
             lora_config = LoraConfig(
                 r=model_args.lora_r,
@@ -93,7 +92,7 @@ def main():
         train_dataset = linglong.data.tfrecord.load_tfrecord_dataset(
             path=data_args.training_data,
             meta=data_args.training_meta,
-            use_pinyin=model_config.use_pinyin,
+            use_pinyin=model.config.use_pinyin,
         )
 
     with linglong.running('Training', is_main_process=is_main_process, spinner=False):

@@ -24,7 +24,6 @@ def main(
             'segment_separator': '<unused2>',
             **(special_tokens or {}),
         }
-
         config = linglong.merge_configs({
             'dataset': dataset,
             'input_path': input_path,
