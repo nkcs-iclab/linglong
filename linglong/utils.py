@@ -137,7 +137,7 @@ def load_file(path: str, format: str | None = None) -> list | dict:
 
 
 def prettify(
-        d: list | dict,
+        d,
         indent: int | str | None = 2,
         ensure_ascii: bool = False,
         default=None,
