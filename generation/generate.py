@@ -186,7 +186,6 @@ def main(
         prefix: str = '',
         suffix: str = '',
         plugins: list[str] | None = None,
-        plugin_kwargs: dict[str, dict[str, str]] | None = None,
         debug: bool = False,
 ):
     generation_config = {
