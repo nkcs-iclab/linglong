@@ -122,6 +122,7 @@ The latest models will be released soon.
 
 - *Dataset:* Dataset pre-processing scripts can now initialize tokenizers from pretrained models or vocab files.
 - *Dataset:* Add a streaming pre-training dataset class `StreamingPretrainingDataset`.
+- *Evaluation:* Add a new evaluation module.
 - *Generation:* Add `bingsearch` plugin for text generation.
 - Add BOS and EOS tokens to tokenizers.
 - Add a new model conversion script.

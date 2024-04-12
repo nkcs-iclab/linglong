@@ -95,7 +95,7 @@ class EvaluationDatasetBase:
             data.append({
                 'input_ids': np.asarray(input_ids),
                 **({'pinyin_input_ids': np.asarray(pinyin_input_ids)} if self.config.use_pinyin else {}),
-                'label_ids': np.asarray(label_ids) if label is not None else None,
+                **({'label_ids': np.asarray(label_ids)} if label_ids is not None else {}),
                 **extra,
             })
         return data

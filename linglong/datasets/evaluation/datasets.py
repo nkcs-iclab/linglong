@@ -249,8 +249,6 @@ class Math23KDataset(EvaluationDatasetBase):
         ]
         label = [
             obj['equation'][2:],
-            self.config.special_tokens['part_separator'],
-            obj['label'],
         ] if 'label' in obj else None
         return self._prepend_start_token(parts), label
 

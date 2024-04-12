@@ -31,6 +31,9 @@ def padded_batch(batch):
         if k == 'label_ids':
             padding_side = 'right'
             padding_value = -100
+        elif k == 'id':
+            output[k] = torch.tensor([x[k] for x in batch])
+            continue
         else:
             padding_side = 'left'
             padding_value = 0
@@ -87,7 +90,7 @@ class DictDataset(Dataset):
     def __getitem__(self, idx):
         item = self.data[idx]
         input_ids = torch.tensor(item['input_ids'], dtype=torch.long)
-        label_ids = torch.tensor(item['label_ids'], dtype=torch.long)
+        label_ids = torch.tensor(item['label_ids'], dtype=torch.long) if 'label_ids' in item else None
         if 'attention_mask' in item:
             attention_mask = torch.tensor(item['attention_mask'], dtype=torch.long)
         else:
@@ -95,13 +98,15 @@ class DictDataset(Dataset):
         if 'pinyin_input_ids' in item:
             pinyin_input_ids = torch.tensor(item['pinyin_input_ids'], dtype=torch.long)
             return {
+                'id': idx,
                 'input_ids': input_ids,
                 'pinyin_input_ids': pinyin_input_ids,
                 'attention_mask': attention_mask,
-                'label_ids': label_ids,
+                **({'label_ids': label_ids} if label_ids is not None else {}),
             }
         return {
+            'id': idx,
             'input_ids': input_ids,
             'attention_mask': attention_mask,
-            'label_ids': label_ids,
+            **({'label_ids': label_ids} if label_ids is not None else {}),
         }
