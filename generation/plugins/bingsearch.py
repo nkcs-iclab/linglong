@@ -34,7 +34,7 @@ class Plugin(linglong.generation.BasePlugin):
                 special_tokens=self.special_tokens,
             )[0]
 
-    def __call__(self, prompt: str) -> str | dict:
+    def call(self, prompt: str) -> str | dict:
         if prompt.strip() == '':
             return ''
         keywords_input = None
