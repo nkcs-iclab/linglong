@@ -101,6 +101,11 @@ def main(
         with accelerator.main_process_first():
             dataset = linglong.datasets.evaluation.load(config)
             data, candidates = dataset.prepare()
+        if candidates is not None:
+            candidate_ids = tokenizer.encode(candidates)
+            bad_words_ids = [[id_] for id_ in range(tokenizer.vocab_size) if id_ not in candidate_ids]
+        else:
+            bad_words_ids = None
         dataset = linglong.data.DictDataset(data)
         data_loader = DataLoader(
             dataset,
@@ -119,6 +124,7 @@ def main(
                 generated_ids = model.generate(
                     **batch,
                     **(config.get('generation_config') or {}),
+                    bad_words_ids=bad_words_ids,
                 )
                 id_ = [x.cpu().item() for x in gather_object(id_)]
                 input_ids = [x.cpu().tolist() for x in gather_object(batch['input_ids'])]
