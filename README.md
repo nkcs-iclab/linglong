@@ -102,7 +102,7 @@ More usage details can be found using the `--help` flag.
 ### Legacy Models
 
 You have to convert these legacy models to the latest format before using them with the current version of the codebase.
-A conversion script is provided at `utils/torch2transformers.py`.
+A conversion script is provided at `utils/torch2transformers.sh`.
 
 | Model Name          | Version | Parameters | Size   | Download                                                                |
 |---------------------|---------|------------|--------|-------------------------------------------------------------------------|
@@ -129,6 +129,7 @@ The latest models will be released soon.
 - Add a new model conversion script.
 - Progress bars are now printed to `stderr` instead of `stdout`.
 - Use transformers' logger instead of the built-in `warnings` module.
+- Add example scripts for all modules.
 
 ### 0.10
 
