@@ -203,7 +203,7 @@ def main(
     try:
         model_path = model
         with linglong.running('Loading the model', timer=True):
-            model = linglong.LingLongLMHeadModel.from_pretrained(model_path, device_map=device_map)
+            model = linglong.LingLongForCausalLM.from_pretrained(model_path, device_map=device_map)
             if peft_model is not None:
                 model = PeftModelForCausalLM.from_pretrained(model, peft_model, device_map=device_map)
         tokenizer, pinyin_tokenizer = linglong.get_tokenizers(

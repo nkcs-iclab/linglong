@@ -1,3 +1,3 @@
 from linglong.models.legacy_modeling import Model
 from linglong.models.configuration import LingLongConfig
-from linglong.models.modeling import LingLongLMHeadModel, LingLongModel
+from linglong.models.modeling import LingLongForCausalLM, LingLongModel

@@ -85,7 +85,7 @@ def main(
         )
 
     with linglong.running('Loading the model', is_main_process=is_main_process, timer=True):
-        model = linglong.LingLongLMHeadModel.from_pretrained(model_path, device_map=device)
+        model = linglong.LingLongForCausalLM.from_pretrained(model_path, device_map=device)
         if peft_model is not None:
             model = PeftModelForCausalLM.from_pretrained(model, peft_model, device_map=device)
         config['use_pinyin'] = model.config.use_pinyin

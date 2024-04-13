@@ -1,6 +1,6 @@
 # LingLong (玲珑): A Small-Scale Chinese PreTrained Language Model
 
-![version 0.10.2](https://img.shields.io/badge/version-0.10.2-blue)
+![version 0.10.3](https://img.shields.io/badge/version-0.10.3-blue)
 ![Python >=3.11,<3.12](https://img.shields.io/badge/Python->=3.11,<3.12-blue?logo=python&logoColor=white)
 ![PyTorch 2.2](https://img.shields.io/badge/PyTorch-2.2-EE4C2C?logo=pytorch&logoColor=white)
 ![TensorFlow 2.16](https://img.shields.io/badge/TensorFlow-2.16-FF6F00?logo=tensorflow&logoColor=white)
@@ -124,6 +124,7 @@ The latest models will be released soon.
 - *Dataset:* Add a streaming pre-training dataset class `StreamingPretrainingDataset`.
 - *Evaluation:* Add a new evaluation module.
 - *Generation:* Add `bingsearch` plugin for text generation.
+- Rename `LingLongLMHeadModel` to `LingLongForCausalLM`.
 - Add BOS and EOS tokens to tokenizers.
 - Add a new model conversion script.
 - Progress bars are now printed to `stderr` instead of `stdout`.

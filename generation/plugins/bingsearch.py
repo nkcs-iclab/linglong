@@ -16,7 +16,7 @@ class Plugin(linglong.generation.BasePlugin):
         )
         self.placeholder = self.config.get('placeholder', 'BINGSEARCH')
         if self.config.get('extract_keywords', False):
-            self.keywords_model = linglong.LingLongLMHeadModel.from_pretrained(
+            self.keywords_model = linglong.LingLongForCausalLM.from_pretrained(
                 self.config['keywords_model']['base'],
                 device_map=self.config['keywords_model']['device_map'],
             )

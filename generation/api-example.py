@@ -25,7 +25,7 @@ def main(
         'segment_separator': '<unused2>',
         **(special_tokens or {}),
     }
-    model = linglong.LingLongLMHeadModel.from_pretrained(model_path, device_map=device_map)
+    model = linglong.LingLongForCausalLM.from_pretrained(model_path, device_map=device_map)
     if peft_model is not None:
         model = PeftModelForCausalLM.from_pretrained(model, peft_model, device_map=device_map)
     tokenizer, pinyin_tokenizer = linglong.get_tokenizers(

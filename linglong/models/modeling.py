@@ -485,7 +485,7 @@ class LingLongModel(LingLongPreTrainedModel):
         )
 
 
-class LingLongLMHeadModel(LingLongPreTrainedModel):
+class LingLongForCausalLM(LingLongPreTrainedModel):
     _tied_weights_keys = ['lm_head.weight']
 
     def __init__(self, config):

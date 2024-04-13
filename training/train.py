@@ -70,9 +70,9 @@ def main():
 
     with linglong.running('Loading the model', is_main_process=is_main_process, timer=True) as spinner:
         if model_args.pretrained_model is not None:
-            model = linglong.LingLongLMHeadModel.from_pretrained(model_args.pretrained_model)
+            model = linglong.LingLongForCausalLM.from_pretrained(model_args.pretrained_model)
         elif model_args.model_config is not None:
-            model = linglong.LingLongLMHeadModel(linglong.LingLongConfig.from_json_file(model_args.model_config))
+            model = linglong.LingLongForCausalLM(linglong.LingLongConfig.from_json_file(model_args.model_config))
         else:
             raise ValueError('Either pretrained_model or model_config must be provided.')
         if model_args.use_peft_lora:
