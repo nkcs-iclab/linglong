@@ -1,6 +1,6 @@
 # LingLong (玲珑): A Small-Scale Chinese PreTrained Language Model
 
-![version 0.10.1](https://img.shields.io/badge/version-0.10.1-blue)
+![version 0.10.2](https://img.shields.io/badge/version-0.10.2-blue)
 ![Python >=3.11,<3.12](https://img.shields.io/badge/Python->=3.11,<3.12-blue?logo=python&logoColor=white)
 ![PyTorch 2.2](https://img.shields.io/badge/PyTorch-2.2-EE4C2C?logo=pytorch&logoColor=white)
 ![TensorFlow 2.16](https://img.shields.io/badge/TensorFlow-2.16-FF6F00?logo=tensorflow&logoColor=white)
