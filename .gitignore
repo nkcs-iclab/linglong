@@ -2,6 +2,4 @@
 __pycache__/
 
 hostfile
-*.pt
 *local*
-*.sh
