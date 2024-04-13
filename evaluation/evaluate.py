@@ -78,7 +78,7 @@ def main(
         output_path.mkdir(exist_ok=True, parents=True)
         output_path = output_path / output_path_template.format(
             dataset=dataset,
-            model=pathlib.Path(model_path).stem,
+            model=pathlib.Path(peft_model or model_path).stem,
             split=config['split'],
             template_id=config['template_id'],
             timestamp=time.time(),
