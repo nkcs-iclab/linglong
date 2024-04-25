@@ -13,7 +13,7 @@ def report_accuracy(correct: int, total: int) -> dict:
     }
 
 
-class MetricBase(metaclass=abc.ABCMeta):
+class MetricBase(abc.ABC):
 
     def __init__(self, tokenizer: linglong.Tokenizer):
         self.tokenizer = tokenizer
@@ -26,11 +26,11 @@ class MetricBase(metaclass=abc.ABCMeta):
         return self.call(examples, **kwargs)
 
 
-class DatasetMetric(MetricBase, metaclass=abc.ABCMeta):
+class DatasetMetric(MetricBase, abc.ABC):
     pass
 
 
-class TaskTypeMetric(MetricBase, metaclass=abc.ABCMeta):
+class TaskTypeMetric(MetricBase, abc.ABC):
     pass
 
 

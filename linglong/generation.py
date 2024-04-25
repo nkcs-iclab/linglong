@@ -1,7 +1,7 @@
 import abc
 
 
-class BasePlugin(metaclass=abc.ABCMeta):
+class BasePlugin(abc.ABC):
 
     @abc.abstractmethod
     def call(self, prompt: str) -> str | dict:

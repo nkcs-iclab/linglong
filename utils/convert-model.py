@@ -14,7 +14,7 @@ def raise_size_mismatch(key: str, src_size: list[int], dst_size: list[int]):
     raise ValueError(f'Invalid shape for {key}: {src_size} != {dst_size}.')
 
 
-class ModelManager(metaclass=abc.ABCMeta):
+class ModelManager(abc.ABC):
     weight_map = {}
     name = 'default'
 
@@ -127,7 +127,7 @@ class TensorFlowModelManager(ModelManager):
         return str(save_path)
 
 
-class TorchModelManagerBase(ModelManager, metaclass=abc.ABCMeta):
+class TorchModelManagerBase(ModelManager, abc.ABC):
     weight_map = {}
 
     def get_weight(self, key: str, **info) -> np.ndarray:
