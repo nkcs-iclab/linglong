@@ -2,7 +2,7 @@ import torch
 import pathlib
 import tensorflow as tf
 
-from typing import Sequence, Iterator
+from typing import Sequence
 from torch.utils.data import IterableDataset
 
 import linglong

@@ -2,8 +2,9 @@ import abc
 import fire
 import torch
 import pathlib
-
 import numpy as np
+
+from transformers import GenerationConfig
 
 import linglong
 import mcpt_tf
@@ -180,31 +181,31 @@ class TorchModelManager(TorchModelManagerBase):
 
 class TransformersModelManager(TorchModelManagerBase):
     weight_map = {
-        'word_token_embedding': 'wte.weight',
-        'position_token_embedding': 'wpe.weight',
-        'block_layer_norm_1_weight': 'h.{i}.ln_1.weight',
-        'block_layer_norm_1_bias': 'h.{i}.ln_1.bias',
-        'block_attention_weight': 'h.{i}.attn.c_attn.weight',
-        'block_attention_bias': 'h.{i}.attn.c_attn.bias',
-        'block_attention_projection_weight': 'h.{i}.attn.c_proj.weight',
-        'block_attention_projection_bias': 'h.{i}.attn.c_proj.bias',
-        'block_layer_norm_2_weight': 'h.{i}.ln_2.weight',
-        'block_layer_norm_2_bias': 'h.{i}.ln_2.bias',
-        'block_mlp_weight': 'h.{i}.mlp.c_fc.weight',
-        'block_mlp_bias': 'h.{i}.mlp.c_fc.bias',
-        'block_mlp_projection_weight': 'h.{i}.mlp.c_proj.weight',
-        'block_mlp_projection_bias': 'h.{i}.mlp.c_proj.bias',
-        'layer_norm_weight': 'ln_f.weight',
-        'layer_norm_bias': 'ln_f.bias',
+        'word_token_embedding': 'transformer.wte.weight',
+        'position_token_embedding': 'transformer.wpe.weight',
+        'block_layer_norm_1_weight': 'transformer.h.{i}.ln_1.weight',
+        'block_layer_norm_1_bias': 'transformer.h.{i}.ln_1.bias',
+        'block_attention_weight': 'transformer.h.{i}.attn.c_attn.weight',
+        'block_attention_bias': 'transformer.h.{i}.attn.c_attn.bias',
+        'block_attention_projection_weight': 'transformer.h.{i}.attn.c_proj.weight',
+        'block_attention_projection_bias': 'transformer.h.{i}.attn.c_proj.bias',
+        'block_layer_norm_2_weight': 'transformer.h.{i}.ln_2.weight',
+        'block_layer_norm_2_bias': 'transformer.h.{i}.ln_2.bias',
+        'block_mlp_weight': 'transformer.h.{i}.mlp.c_fc.weight',
+        'block_mlp_bias': 'transformer.h.{i}.mlp.c_fc.bias',
+        'block_mlp_projection_weight': 'transformer.h.{i}.mlp.c_proj.weight',
+        'block_mlp_projection_bias': 'transformer.h.{i}.mlp.c_proj.bias',
+        'layer_norm_weight': 'transformer.ln_f.weight',
+        'layer_norm_bias': 'transformer.ln_f.bias',
     }
     name = 'Transformers'
 
     def __init__(self, model_config: str | None = None, model: str | None = None):
         super().__init__()
         if model is not None:
-            self.model = linglong.LingLongModel.from_pretrained(model)
+            self.model = linglong.LingLongForCausalLM.from_pretrained(model)
         elif model_config is not None:
-            self.model = linglong.LingLongModel(linglong.LingLongConfig.from_json_file(model_config))
+            self.model = linglong.LingLongForCausalLM(linglong.LingLongConfig.from_json_file(model_config))
         else:
             raise ValueError('Either model or model config must be provided.')
         self.weights = self.model.state_dict()
@@ -272,8 +273,13 @@ def main(
     if dst_type == 'transformers':
         tokenizer = linglong.Tokenizer(vocab_path)
         tokenizer.save_pretrained(dst_model_path)
+        generation_config = GenerationConfig(do_sample=True, max_length=1024, top_k=20)
+        generation_config.save_pretrained(dst_model_path)
 
 
 if __name__ == '__main__':
     linglong.init()
+    linglong.LingLongConfig.register_for_auto_class()
+    linglong.LingLongForCausalLM.register_for_auto_class('AutoModelForCausalLM')
+    linglong.Tokenizer.register_for_auto_class()
     fire.Fire(main)

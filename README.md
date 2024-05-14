@@ -114,7 +114,9 @@ A conversion script is provided at `utils/torch2transformers.sh`.
 
 ### Latest Models
 
-The latest models will be released soon.
+| Model Name    | Version | Parameters | Size    | Download                                    |
+|---------------|---------|------------|---------|---------------------------------------------|
+| LingLong-317M | V12     | 317 M      | 1.27 GB | https://huggingface.co/AlumiK/LingLong-317M |
 
 ## Changelog
 
