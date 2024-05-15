@@ -1,6 +1,6 @@
 # LingLong (玲珑): A Small-Scale Chinese PreTrained Language Model
 
-![version 1.0.0](https://img.shields.io/badge/version-1.0.0-blue)
+![version 1.0.1](https://img.shields.io/badge/version-1.0.1-blue)
 ![Python >=3.11,<3.12](https://img.shields.io/badge/Python->=3.11,<3.12-blue?logo=python&logoColor=white)
 ![PyTorch 2.3](https://img.shields.io/badge/PyTorch-2.3-EE4C2C?logo=pytorch&logoColor=white)
 ![TensorFlow 2.16](https://img.shields.io/badge/TensorFlow-2.16-FF6F00?logo=tensorflow&logoColor=white)
@@ -114,16 +114,17 @@ A conversion script is provided at `utils/torch2transformers.sh`.
 
 ### Latest Models
 
-| Model Name    | Version | Parameters | Size    | Download                                    |
-|---------------|---------|------------|---------|---------------------------------------------|
-| LingLong-317M | V12     | 317 M      | 1.27 GB | https://huggingface.co/AlumiK/LingLong-317M |
+| Model Name         | Version | Parameters | Size    | Download                                         |
+|--------------------|---------|------------|---------|--------------------------------------------------|
+| LingLong-317M      | V12     | 317 M      | 1.27 GB | https://huggingface.co/AlumiK/LingLong-317M      |
+| LingLong-317M-Chat | V1      | 317 M      | 1.27 GB | https://huggingface.co/AlumiK/LingLong-317M-Chat |
 
 ## Changelog
 
 ### 1.0
 
 - *Generation:* Add a Transformers pipeline example.
-- Publish the LingLong-317M model to the Hugging Face model hub.
+- Publish LingLong-317M model and LingLong-317M-Chat model to the Hugging Face model hub.
 - Add a fast tokenizer for LingLong. The fast tokenizer is backed by the Hugging Face tokenizers library.
 - Add more special tokens.
 
