@@ -79,7 +79,7 @@ The required packages are not listed in `setup.py` yet, so you need to install t
 5. Install DeepSpeed (optional, for DeepSpeed enabled training).
 
     ```
-    pip install deepspeed
+    pip install ninja deepspeed
     ```
 
    After installation, you can validate your installation and see which ops your machine is compatible with via the
