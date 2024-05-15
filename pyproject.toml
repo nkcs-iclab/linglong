@@ -4,7 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'linglong'
-version = '0.10.3'
+version = '0.10.4'
 description = 'A small-scale Chinese pretrained language model.'
 readme = 'README.md'
 requires-python = '>=3.11,<3.13'
@@ -24,7 +24,7 @@ classifiers = [
 ]
 
 [project.urls]
-Repository = 'https://github.com/NKCSICLab/linglong'
+Repository = 'https://github.com/nkcs-iclab/linglong'
 
 [tool.setuptools]
 platforms = ['any']
