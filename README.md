@@ -1,6 +1,6 @@
 # LingLong (玲珑): A Small-Scale Chinese PreTrained Language Model
 
-![version 0.10.4](https://img.shields.io/badge/version-0.10.4-blue)
+![version 1.0.0](https://img.shields.io/badge/version-1.0.0-blue)
 ![Python >=3.11,<3.12](https://img.shields.io/badge/Python->=3.11,<3.12-blue?logo=python&logoColor=white)
 ![PyTorch 2.3](https://img.shields.io/badge/PyTorch-2.3-EE4C2C?logo=pytorch&logoColor=white)
 ![TensorFlow 2.16](https://img.shields.io/badge/TensorFlow-2.16-FF6F00?logo=tensorflow&logoColor=white)
@@ -26,7 +26,7 @@ unravel the mysteries of language processing without the need for excessive comp
 
 The following hardware is recommended for training:
 
-- NVIDIA Tesla V100 32GB GPUs (or any other GPUs with at least 24 GB of memory)
+- NVIDIA Tesla V100 32GB GPUs (or any other GPUs with at least 16 GB of memory)
 
 The following hardware is recommended for inference:
 
@@ -45,7 +45,7 @@ The required packages are not listed in `setup.py` yet, so you need to install t
 1. Clone the repository.
 
     ```
-    git clone https://github.com/NKCSICLab/linglong.git
+    git clone https://github.com/nkcs-iclab/linglong.git
     cd linglong
     ```
 
@@ -120,7 +120,13 @@ A conversion script is provided at `utils/torch2transformers.sh`.
 
 ## Changelog
 
-### 0.11 (Upcoming)
+### 1.0
+
+- *Generation:* Add a Transformers pipeline example.
+- Publish the LingLong-317M model to the Hugging Face model hub.
+- Add a fast tokenizer for LingLong. The fast tokenizer is backed by the Hugging Face tokenizers library.
+
+### 0.10
 
 - *Dataset:* Dataset pre-processing scripts can now initialize tokenizers from pretrained models or vocab files.
 - *Dataset:* Add a streaming pre-training dataset class `StreamingPretrainingDataset`.
@@ -133,7 +139,7 @@ A conversion script is provided at `utils/torch2transformers.sh`.
 - Use transformers' logger instead of the built-in `warnings` module.
 - Add example scripts for all modules.
 
-### 0.10
+### 0.9
 
 - Hello 🤗 Transformers! We have migrated to the Hugging Face Transformers library.
 - Remove the `mcpt` package and replace it with the `linglong` package.
@@ -141,7 +147,7 @@ A conversion script is provided at `utils/torch2transformers.sh`.
 - Remove all experimental features. These features will be considered for re-implementation in the future.
 - *Evaluation:* Remove the evaluation module. This module will be re-implemented in the future.
 
-### 0.9
+### 0.8
 
 - *Training:* Allow users to skip steps during training.
 - *Training:* Add `save_initial` and `save_final` switches to the training script.
@@ -149,7 +155,7 @@ A conversion script is provided at `utils/torch2transformers.sh`.
 - Various bug fixes for the latest dependencies.
 - Migrate from `setup.py` to `pyproject.toml`.
 
-### 0.8
+### 0.7
 
 - *Dataset:* Add processing scripts for plain text pre-training data.
 - *Training:* Fix a bug that caused the training not able to find meta files.
@@ -160,7 +166,7 @@ A conversion script is provided at `utils/torch2transformers.sh`.
 - Move the LM head from the basic model to the model wrapper `mcpt.Model`. You can now retrieve the hidden states from
   the model wrapper using `mcpt.Model.hidden_states`.
 
-### 0.7
+### 0.6
 
 - *Evaluation:* Add more evaluation dataset and metrics.
 - *Evaluation:* Update the evaluation config schema.
@@ -170,7 +176,7 @@ A conversion script is provided at `utils/torch2transformers.sh`.
 - Compress tfrecord files with gzip to save disk space.
 - Convert meta files from pickle to json.
 
-### 0.6
+### 0.5
 
 - *Dataset:* Remove the template list from dataset classes.
 - *Dataset:* The templates in the dataset classes now accept a list of strings.
@@ -180,14 +186,14 @@ A conversion script is provided at `utils/torch2transformers.sh`.
 - The code is now compatible with Python 3.6.
 - Various stability improvements.
 
-### 0.5
+### 0.4
 
 - *Training:* *DeepSpeed:* Add `train-ds.py` for DeepSpeed enabled training.
 - *Generation:* Stop batch text generation when the end of the text is reached in all samples.
 - *Generation:* Fixed: Text are now clipped to the maximum context length of the model.
 - Move `use_pinyin` and `backward` arguments from method arguments to the model configuration.
 
-### 0.4
+### 0.3
 
 - *Dataset:* Add dataset scripts for fine-tuning.
 - *Training:* Fix the training script by adding if statements to prevent missing object/attribute/reference errors
@@ -198,7 +204,7 @@ A conversion script is provided at `utils/torch2transformers.sh`.
 - Introduce `mcpt.Model` class. This class can be used to load a specified model from a checkpoint.
 - Export `mcpt.Tokenizer` and `mcpt.PinyinTokenizer` to the top-level module.
 
-### 0.3
+### 0.2
 
 - *Dataset:* Add modules for evaluation.
 - *Generation:* Refactor `mcpt/sampling.py`. The `Sampler` class has now been moved to `mcpt/generation.py`.
