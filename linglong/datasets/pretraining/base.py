@@ -17,7 +17,7 @@ class FileLoader:
             self,
             file_list: list[pathlib.Path],
             special_tokens: dict[str, str],
-            tokenizer: linglong.Tokenizer,
+            tokenizer: linglong.LingLongTokenizer | linglong.LingLongTokenizerFast,
             show_progress: bool = True,
     ):
         self.file_list = file_list
@@ -91,12 +91,15 @@ class PreTrainingDataset:
     def __init__(self, config: PreTrainingDatasetConfig):
         self.config = config
         self.input_file_list = self.config.input_path.rglob('*.txt')
-        self.tokenizer, self.pinyin_tokenizer = linglong.get_tokenizers(
+        self.tokenizer = linglong.get_tokenizers(
             vocab_path=self.config.vocab_path,
             pinyin_vocab_path=self.config.pinyin_vocab_path,
             special_tokens=self.config.special_tokens,
             use_pinyin=self.config.use_pinyin,
         )
+        self.pinyin_tokenizer = None
+        if self.config.use_pinyin:
+            self.tokenizer, self.pinyin_tokenizer = self.tokenizer
 
         self.config.output_path.mkdir(parents=True, exist_ok=True)
 
@@ -175,12 +178,15 @@ class StreamingPreTrainingDataset(IterableDataset):
     def __init__(self, config: StreamingPreTrainingDatasetConfig, infinite: bool = False):
         self.config = config
         self.input_file_list = self.config.input_path.rglob('*.txt')
-        self.tokenizer, self.pinyin_tokenizer = linglong.get_tokenizers(
+        self.tokenizer = linglong.get_tokenizers(
             vocab_path=self.config.vocab_path,
             pinyin_vocab_path=self.config.pinyin_vocab_path,
             special_tokens=self.config.special_tokens,
             use_pinyin=self.config.use_pinyin,
         )
+        self.pinyin_tokenizer = None
+        if self.config.use_pinyin:
+            self.tokenizer, self.pinyin_tokenizer = self.tokenizer
         self.infinite = infinite
 
     def __iter__(self):

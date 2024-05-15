@@ -73,7 +73,7 @@ def main(
         vocab_path=vocab_path,
         pretrained_model=model_path,
         special_tokens=special_tokens,
-    )[0]
+    )
     for batch in data_loader:
         linglong.data.print_model_inputs(batch, tokenizer=tokenizer)
         break

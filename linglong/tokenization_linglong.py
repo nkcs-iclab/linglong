@@ -41,7 +41,7 @@ def _load_pinyin_vocab(vocab_file: str) -> dict[str, int]:
     return vocab
 
 
-class Tokenizer(PreTrainedTokenizer):
+class LingLongTokenizer(PreTrainedTokenizer):
     vocab_files_names = {'vocab_file': 'tokenizer.txt'}
     model_input_names = ['input_ids', 'attention_mask']
 
@@ -83,6 +83,9 @@ class Tokenizer(PreTrainedTokenizer):
             mask_token=mask_token,
             bos_token=bos_token,
             eos_token=eos_token,
+            do_lower_case=do_lower_case,
+            do_basic_tokenize=do_basic_tokenize,
+            tokenize_chinese_chars=tokenize_chinese_chars,
             strip_accents=strip_accents,
             **kwargs,
         )
@@ -278,78 +281,3 @@ class BasicTokenizer(BertBasicTokenizer):
             else:
                 output.append(char)
         return ''.join(output)
-
-
-def get_tokenizers(
-        vocab_path: str | None = None,
-        pinyin_vocab_path: str | None = None,
-        pretrained_model: str | None = None,
-        special_tokens: dict[str, str] | None = None,
-        use_pinyin: bool = False,
-        **kwargs,
-) -> tuple[Tokenizer, PinyinTokenizer | None]:
-    def load_tokenizer_from_vocab() -> Tokenizer:
-        if vocab_path is None:
-            raise ValueError('`vocab_path` must be provided if `pretrained_model` is None.')
-        return Tokenizer(vocab_path, **kwargs)
-
-    def load_pinyin_tokenizer_from_vocab() -> PinyinTokenizer:
-        if pinyin_vocab_path is None:
-            raise ValueError('`pinyin_vocab_path` must be provided if `pretrained_model` is None.')
-        return PinyinTokenizer(
-            vocab_file=pinyin_vocab_path,
-            fallback=tokenizer,
-            **kwargs,
-        )
-
-    if pretrained_model is not None:
-        try:
-            tokenizer = Tokenizer.from_pretrained(pretrained_model, **kwargs)
-            if vocab_path is not None:
-                logger.warning(
-                    f'Successfully loaded tokenizer from {pretrained_model}. '
-                    f'Vocab file {vocab_path} is ignored.',
-                )
-        except (OSError, EnvironmentError):
-            tokenizer = load_tokenizer_from_vocab()
-            logger.warning(
-                f'Cannot load tokenizer from {pretrained_model}. '
-                f'Loading from vocab file {vocab_path}.'
-            )
-        try:
-            if use_pinyin:
-                pinyin_tokenizer = PinyinTokenizer.from_pretrained(
-                    pretrained_model,
-                    **kwargs,
-                )
-                if pinyin_vocab_path is not None:
-                    logger.warning(
-                        f'Successfully loaded pinyin tokenizer from {pretrained_model}. '
-                        f'Vocab file {pinyin_vocab_path} is ignored.',
-                    )
-            else:
-                pinyin_tokenizer = None
-        except (OSError, EnvironmentError):
-            pinyin_tokenizer = load_pinyin_tokenizer_from_vocab() if use_pinyin else None
-            logger.warning(
-                f'Cannot load pinyin tokenizer from {pretrained_model}. '
-                f'Loading from vocab file {pinyin_vocab_path}.'
-            )
-    else:
-        tokenizer = load_tokenizer_from_vocab()
-        pinyin_tokenizer = load_pinyin_tokenizer_from_vocab() if use_pinyin else None
-    if special_tokens is not None:
-        # noinspection PyTypeChecker
-        tokenizer.add_special_tokens({
-            'additional_special_tokens': list(
-                set(special_tokens.values()) - set(tokenizer.all_special_tokens),
-            ),
-        })
-        if use_pinyin:
-            # noinspection PyTypeChecker
-            pinyin_tokenizer.add_special_tokens({
-                'additional_special_tokens': list(
-                    set(special_tokens.values()) - set(pinyin_tokenizer.all_special_tokens),
-                ),
-            })
-    return tokenizer, pinyin_tokenizer

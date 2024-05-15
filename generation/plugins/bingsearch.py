@@ -32,7 +32,7 @@ class Plugin(linglong.generation.BasePlugin):
                 vocab_path=self.config['keywords_model'].get('vocab_path'),
                 pretrained_model=self.config['keywords_model']['base'],
                 special_tokens=self.special_tokens,
-            )[0]
+            )
 
     def call(self, prompt: str) -> str | dict:
         if prompt.strip() == '':

@@ -2,9 +2,7 @@ import fire
 
 from transformers import GenerationConfig
 
-from linglong.configuration_linglong import LingLongConfig
-from linglong.modeling_linglong import LingLongForCausalLM
-from linglong.tokenization_linglong import Tokenizer
+import linglong
 
 
 def main(
@@ -15,12 +13,12 @@ def main(
         push_model: bool = False,
         push_tokenizer: bool = False,
 ):
-    LingLongConfig.register_for_auto_class()
-    LingLongForCausalLM.register_for_auto_class('AutoModelForCausalLM')
-    Tokenizer.register_for_auto_class()
+    linglong.LingLongConfig.register_for_auto_class()
+    linglong.LingLongForCausalLM.register_for_auto_class('AutoModelForCausalLM')
+    linglong.LingLongTokenizerFast.register_for_auto_class()
 
-    tokenizer = Tokenizer.from_pretrained(pretrained_model)
-    model = LingLongForCausalLM.from_pretrained(pretrained_model)
+    tokenizer = linglong.get_tokenizers(pretrained_model=pretrained_model)
+    model = linglong.LingLongForCausalLM.from_pretrained(pretrained_model)
     generation_config = GenerationConfig(do_sample=True, max_length=1024, top_k=20)
     model.generation_config = generation_config
     model.config._name_or_path = repo_name

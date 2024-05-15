@@ -39,7 +39,7 @@ def main(
             vocab_path=vocab_path,
             pretrained_model=model_path,
             special_tokens=special_tokens,
-        )[0]
+        )
         spinner.write(linglong.prettify(config))
 
     with linglong.running(f'Loading {dataset} dataset', spinner=use_cache):

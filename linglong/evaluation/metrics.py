@@ -15,7 +15,7 @@ def report_accuracy(correct: int, total: int) -> dict:
 
 class MetricBase(abc.ABC):
 
-    def __init__(self, tokenizer: linglong.Tokenizer):
+    def __init__(self, tokenizer: linglong.LingLongTokenizer | linglong.LingLongTokenizerFast):
         self.tokenizer = tokenizer
 
     @abc.abstractmethod

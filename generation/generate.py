@@ -17,7 +17,7 @@ class LingLongGenerate(cmd.Cmd):
     def __init__(
             self,
             generation_config: dict,
-            tokenizer: linglong.Tokenizer,
+            tokenizer: linglong.LingLongTokenizer | linglong.LingLongTokenizerFast,
             pinyin_tokenizer: linglong.PinyinTokenizer | None,
             model: linglong.Model,
             special_tokens: dict[str, str],
@@ -206,7 +206,7 @@ def main(
             model = linglong.LingLongForCausalLM.from_pretrained(model_path, device_map=device_map)
             if peft_model is not None:
                 model = PeftModelForCausalLM.from_pretrained(model, peft_model, device_map=device_map)
-        tokenizer, pinyin_tokenizer = linglong.get_tokenizers(
+        tokenizer = linglong.get_tokenizers(
             vocab_path=vocab_path,
             pinyin_vocab_path=pinyin_vocab_path,
             pretrained_model=model_path,
@@ -214,6 +214,9 @@ def main(
             use_pinyin=model.config.use_pinyin,
             padding_side='left',
         )
+        pinyin_tokenizer = None
+        if model.config.use_pinyin:
+            tokenizer, pinyin_tokenizer = tokenizer
         if max_length > model.config.n_position:
             max_length = model.config.n_position
             logger.warning(

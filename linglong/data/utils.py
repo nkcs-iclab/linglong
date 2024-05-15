@@ -46,7 +46,11 @@ def padded_batch(batch):
     return output
 
 
-def print_model_inputs(batch, tokenizer: linglong.Tokenizer, print_fn: Callable = print):
+def print_model_inputs(
+        batch,
+        tokenizer: linglong.LingLongTokenizer | linglong.LingLongTokenizerFast,
+        print_fn: Callable = print,
+):
     input_ids = batch['input_ids']
     pinyin_input_ids = batch.get('pinyin_input_ids', None)
     attention_mask = batch['attention_mask']

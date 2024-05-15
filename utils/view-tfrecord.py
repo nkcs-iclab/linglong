@@ -15,7 +15,7 @@ def main(
 ):
     dataset = linglong.data.tfrecord.load_tfrecord_dataset(path, meta, use_pinyin=use_pinyin)
     data_loader = DataLoader(dataset, batch_size=n_example)
-    tokenizer = linglong.get_tokenizers(vocab_path=vocab_path)[0]
+    tokenizer = linglong.get_tokenizers(vocab_path=vocab_path)
     linglong.data.print_model_inputs(next(iter(data_loader)), tokenizer=tokenizer)
 
 

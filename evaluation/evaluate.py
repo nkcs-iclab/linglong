@@ -20,7 +20,7 @@ def log_generation(
         input_ids: list[list[int]],
         label_ids: list[list[int]] | None,
         generated_ids: list[list[int]],
-        tokenizer: linglong.Tokenizer,
+        tokenizer: linglong.LingLongTokenizer | linglong.LingLongTokenizerFast,
         output_path: pathlib.Path,
 ):
     output_file = output_path.with_suffix('.jsonl')
@@ -93,7 +93,7 @@ def main(
             vocab_path=vocab_path,
             pretrained_model=model_path,
             special_tokens=special_tokens,
-        )[0]
+        )
 
     with linglong.running(f'Loading {dataset} dataset', is_main_process=is_main_process):
         if not is_main_process:

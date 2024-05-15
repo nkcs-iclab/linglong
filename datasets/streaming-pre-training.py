@@ -42,7 +42,7 @@ def main(
     tokenizer = linglong.get_tokenizers(
         vocab_path=vocab_path,
         special_tokens=special_tokens,
-    )[0]
+    )
     for batch in data_loader:
         linglong.data.print_model_inputs(batch, tokenizer=tokenizer)
         break

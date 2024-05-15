@@ -28,7 +28,7 @@ def main(
     model = linglong.LingLongForCausalLM.from_pretrained(model_path, device_map=device_map)
     if peft_model is not None:
         model = PeftModelForCausalLM.from_pretrained(model, peft_model, device_map=device_map)
-    tokenizer, pinyin_tokenizer = linglong.get_tokenizers(
+    tokenizer = linglong.get_tokenizers(
         vocab_path=vocab_path,
         pinyin_vocab_path=pinyin_vocab_path,
         pretrained_model=model_path,
@@ -36,6 +36,9 @@ def main(
         use_pinyin=model.config.use_pinyin,
         padding_side='left',
     )
+    pinyin_tokenizer = None
+    if model.config.use_pinyin:
+        tokenizer, pinyin_tokenizer = tokenizer
 
     model_inputs = tokenizer(prompt, return_tensors='pt', padding=True).to(model.device)
     if pinyin_tokenizer:

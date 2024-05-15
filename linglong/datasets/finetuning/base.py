@@ -34,13 +34,16 @@ class FineTuningDatasetBase:
     def __init__(self, config: FineTuningDatasetConfig):
         self.config = config
         self.input_file = next(self.config.input_path.glob(f'{self.config.split}*'))
-        self.tokenizer, self.pinyin_tokenizer = linglong.get_tokenizers(
+        self.tokenizer = linglong.get_tokenizers(
             vocab_path=self.config.vocab_path,
             pinyin_vocab_path=self.config.pinyin_vocab_path,
             pretrained_model=self.config.model_path,
             special_tokens=self.config.special_tokens,
             use_pinyin=self.config.use_pinyin,
         )
+        self.pinyin_tokenizer = None
+        if self.config.use_pinyin:
+            self.tokenizer, self.pinyin_tokenizer = self.tokenizer
         self.file_format = None
 
         self.config.output_path.mkdir(parents=True, exist_ok=True)

@@ -271,7 +271,7 @@ def main(
     dst_model_path = dst_model_manager.save_model(dst_model if dst_model else src_model)
 
     if dst_type == 'transformers':
-        tokenizer = linglong.Tokenizer(vocab_path)
+        tokenizer = linglong.get_tokenizers(vocab_path=vocab_path)
         tokenizer.save_pretrained(dst_model_path)
         generation_config = GenerationConfig(do_sample=True, max_length=1024, top_k=20)
         generation_config.save_pretrained(dst_model_path)
@@ -281,5 +281,5 @@ if __name__ == '__main__':
     linglong.init()
     linglong.LingLongConfig.register_for_auto_class()
     linglong.LingLongForCausalLM.register_for_auto_class('AutoModelForCausalLM')
-    linglong.Tokenizer.register_for_auto_class()
+    linglong.LingLongTokenizerFast.register_for_auto_class()
     fire.Fire(main)
