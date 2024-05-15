@@ -1,12 +1,16 @@
 {
   "activation_function": "gelu_new",
   "architectures": [
-    "LingLongModel"
+    "LingLongForCausalLM"
   ],
   "attn_c": 8,
   "attn_mode": "sparse",
   "attn_pdrop": 0.1,
   "attn_stride": 128,
+  "auto_map": {
+    "AutoConfig": "configuration_linglong.LingLongConfig",
+    "AutoModelForCausalLM": "modeling_linglong.LingLongForCausalLM"
+  },
   "backward": false,
   "bos_token_id": 10,
   "embd_pdrop": 0.1,

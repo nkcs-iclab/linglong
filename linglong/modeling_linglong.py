@@ -10,7 +10,7 @@ from transformers.pytorch_utils import Conv1D
 from transformers.modeling_utils import PreTrainedModel
 from transformers.modeling_outputs import BaseModelOutputWithPast, CausalLMOutput
 
-from .configuration import LingLongConfig
+from .configuration_linglong import LingLongConfig
 
 logger = logging.get_logger(__name__)
 

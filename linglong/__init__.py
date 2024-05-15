@@ -1,8 +1,8 @@
 from linglong.legacy_modeling import Model
-from linglong.modeling import LingLongModel, LingLongForCausalLM, LingLongConfig
+from linglong.modeling_linglong import LingLongModel, LingLongForCausalLM, LingLongConfig
 import linglong.generation
-import linglong.tokenization
-from linglong.tokenization import Tokenizer, PinyinTokenizer, get_tokenizers
+import linglong.tokenization_linglong
+from linglong.tokenization_linglong import Tokenizer, PinyinTokenizer, get_tokenizers
 import linglong.data
 import linglong.datasets
 

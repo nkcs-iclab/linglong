@@ -2,9 +2,9 @@ import fire
 
 from transformers import GenerationConfig
 
-from linglong.configuration import LingLongConfig
-from linglong.modeling import LingLongForCausalLM
-from linglong.tokenization import Tokenizer
+from linglong.configuration_linglong import LingLongConfig
+from linglong.modeling_linglong import LingLongForCausalLM
+from linglong.tokenization_linglong import Tokenizer
 
 
 def main(
