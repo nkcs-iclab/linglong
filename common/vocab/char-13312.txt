@@ -13232,8 +13232,8 @@ fishbase
 <unused8>
 <unused9>
 <unused10>
-<cls>
-<mask>
+[unused11]
+[unused12]
 [unused13]
 [unused14]
 [unused15]
@@ -13308,5 +13308,5 @@ fishbase
 [unused84]
 [unused85]
 [unused86]
-[unused87]
-[unused88]
+<cls>
+<mask>

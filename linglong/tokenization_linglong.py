@@ -90,6 +90,7 @@ class LingLongTokenizer(PreTrainedTokenizer):
             **kwargs,
         )
         self.wordpiece_tokenizer = WordpieceTokenizer(vocab=self.vocab, unk_token=self.unk_token)
+        self.add_special_tokens({'additional_special_tokens': [f'<unused{i}>' for i in range(1, 11)]})
 
     @property
     def vocab_size(self) -> int:

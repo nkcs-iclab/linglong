@@ -20,11 +20,6 @@ def main(
         top_p: float = 1.0,
 ):
     model_path = model
-    special_tokens = {
-        'part_separator': '<unused1>',
-        'segment_separator': '<unused2>',
-        **(special_tokens or {}),
-    }
     model = linglong.LingLongForCausalLM.from_pretrained(model_path, device_map=device_map)
     if peft_model is not None:
         model = PeftModelForCausalLM.from_pretrained(model, peft_model, device_map=device_map)

@@ -94,6 +94,7 @@ class LingLongTokenizerFast(PreTrainedTokenizerFast):
             **kwargs,
         )
         self._tokenizer.decoder = decoders.Decoder.custom(self.CustomDecoder())
+        self.add_special_tokens({'additional_special_tokens': [f'<unused{i}>' for i in range(1, 11)]})
 
     def save_vocabulary(self, save_directory: str, filename_prefix: str | None = None) -> tuple[str]:
         files = self.backend_tokenizer.model.save(save_directory, name=filename_prefix)

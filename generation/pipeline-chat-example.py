@@ -28,8 +28,11 @@ def main(
         device=device_map,
         trust_remote_code=True,
     )
-    generated_text = pipeline(prompt, max_length=max_length, temperature=temperature, top_k=top_k, top_p=top_p)
-    print(generated_text)
+    messages = [
+        {'role': 'user', 'content': prompt},
+    ]
+    generated_text = pipeline(messages, max_length=max_length, temperature=temperature, top_k=top_k, top_p=top_p)
+    print(generated_text[0]['generated_text'][-1]['content'])
 
 
 if __name__ == '__main__':

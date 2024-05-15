@@ -195,11 +195,6 @@ def main(
         'top_k': top_k,
         'top_p': top_p,
     }
-    special_tokens = {
-        'part_separator': '<unused1>',
-        'segment_separator': '<unused2>',
-        **(special_tokens or {}),
-    }
     try:
         model_path = model
         with linglong.running('Loading the model', timer=True):
