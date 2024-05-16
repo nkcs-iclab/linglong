@@ -230,7 +230,3 @@ A conversion script is provided at `utils/torch2transformers.sh`.
 
 - *Dataset:* Add modules for evaluation.
 - *Generation:* Refactor `mcpt/sampling.py`. The `Sampler` class has now been moved to `mcpt/generation.py`.
-
-## Copyright
-
-© 2023-2024 College of Software, Nankai University All Rights Reserved
