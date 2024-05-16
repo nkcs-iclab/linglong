@@ -104,20 +104,20 @@ More usage details can be found using the `--help` flag.
 You have to convert these legacy models to the latest format before using them with the current version of the codebase.
 A conversion script is provided at `utils/torch2transformers.sh`.
 
-| Model Name          | Version | Parameters | Size   | Download                                                                |
-|---------------------|---------|------------|--------|-------------------------------------------------------------------------|
-| LingLong            | V12     | 317 M      | 1.2 GB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUj-wymU62HcCOduEZcg?e=bzyCzU) |
-| LingLong-Backward   | V1      | 317M       | 1.2 GB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUkqtni8g7Xkr_JuGuqg?e=AMLWUh) |
-| LingLong-Pinyin     | V1      | 318M       | 1.2 GB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUkqto9guYQ0BZLVTyzw?e=eKh7H4) |
-| LingLong-Small      | V1      | 106M       | 367 MB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUkqtlbLLOx0t03obH1w?e=ikRx63) |
-| LingLong-Small-Word | V1      | 106M       | 404 MB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUkqtmk8xMs-OmBwhtdw?e=mlXZGf) |
+| Model Name          | Parameters | Size   | Download                                                                |
+|---------------------|------------|--------|-------------------------------------------------------------------------|
+| LingLong            | 317 M      | 1.2 GB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUj-wymU62HcCOduEZcg?e=bzyCzU) |
+| LingLong-Backward   | 317 M      | 1.2 GB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUkqtni8g7Xkr_JuGuqg?e=AMLWUh) |
+| LingLong-Pinyin     | 318 M      | 1.2 GB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUkqto9guYQ0BZLVTyzw?e=eKh7H4) |
+| LingLong-Small      | 106 M      | 367 MB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUkqtlbLLOx0t03obH1w?e=ikRx63) |
+| LingLong-Small-Word | 106 M      | 404 MB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUkqtmk8xMs-OmBwhtdw?e=mlXZGf) |
 
 ### Latest Models
 
-| Model Name         | Version | Parameters | Size    | Download                                         |
-|--------------------|---------|------------|---------|--------------------------------------------------|
-| LingLong-317M      | V12     | 317 M      | 1.27 GB | https://huggingface.co/AlumiK/LingLong-317M      |
-| LingLong-317M-Chat | V1      | 317 M      | 1.27 GB | https://huggingface.co/AlumiK/LingLong-317M-Chat |
+| Model Name         | Parameters | Size    | Download                                         |
+|--------------------|------------|---------|--------------------------------------------------|
+| LingLong-317M      | 317 M      | 1.27 GB | https://huggingface.co/AlumiK/LingLong-317M      |
+| LingLong-317M-Chat | 317 M      | 1.27 GB | https://huggingface.co/AlumiK/LingLong-317M-Chat |
 
 ## Changelog
 
