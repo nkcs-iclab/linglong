@@ -74,8 +74,9 @@ class LingLongTokenizerFast(PreTrainedTokenizerFast):
                 )
             backend_tokenizer.normalizer = normalizers.Sequence(normalizer_sequence)
             backend_tokenizer.pre_tokenizer = pre_tokenizers.Sequence([
-                pre_tokenizers.WhitespaceSplit(),
                 pre_tokenizers.Digits(individual_digits=True),
+                pre_tokenizers.Punctuation(),
+                pre_tokenizers.WhitespaceSplit(),
             ])
         super().__init__(
             tokenizer_file=tokenizer_file,
