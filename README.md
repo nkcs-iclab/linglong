@@ -139,6 +139,7 @@ A conversion script is provided at `utils/torch2transformers.sh`.
 
 - *Generation:* Add a Transformers pipeline example.
 - *Generation*: Add Ollama generation plugin.
+- *Generation*: Add special tokens to the generation config.
 - Publish LingLong-317M model and LingLong-317M-Chat model to the Hugging Face model hub.
 - Add a fast tokenizer for LingLong. The fast tokenizer is backed by the Hugging Face tokenizers library.
 - Add more special tokens.

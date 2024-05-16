@@ -274,7 +274,14 @@ def main(
     if dst_type == 'transformers':
         tokenizer = linglong.get_tokenizers(vocab_path=vocab_path)
         tokenizer.save_pretrained(dst_model_path)
-        generation_config = GenerationConfig(do_sample=True, max_length=1024, top_k=20)
+        generation_config = GenerationConfig(
+            do_sample=True,
+            max_length=1024,
+            top_k=20,
+            bos_token_id=tokenizer.bos_token_id,
+            eos_token_id=tokenizer.eos_token_id,
+            pad_token_id=tokenizer.eos_token_id,
+        )
         generation_config.save_pretrained(dst_model_path)
 
 
