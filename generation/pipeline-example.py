@@ -1,7 +1,7 @@
 import fire
 import torch
 
-from transformers import AutoTokenizer, pipeline
+from transformers import pipeline
 
 
 def main(
@@ -13,11 +13,9 @@ def main(
         top_k: int = 20,
         top_p: float = 1.0,
 ):
-    tokenizer = AutoTokenizer.from_pretrained(model, trust_remote_code=True)
     pipe = pipeline(
         'text-generation',
         model=model,
-        tokenizer=tokenizer,
         device=device_map,
         trust_remote_code=True,
     )

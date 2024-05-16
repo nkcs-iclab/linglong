@@ -30,6 +30,7 @@ class LingLongConfig(PretrainedConfig):
             attn_c: int | None = 8,
             use_pinyin: bool = False,
             backward: bool = False,
+            tokenizer_class: str | None = 'LingLongTokenizer',
             **kwargs,
     ):
         self.vocab_size = vocab_size
@@ -62,5 +63,6 @@ class LingLongConfig(PretrainedConfig):
             bos_token_id=bos_token_id,
             eos_token_id=eos_token_id,
             pad_token_id=pad_token_id,
+            tokenizer_class=tokenizer_class,
             **kwargs,
         )

@@ -100,16 +100,11 @@ More usage details can be found using the `--help` flag.
 You can also use the Transformers pipeline to generate text.
 
 ```python
-from transformers import pipeline, AutoTokenizer
+from transformers import pipeline
 
-tokenizer = AutoTokenizer.from_pretrained(
-    '/path/to/linglong/tokenizer',
-    trust_remote_code=True,
-)
 pipe = pipeline(
     'text-generation',
     model='/path/to/linglong/model',
-    tokenizer=tokenizer,
     device='cuda',
     trust_remote_code=True,
 )
@@ -147,6 +142,7 @@ A conversion script is provided at `utils/torch2transformers.sh`.
 - Add a fast tokenizer for LingLong. The fast tokenizer is backed by the Hugging Face tokenizers library.
 - Add more special tokens.
 - The `mcpt_tf` package is no longer required when converting models between PyTorch and Transformers.
+- Add `tokenizer_class` to model config.
 
 ### 0.10
 
