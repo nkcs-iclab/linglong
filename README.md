@@ -146,6 +146,7 @@ A conversion script is provided at `utils/torch2transformers.sh`.
 - Publish LingLong-317M model and LingLong-317M-Chat model to the Hugging Face model hub.
 - Add a fast tokenizer for LingLong. The fast tokenizer is backed by the Hugging Face tokenizers library.
 - Add more special tokens.
+- The `mcpt_tf` package is no longer required when converting models between PyTorch and Transformers.
 
 ### 0.10
 

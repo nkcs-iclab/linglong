@@ -7,8 +7,6 @@ import numpy as np
 from transformers import GenerationConfig
 
 import linglong
-import mcpt_tf
-import tensorflow as tf
 
 
 def raise_size_mismatch(key: str, src_size: list[int], dst_size: list[int]):
@@ -100,6 +98,7 @@ class TensorFlowModelManager(ModelManager):
 
     def __init__(self, model_config: str, model: str | None = None):
         super().__init__()
+        import mcpt_tf
         self.model = mcpt_tf.Model.from_config_(model_config, load_model=model)
         self.weights = {weight.name: weight for weight in self.model.weights}
         self.n_layer = self.model.config['n_layer']
@@ -111,6 +110,7 @@ class TensorFlowModelManager(ModelManager):
         return self.weights[self.weight_map[key].format(**info)].numpy()
 
     def set_weight(self, key: str, value: np.ndarray, **info):
+        import tensorflow as tf
         info.update(self._get_layer_idx(info.get('i', 0), key))
         info.update({'i': self._tf_idx(info.get('i', 0))})
         key_ = self.weight_map[key].format(**info)
@@ -122,6 +122,7 @@ class TensorFlowModelManager(ModelManager):
         self.weights[key_].assign(tf.Variable(value, dtype=tf.float32))
 
     def save_model(self, save_path: str | None) -> str:
+        import tensorflow as tf
         self.model.set_weights(tf.keras.backend.batch_get_value(self.weights.values()))
         save_path = pathlib.Path(save_path).with_suffix('.h5')
         self.model.save_weights(save_path)
