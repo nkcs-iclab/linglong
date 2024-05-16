@@ -97,7 +97,33 @@ There is also a script `generation/api-example.py` demonstrating how to use the 
 
 More usage details can be found using the `--help` flag.
 
+You can also use the Transformers pipeline to generate text.
+
+```python
+from transformers import pipeline, AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained(
+    '/path/to/linglong/tokenizer',
+    trust_remote_code=True,
+)
+pipe = pipeline(
+    'text-generation',
+    model='/path/to/linglong/model',
+    tokenizer=tokenizer,
+    device='cuda',
+    trust_remote_code=True,
+)
+generated_text = pipe('你好')[0]['generated_text']
+```
+
 ## Pretrained Models
+
+### Latest Models
+
+| Model Name         | Parameters | Size    | Download                                         |
+|--------------------|------------|---------|--------------------------------------------------|
+| LingLong-317M      | 317 M      | 1.27 GB | https://huggingface.co/AlumiK/LingLong-317M      |
+| LingLong-317M-Chat | 317 M      | 1.27 GB | https://huggingface.co/AlumiK/LingLong-317M-Chat |
 
 ### Legacy Models
 
@@ -111,13 +137,6 @@ A conversion script is provided at `utils/torch2transformers.sh`.
 | LingLong-Pinyin     | 318 M      | 1.2 GB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUkqto9guYQ0BZLVTyzw?e=eKh7H4) |
 | LingLong-Small      | 106 M      | 367 MB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUkqtlbLLOx0t03obH1w?e=ikRx63) |
 | LingLong-Small-Word | 106 M      | 404 MB | [OneDrive](https://1drv.ms/u/s!AszCaIeLPgHUkqtmk8xMs-OmBwhtdw?e=mlXZGf) |
-
-### Latest Models
-
-| Model Name         | Parameters | Size    | Download                                         |
-|--------------------|------------|---------|--------------------------------------------------|
-| LingLong-317M      | 317 M      | 1.27 GB | https://huggingface.co/AlumiK/LingLong-317M      |
-| LingLong-317M-Chat | 317 M      | 1.27 GB | https://huggingface.co/AlumiK/LingLong-317M-Chat |
 
 ## Changelog
 
