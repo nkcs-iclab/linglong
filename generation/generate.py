@@ -185,7 +185,7 @@ def main(
         prompt: str = '齐小明，科学家',
         prefix: str = '',
         suffix: str = '',
-        plugins: list[str] | None = None,
+        plugins: list[str] | str | None = None,
         debug: bool = False,
 ):
     generation_config = {
@@ -219,6 +219,8 @@ def main(
                 f'Clipping the length to {model.config.n_position}.',
             )
         if plugins is not None:
+            if isinstance(plugins, str):
+                plugins = [plugins]
             plugins = [importlib.import_module(plugin).Plugin() for plugin in plugins]
         print(linglong.text('Model Info', style=linglong.INFO))
         print(linglong.prettify({

@@ -1,0 +1,6 @@
+# Mandatory fields:
+endpoint: 'http://localhost:11434/api/chat'
+model:
+
+# Optional fields:
+placeholder: 'OLLAMA'
