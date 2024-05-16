@@ -11,4 +11,4 @@ python convert-model.py \
   --src-type=transformers \
   --dst-type=tensorflow \
   --src-model="$MODEL" \
-  --dst-model-config="$BASE_DIR"/common/legacy-model-configs/317M-WSZ1024L24.yaml
+  --dst-model-config="$BASE_DIR"/common/compat/model-configs/317M-WSZ1024L24.yaml

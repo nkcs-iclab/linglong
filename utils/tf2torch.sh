@@ -11,5 +11,5 @@ python convert-model.py \
   --src-type=tensorflow \
   --dst-type=torch \
   --src-model="$MODEL" \
-  --dst-model-config="$BASE_DIR"/common/legacy-model-configs/317M-WSZ1024L24.yaml \
-  --src-model-config="$BASE_DIR"/common/legacy-model-configs/317M-WSZ1024L24.yaml
+  --dst-model-config="$BASE_DIR"/common/compat/model-configs/317M-WSZ1024L24.yaml \
+  --src-model-config="$BASE_DIR"/common/compat/model-configs/317M-WSZ1024L24.yaml
