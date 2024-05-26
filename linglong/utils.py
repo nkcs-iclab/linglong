@@ -145,7 +145,7 @@ def prettify(
 ) -> str:
     def _default(o):
         try:
-            return o.__dict__,
+            return o.__dict__
         except AttributeError:
             return str(o)
 
