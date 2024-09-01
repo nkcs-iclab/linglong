@@ -74,7 +74,7 @@ def get_tokenizers(
         tokenizer = load_tokenizer_from_vocab()
         pinyin_tokenizer = load_pinyin_tokenizer_from_vocab() if use_pinyin else None
     if special_tokens is not None and len(new_special_tokens := list(
-            set(special_tokens.values()) - set(pinyin_tokenizer.all_special_tokens),
+            set(special_tokens.values()) - set(tokenizer.all_special_tokens),
     )) > 0:
         # noinspection PyTypeChecker
         tokenizer.add_special_tokens({
