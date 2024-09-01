@@ -73,7 +73,6 @@ def print_model_inputs(
             example['pinyin_input_ids'] = str(pinyin_input_ids[i].numpy().tolist())
         example.update({
             'attention_mask': str(attention_mask[i].numpy().tolist()),
-            'label': tokenizer.decode(label_ids[i]),
             'label_ids': str(label_ids[i].numpy().tolist()),
             'data[data != 0].shape': input_ids[i][input_ids[i] != 0].shape[0],
             'attention_mask[attention_mask != 0].shape': attention_mask[i][attention_mask[i] != 0].shape[0],
