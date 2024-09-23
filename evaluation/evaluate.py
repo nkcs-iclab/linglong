@@ -28,11 +28,11 @@ def log_generation(
         for id_, input_id, generated_id, label_id in zip(id_, input_ids, generated_ids, label_ids or [None] * len(id_)):
             log_entry = {
                 'id': id_,
-                'input': tokenizer.decode(input_id),
-                'generated': tokenizer.decode(generated_id)
+                'prompt': tokenizer.decode(input_id),
             }
             if label_id is not None:
                 log_entry['label'] = tokenizer.decode(label_id)
+            log_entry['predict'] = tokenizer.decode(generated_id)
             fp.write(json.dumps(log_entry, ensure_ascii=False) + '\n')
 
 
