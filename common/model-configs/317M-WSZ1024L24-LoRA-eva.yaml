@@ -2,8 +2,8 @@ attn_dropout: 0.1
 c: 8
 embd_dropout: 0.1
 epsilon: 1.0e-08
-lora_attn_alpha: 1024
-lora_attn_dim: 512
+lora_attn_alpha: 64
+lora_attn_dim: 32
 lora_dropout: 0.0
 lora_r_dropout: 0.0
 mode: sparse
@@ -12,10 +12,6 @@ n_embd: 1024
 n_head: 16
 n_layer: 24
 n_vocab: 13312
-prompt_encoder_type: lstm
-prompt_length: 5
-pseudo_token_id: 13311
 resid_dropout: 0.1
 stride: 128
 use_lora: true
-use_prompt: true

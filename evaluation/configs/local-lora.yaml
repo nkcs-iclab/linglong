@@ -1,0 +1,31 @@
+AdGen:
+  evaluation_method: generation
+  evaluation_metric: generation_metric
+  model:
+    checkpoint: /home/lidongwen/lidongwen/model/300M/V12-renamed-all.pt
+    config: /home/lidongwen/lidongwen/linglong-mcpt/common/model-configs/317M-WSZ1024L24-LoRA.yaml
+  model_lora:
+    checkpoint: /home/lidongwen/lidongwen/model/FT-AdGen-317M/models/vLoRA-8-all-torch/E8L1.529438.pt
+  split: dev
+  template_id: 0
+CMeEE:
+  evaluation_method: generation
+  evaluation_metric: entity_metric_1
+  model: /home/lidongwen/lidongwen/model/PT-CMeEE-317M/models/v1-torch/E1L0.863742.pt
+  special_tokens:
+    entity_postfix: '[unused3]'
+    entity_prefix: '[unused2]'
+  split: dev
+  template_id: 1
+Math23K:
+  evaluation_method: generation
+  evaluation_metric: dataset_math23k_metric
+  model:
+    checkpoint: /home/lidongwen/lidongwen/model/300M/renamed-soft-prompt.pt
+    config: /home/lidongwen/lidongwen/linglong-mcpt/common/model-configs/317M-WSZ1024L24-LoRA.yaml
+  model_lora:
+    checkpoint: /home/lidongwen/lidongwen/model/FT-Math23K-317M/models/vLoRA-8-all-torch/E10L0.979928.pt
+  split: dev
+  template_id: 0
+  special_tokens:
+    part_separator: '[unused1]'

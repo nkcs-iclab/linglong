@@ -1,7 +1,4 @@
-prompt_length: 10
-prompt_encoder_type: lstm
-use_prompt: True
-pseudo_token_id: 13311
+use_lora: True
 n_ctx: 1024
 n_layer: 24
 n_vocab: 13312
@@ -14,3 +11,6 @@ resid_dropout: 0.1
 mode: sparse
 stride: 128
 c: 8
+lora_attn_dim: 128
+lora_attn_alpha: 256
+lora_dropout: 0.1

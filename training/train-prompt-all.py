@@ -91,20 +91,11 @@ def main(
         total_params = sum(p.numel() for p in model.parameters())
         print(f"Total parameters: {total_params}")
 
-        for name, p in model.named_parameters():
-            p.requires_grad = False
-            if 'prompt_emb' in name:
-                p.requires_grad = True
-            if 'lstm_head' in name:
-                p.requires_grad = True
-            if 'mlp_head' in name:
-                p.requires_grad = True
-
         total_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
         print(f"Total trainable parameters: {total_trainable_params}")
 
         print(f"Total trainable percentage: {total_trainable_params / total_params}")
-        print(f"Total trainable percentage: {total_trainable_params / (total_params - total_trainable_params)}")
+        # print(f"Total trainable percentage: {total_trainable_params / (total_params - total_trainable_params)}")
         training_config['optimizer']['params']['lr'] = \
             training_config['optimizer']['params']['lr'] * hvd.size() * training_config['gradient_accumulation_steps']
         optimizer = mcpt.train.optimizers.adamw(model.parameters(), config=training_config['optimizer']['params'])

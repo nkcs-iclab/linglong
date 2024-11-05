@@ -92,13 +92,13 @@ def main(
         print(f"Total parameters: {total_params}")
 
         for name, p in model.named_parameters():
-            p.requires_grad = False
+            # p.requires_grad = False
             if 'prompt_emb' in name:
-                p.requires_grad = True
+                p.requires_grad = False
             if 'lstm_head' in name:
-                p.requires_grad = True
+                p.requires_grad = False
             if 'mlp_head' in name:
-                p.requires_grad = True
+                p.requires_grad = False
 
         total_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
         print(f"Total trainable parameters: {total_trainable_params}")

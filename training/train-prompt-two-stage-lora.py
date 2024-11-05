@@ -7,6 +7,7 @@ from typing import *
 
 import mcpt
 import mcpt.records
+import loralib as lora
 
 try:
     import horovod.torch as hvd
@@ -88,23 +89,6 @@ def main(
             load_model=load_model,
             device=device,
         )
-        total_params = sum(p.numel() for p in model.parameters())
-        print(f"Total parameters: {total_params}")
-
-        for name, p in model.named_parameters():
-            p.requires_grad = False
-            if 'prompt_emb' in name:
-                p.requires_grad = True
-            if 'lstm_head' in name:
-                p.requires_grad = True
-            if 'mlp_head' in name:
-                p.requires_grad = True
-
-        total_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        print(f"Total trainable parameters: {total_trainable_params}")
-
-        print(f"Total trainable percentage: {total_trainable_params / total_params}")
-        print(f"Total trainable percentage: {total_trainable_params / (total_params - total_trainable_params)}")
         training_config['optimizer']['params']['lr'] = \
             training_config['optimizer']['params']['lr'] * hvd.size() * training_config['gradient_accumulation_steps']
         optimizer = mcpt.train.optimizers.adamw(model.parameters(), config=training_config['optimizer']['params'])
@@ -120,7 +104,7 @@ def main(
             n_ctx=model.config['n_ctx'],
             dp_size=hvd.size(),
         )
-        hvd.broadcast_parameters(model.state_dict(), root_rank=0)
+        # hvd.broadcast_parameters(model.state_dict(), root_rank=0)
         hvd.broadcast_optimizer_state(optimizer, root_rank=0)
         callbacks = []
         if hvd.rank() == 0:
@@ -140,7 +124,25 @@ def main(
         print(model)
         if save_initial:
             torch.save(model.state_dict(), save_path / 'initial.pt')
+    # lora.mark_only_lora_as_trainable(model, 'all')
+    lora.mark_only_lora_as_trainable(model)
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f"Total parameters: {total_params}")
 
+    # for name, p in model.named_parameters():
+    #     if 'prompt_emb' in name:
+    #         p.requires_grad = True
+    #     if 'lstm_head' in name:
+    #         p.requires_grad = True
+    #     if 'mlp_head' in name:
+    #         p.requires_grad = True
+
+    total_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"Total trainable parameters: {total_trainable_params}")
+
+    print(f"Total trainable percentage: {total_trainable_params / total_params}")
+    print(f"Total trainable percentage: {total_trainable_params / (total_params - total_trainable_params)}")
+    # input()
     scaler = torch.cuda.amp.GradScaler() if training_config['fp16']['enabled'] else mcpt.stubs.Noop()
     for epoch in range(1, epochs + 1):
         if hvd.rank() == 0:

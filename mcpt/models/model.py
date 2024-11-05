@@ -42,6 +42,8 @@ class Model(nn.Module):
                 model = cls(mcpt.models.MCPTPromptLoRAModel(config))
             else:
                 model = cls(mcpt.models.MCPTPromptModel(config))
+        elif config.get('use_lora', False):
+            model = cls(mcpt.models.MCPTLoRAModel(config))
         else:
             model = cls(mcpt.models.MCPTModel(config))
         if load_model is not None:
