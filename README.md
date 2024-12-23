@@ -57,7 +57,7 @@ The required packages are not listed in `setup.py` yet, so you need to install t
     ```
 
 3. Install the required packages. Be sure to install PyTorch first. You have to edit the `requirements-torch.txt`
-   and `requirements.txt` file to match your CUDA version. The default version is 12.1.
+   and `requirements.txt` file to match your CUDA version. The default version is 12.4.
 
     ```
     pip install -r requirements-torch.txt
